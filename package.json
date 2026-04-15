@@ -1,0 +1,12 @@
+{
+  "name": "julia-den-best",
+  "version": "1.0.0",
+  "description": "Julia Den Best — Fitness Coaching Landingspagina",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

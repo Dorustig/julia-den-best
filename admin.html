@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Julia Den Best — Admin Panel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #F9FAFB; color: #1F2937; }
+
+        /* Sidebar */
+        .admin-layout { display: flex; min-height: 100vh; }
+        .sidebar {
+            width: 240px; background: #1F2937; color: #fff; padding: 24px 16px;
+            position: fixed; top: 0; left: 0; bottom: 0; z-index: 10;
+        }
+        .sidebar-brand { font-size: 16px; font-weight: 700; color: #F472B6; margin-bottom: 32px; padding: 0 8px; }
+        .sidebar-nav { list-style: none; }
+        .sidebar-nav li a {
+            display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+            color: #9CA3AF; text-decoration: none; font-size: 14px; border-radius: 8px;
+            transition: all 0.2s; margin-bottom: 4px;
+        }
+        .sidebar-nav li a:hover, .sidebar-nav li a.active { background: #374151; color: #fff; }
+        .sidebar-nav li a.active { color: #F472B6; }
+
+        /* Main */
+        .main { flex: 1; margin-left: 240px; padding: 24px 32px; }
+
+        /* Top bar */
+        .topbar {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 32px;
+        }
+        .topbar h1 { font-size: 24px; font-weight: 700; }
+        .topbar-actions { display: flex; gap: 12px; }
+        .btn-admin {
+            padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600;
+            cursor: pointer; border: none; transition: all 0.2s;
+        }
+        .btn-export { background: #E91E8C; color: #fff; }
+        .btn-export:hover { background: #D6188A; }
+        .btn-refresh { background: #F3F4F6; color: #374151; border: 1px solid #E5E7EB; }
+        .btn-refresh:hover { background: #E5E7EB; }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+            margin-bottom: 32px;
+        }
+        .stat-card {
+            background: #fff; border-radius: 12px; padding: 20px;
+            border: 1px solid #E5E7EB;
+        }
+        .stat-card-label { font-size: 13px; color: #6B7280; margin-bottom: 4px; }
+        .stat-card-value { font-size: 28px; font-weight: 700; }
+        .stat-card-value.pink { color: #E91E8C; }
+        .stat-card-value.green { color: #10B981; }
+        .stat-card-value.blue { color: #3B82F6; }
+        .stat-card-value.orange { color: #F59E0B; }
+
+        /* Filters */
+        .filters {
+            display: flex; gap: 12px; margin-bottom: 20px; align-items: center;
+        }
+        .filter-input {
+            padding: 8px 14px; border: 1px solid #E5E7EB; border-radius: 8px;
+            font-size: 14px; font-family: 'Inter', sans-serif; min-width: 200px;
+        }
+        .filter-input:focus { outline: none; border-color: #E91E8C; }
+        .filter-select {
+            padding: 8px 14px; border: 1px solid #E5E7EB; border-radius: 8px;
+            font-size: 14px; font-family: 'Inter', sans-serif; background: #fff;
+        }
+
+        /* Table */
+        .table-wrapper {
+            background: #fff; border-radius: 12px; border: 1px solid #E5E7EB;
+            overflow-x: auto;
+        }
+        table { width: 100%; border-collapse: collapse; }
+        thead { background: #F9FAFB; }
+        th {
+            text-align: left; padding: 12px 16px; font-size: 12px; font-weight: 600;
+            color: #6B7280; text-transform: uppercase; letter-spacing: 0.5px;
+            border-bottom: 1px solid #E5E7EB;
+        }
+        td {
+            padding: 14px 16px; font-size: 14px; border-bottom: 1px solid #F3F4F6;
+            max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        tr:hover td { background: #FDF2F8; }
+        .badge {
+            display: inline-block; padding: 3px 10px; border-radius: 50px;
+            font-size: 12px; font-weight: 600;
+        }
+        .badge-nieuw { background: #DBEAFE; color: #1D4ED8; }
+        .badge-gebeld { background: #FEF3C7; color: #D97706; }
+        .badge-afspraak { background: #D1FAE5; color: #065F46; }
+        .badge-klant { background: #F3E8FF; color: #7C3AED; }
+        .badge-lost { background: #FEE2E2; color: #991B1B; }
+
+        .urgentie-bar {
+            display: flex; gap: 2px;
+        }
+        .urgentie-dot {
+            width: 8px; height: 8px; border-radius: 50%; background: #E5E7EB;
+        }
+        .urgentie-dot.active { background: #E91E8C; }
+
+        .empty-state {
+            text-align: center; padding: 80px 20px; color: #9CA3AF;
+        }
+        .empty-state h3 { font-size: 18px; margin-bottom: 8px; color: #6B7280; }
+
+        /* Lead Detail Modal */
+        .lead-modal {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(4px); display: none; align-items: center;
+            justify-content: center; z-index: 100; padding: 20px;
+        }
+        .lead-modal.active { display: flex; }
+        .lead-modal-content {
+            background: #fff; border-radius: 16px; padding: 32px;
+            max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto;
+        }
+        .lead-modal-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 24px;
+        }
+        .lead-modal-header h2 { font-size: 20px; }
+        .modal-close {
+            width: 32px; height: 32px; border-radius: 8px; border: 1px solid #E5E7EB;
+            background: #fff; cursor: pointer; font-size: 18px; display: flex;
+            align-items: center; justify-content: center;
+        }
+        .lead-field { margin-bottom: 16px; }
+        .lead-field label { display: block; font-size: 12px; color: #6B7280; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+        .lead-field .value { font-size: 15px; line-height: 1.5; }
+        .lead-field textarea {
+            width: 100%; padding: 10px; border: 1px solid #E5E7EB; border-radius: 8px;
+            font-family: 'Inter', sans-serif; font-size: 14px; resize: vertical; min-height: 60px;
+        }
+        .lead-actions { display: flex; gap: 8px; margin-top: 24px; flex-wrap: wrap; }
+        .lead-actions .btn-admin { font-size: 13px; padding: 8px 16px; }
+        .btn-status { background: #F3F4F6; color: #374151; border: 1px solid #E5E7EB; }
+        .btn-status:hover { background: #E5E7EB; }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .sidebar { display: none; }
+            .main { margin-left: 0; padding: 16px; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .filters { flex-wrap: wrap; }
+        }
+        @media (max-width: 640px) {
+            .stats-grid { grid-template-columns: 1fr; }
+            .topbar { flex-direction: column; gap: 12px; align-items: flex-start; }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">Julia Den Best</div>
+            <ul class="sidebar-nav">
+                <li><a href="#" class="active">📊 Dashboard</a></li>
+                <li><a href="#">👥 Leads</a></li>
+                <li><a href="#">📞 Te bellen</a></li>
+                <li><a href="#">📅 Afspraken</a></li>
+                <li><a href="#">✅ Klanten</a></li>
+                <li><a href="index.html">🌐 Landingspagina</a></li>
+            </ul>
+        </aside>
+
+        <!-- Main -->
+        <main class="main">
+            <div class="topbar">
+                <h1>Leads Dashboard</h1>
+                <div class="topbar-actions">
+                    <button class="btn-admin btn-refresh" onclick="loadLeads()">&#8635; Ververs</button>
+                    <button class="btn-admin btn-export" onclick="exportCSV()">&#8681; Export CSV</button>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-card-label">Totaal Leads</div>
+                    <div class="stat-card-value pink" id="statTotal">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-label">Nieuwe Leads</div>
+                    <div class="stat-card-value blue" id="statNieuw">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-label">Hoge Urgentie (4-5)</div>
+                    <div class="stat-card-value green" id="statUrgent">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-label">Vandaag</div>
+                    <div class="stat-card-value orange" id="statVandaag">0</div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="filters">
+                <input type="text" class="filter-input" id="searchInput" placeholder="Zoek op naam, email, Instagram..." oninput="renderTable()">
+                <select class="filter-select" id="statusFilter" onchange="renderTable()">
+                    <option value="">Alle statussen</option>
+                    <option value="nieuw">Nieuw</option>
+                    <option value="gebeld">Gebeld</option>
+                    <option value="afspraak">Afspraak</option>
+                    <option value="klant">Klant</option>
+                    <option value="lost">Verloren</option>
+                </select>
+                <select class="filter-select" id="urgentieFilter" onchange="renderTable()">
+                    <option value="">Alle urgentie</option>
+                    <option value="5">5 - Zeer belangrijk</option>
+                    <option value="4">4 - Belangrijk</option>
+                    <option value="3">3 - Neutraal</option>
+                    <option value="1-2">1-2 - Laag</option>
+                </select>
+            </div>
+
+            <!-- Table -->
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Naam</th>
+                            <th>Doel</th>
+                            <th>Leeftijd</th>
+                            <th>Budget</th>
+                            <th>Urgentie</th>
+                            <th>Status</th>
+                            <th>Datum</th>
+                            <th>Acties</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leadsTable">
+                    </tbody>
+                </table>
+                <div class="empty-state" id="emptyState" style="display:none;">
+                    <h3>Nog geen leads</h3>
+                    <p>Leads verschijnen hier zodra iemand de vragenlijst invult op de landingspagina.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Lead Detail Modal -->
+    <div class="lead-modal" id="leadModal">
+        <div class="lead-modal-content" id="leadModalContent">
+        </div>
+    </div>
+
+    <script>
+        let leads = [];
+
+        async function loadLeads() {
+            try {
+                const res = await fetch('/api/leads');
+                if (res.ok) leads = await res.json();
+                else leads = JSON.parse(localStorage.getItem('julia_leads') || '[]');
+            } catch (e) {
+                leads = JSON.parse(localStorage.getItem('julia_leads') || '[]');
+            }
+            leads.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            updateStats();
+            renderTable();
+        }
+
+        function updateStats() {
+            const today = new Date().toISOString().slice(0, 10);
+            document.getElementById('statTotal').textContent = leads.length;
+            document.getElementById('statNieuw').textContent = leads.filter(l => l.status === 'nieuw').length;
+            document.getElementById('statUrgent').textContent = leads.filter(l => parseInt(l.urgentie) >= 4).length;
+            document.getElementById('statVandaag').textContent = leads.filter(l => l.timestamp && l.timestamp.startsWith(today)).length;
+        }
+
+        function renderTable() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const statusF = document.getElementById('statusFilter').value;
+            const urgentieF = document.getElementById('urgentieFilter').value;
+
+            let filtered = leads.filter(l => {
+                if (search) {
+                    const hay = `${l.naam} ${l.email} ${l.instagram} ${l.doel_type} ${l.nummer_een_doel}`.toLowerCase();
+                    if (!hay.includes(search)) return false;
+                }
+                if (statusF && l.status !== statusF) return false;
+                if (urgentieF === '1-2' && parseInt(l.urgentie) > 2) return false;
+                if (urgentieF && urgentieF !== '1-2' && l.urgentie !== urgentieF) return false;
+                return true;
+            });
+
+            const tbody = document.getElementById('leadsTable');
+            const empty = document.getElementById('emptyState');
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '';
+                empty.style.display = 'block';
+                return;
+            }
+            empty.style.display = 'none';
+
+            tbody.innerHTML = filtered.map((l, i) => {
+                const urg = parseInt(l.urgentie) || 0;
+                const urgDots = Array.from({length: 5}, (_, j) =>
+                    `<div class="urgentie-dot ${j < urg ? 'active' : ''}"></div>`
+                ).join('');
+                const date = l.timestamp ? new Date(l.timestamp).toLocaleDateString('nl-NL', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '-';
+
+                return `<tr onclick="openLead('${l.id}')" style="cursor:pointer">
+                    <td><strong>${esc(l.naam || '-')}</strong><br><span style="font-size:12px;color:#6B7280">${esc(l.email || '')}</span></td>
+                    <td>${esc(l.doel_type || '-')}</td>
+                    <td>${esc(l.leeftijd || '-')}</td>
+                    <td>${esc(l.budget ? '€' + l.budget : '-')}</td>
+                    <td><div class="urgentie-bar">${urgDots}</div></td>
+                    <td><span class="badge badge-${l.status || 'nieuw'}">${l.status || 'nieuw'}</span></td>
+                    <td style="font-size:13px;color:#6B7280">${date}</td>
+                    <td><button class="btn-admin btn-status" onclick="event.stopPropagation(); openLead('${l.id}')">Bekijk</button></td>
+                </tr>`;
+            }).join('');
+        }
+
+        function openLead(id) {
+            const l = leads.find(x => x.id === id);
+            if (!l) return;
+            const mc = document.getElementById('leadModalContent');
+            mc.innerHTML = `
+                <div class="lead-modal-header">
+                    <h2>${esc(l.naam || 'Lead')}</h2>
+                    <button class="modal-close" onclick="closeModal()">&#10005;</button>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                    <div class="lead-field"><label>Email</label><div class="value">${esc(l.email || '-')}</div></div>
+                    <div class="lead-field"><label>Telefoon</label><div class="value"><a href="tel:${esc(l.telefoon)}">${esc(l.telefoon || '-')}</a></div></div>
+                    <div class="lead-field"><label>Instagram</label><div class="value">${esc(l.instagram || '-')}</div></div>
+                    <div class="lead-field"><label>Leeftijd</label><div class="value">${esc(l.leeftijd || '-')}</div></div>
+                    <div class="lead-field"><label>Doel Type</label><div class="value">${esc(l.doel_type || '-')}</div></div>
+                    <div class="lead-field"><label>Budget</label><div class="value">${l.budget ? '€' + esc(l.budget) + '/week' : '-'}</div></div>
+                    <div class="lead-field"><label>Urgentie</label><div class="value">${esc(l.urgentie || '-')}/5</div></div>
+                    <div class="lead-field"><label>Bereid</label><div class="value">${esc(l.bereid || '-')}</div></div>
+                </div>
+                <div class="lead-field" style="margin-top:8px"><label>Nummer 1 Doel</label><div class="value">${esc(l.nummer_een_doel || '-')}</div></div>
+                <div class="lead-field"><label>Obstakel</label><div class="value">${esc(l.obstakel || '-')}</div></div>
+                <div class="lead-field">
+                    <label>Notities</label>
+                    <textarea id="noteField" placeholder="Voeg notities toe...">${esc(l.notities || '')}</textarea>
+                </div>
+                <div class="lead-field"><label>Status wijzigen</label></div>
+                <div class="lead-actions">
+                    <button class="btn-admin btn-status" onclick="setStatus('${l.id}','nieuw')">Nieuw</button>
+                    <button class="btn-admin btn-status" onclick="setStatus('${l.id}','gebeld')">Gebeld</button>
+                    <button class="btn-admin btn-status" onclick="setStatus('${l.id}','afspraak')">Afspraak</button>
+                    <button class="btn-admin btn-export" onclick="setStatus('${l.id}','klant')">Klant!</button>
+                    <button class="btn-admin btn-status" style="color:#991B1B" onclick="setStatus('${l.id}','lost')">Verloren</button>
+                </div>
+                <div style="margin-top:16px;text-align:right">
+                    <button class="btn-admin btn-export" onclick="saveNote('${l.id}')">Opslaan</button>
+                </div>
+            `;
+            document.getElementById('leadModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('leadModal').classList.remove('active');
+        }
+
+        async function setStatus(id, status) {
+            const idx = leads.findIndex(l => l.id === id);
+            if (idx === -1) return;
+            leads[idx].status = status;
+            try { await fetch(`/api/leads/${id}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ status }) }); }
+            catch (e) { console.warn('Backend update failed:', e); }
+            updateStats();
+            renderTable();
+            openLead(id);
+        }
+
+        async function saveNote(id) {
+            const idx = leads.findIndex(l => l.id === id);
+            if (idx === -1) return;
+            const notities = document.getElementById('noteField').value;
+            leads[idx].notities = notities;
+            try { await fetch(`/api/leads/${id}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ notities }) }); }
+            catch (e) { console.warn('Backend update failed:', e); }
+            closeModal();
+        }
+
+        function exportCSV() {
+            if (leads.length === 0) { alert('Geen leads om te exporteren.'); return; }
+            const headers = ['Naam','Email','Telefoon','Instagram','Doel','Leeftijd','Nr1 Doel','Obstakel','Urgentie','Budget','Bereid','Status','Notities','Datum'];
+            const rows = leads.map(l => [
+                l.naam, l.email, l.telefoon, l.instagram, l.doel_type, l.leeftijd,
+                `"${(l.nummer_een_doel||'').replace(/"/g,'""')}"`,
+                `"${(l.obstakel||'').replace(/"/g,'""')}"`,
+                l.urgentie, l.budget, l.bereid, l.status,
+                `"${(l.notities||'').replace(/"/g,'""')}"`,
+                l.timestamp
+            ]);
+            const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+            const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `julia-leads-${new Date().toISOString().slice(0,10)}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function esc(str) {
+            const d = document.createElement('div');
+            d.textContent = str || '';
+            return d.innerHTML;
+        }
+
+        // Close modal on outside click
+        document.getElementById('leadModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('leadModal')) closeModal();
+        });
+
+        // Init
+        loadLeads();
+    </script>
+</body>
+</html>

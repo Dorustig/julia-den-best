@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Julia Den Best — Jouw Fitness Transformatie Begint Hier</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <div class="container nav-container">
+            <a href="#" class="nav-brand">Julia Den Best</a>
+            <div class="nav-right">
+                <div class="lang-switch" id="langSwitch">
+                    <button class="lang-btn active" data-lang="nl">NL</button>
+                    <button class="lang-btn" data-lang="en">EN</button>
+                </div>
+                <a href="#vragenlijst" class="btn btn-primary btn-sm" data-nl="Start Nu" data-en="Start Now">Start Nu</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- HERO SECTION -->
+    <header class="hero">
+        <div class="container hero-grid">
+            <div class="hero-text">
+                <div class="hero-badge">
+                    <span class="badge-dot"></span>
+                    Nog maar 5 plekken beschikbaar deze maand
+                </div>
+                <h1>Je verdient <span class="highlight">echt</span> persoonlijk advies, geen onzin.</h1>
+                <p class="hero-subtitle">Geen standaard AI-schema's. Geen copy-paste plannen. Geen crash dieten waar je bijna niks mag eten. <strong>Bij Julia krijg je 1-op-1 menselijke begeleiding — van iemand die jou kent, jouw lichaam begrijpt en er elke dag voor je is.</strong></p>
+                <div class="hero-usp-bar">
+                    <span class="usp-item">
+                        <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="10" fill="#E91E8C"/><path d="M6 10l3 3 5-6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        100% menselijk — geen AI
+                    </span>
+                    <span class="usp-item">
+                        <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="10" fill="#E91E8C"/><path d="M6 10l3 3 5-6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        1-op-1 persoonlijke coaching
+                    </span>
+                    <span class="usp-item">
+                        <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="10" fill="#E91E8C"/><path d="M6 10l3 3 5-6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        Op maat gemaakt voor jouw lichaam
+                    </span>
+                </div>
+                <div class="hero-cta-group">
+                    <a href="#vragenlijst" class="btn btn-primary btn-hero">Ja, ik wil dit! Start mijn transformatie</a>
+                    <div class="hero-guarantee">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="10" fill="#10B981"/><path d="M6 10l3 3 5-6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        <span>Niet goed? Geld terug. Geen risico.</span>
+                    </div>
+                </div>
+                <div class="hero-stats">
+                    <div class="stat">
+                        <span class="stat-number">500+</span>
+                        <span class="stat-label">Vrouwen geholpen</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number">4.9/5</span>
+                        <span class="stat-label">Beoordeling</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number">12</span>
+                        <span class="stat-label">Weken traject</span>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-image">
+                <div class="hero-img-wrapper" id="heroImgWrapper">
+                    <img id="heroImg" src="/img/julia-team.jpg" alt="Julia Den Best met haar fitness community"
+                         onerror="this.parentElement.style.display='none'; document.getElementById('heroDropzone').style.display='flex';">
+                </div>
+                <div class="hero-dropzone" id="heroDropzone">
+                    <div class="dropzone-content">
+                        <span class="dropzone-icon">📸</span>
+                        <p>Sleep hier je foto naartoe<br><small>of klik om te uploaden</small></p>
+                        <input type="file" id="heroFileInput" accept="image/*" style="display:none">
+                    </div>
+                </div>
+                <div class="hero-float-card float-card-1">
+                    <span class="float-emoji">🔥</span>
+                    <div>
+                        <strong>Emma</strong>
+                        <span data-nl="Net week 8 afgerond!" data-en="Just completed week 8!">Net week 8 afgerond!</span>
+                    </div>
+                </div>
+                <div class="hero-float-card float-card-2">
+                    <span class="float-emoji">💪</span>
+                    <div>
+                        <strong>-7kg in 12 weken</strong>
+                        <span data-nl="Gemiddeld resultaat" data-en="Average result">Gemiddeld resultaat</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- SOCIAL PROOF TICKER -->
+    <section class="social-proof-bar">
+        <div class="ticker-track">
+            <div class="ticker-content">
+                <span class="ticker-item"><span class="proof-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</span> "Dit heeft mijn leven veranderd!"</span>
+                <span class="ticker-sep">&#183;</span>
+                <span class="ticker-item"><span class="proof-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</span> 500+ tevreden vrouwen</span>
+                <span class="ticker-sep">&#183;</span>
+                <span class="ticker-item"><span class="proof-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</span> "Beste investering in mezelf ooit"</span>
+                <span class="ticker-sep">&#183;</span>
+                <span class="ticker-item"><span class="proof-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</span> "Julia is een engel"</span>
+                <span class="ticker-sep">&#183;</span>
+                <span class="ticker-item"><span class="proof-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</span> "Ik voel me eindelijk goed in mijn vel"</span>
+                <span class="ticker-sep">&#183;</span>
+                <!-- duplicate for seamless loop -->
+                <span class="ticker-item"><span class="proof-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</span> "Dit heeft mijn leven veranderd!"</span>
+                <span class="ticker-sep">&#183;</span>
+                <span class="ticker-item"><span class="proof-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</span> 500+ tevreden vrouwen</span>
+                <span class="ticker-sep">&#183;</span>
+                <span class="ticker-item"><span class="proof-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</span> "Beste investering in mezelf ooit"</span>
+                <span class="ticker-sep">&#183;</span>
+                <span class="ticker-item"><span class="proof-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</span> "Julia is een engel"</span>
+                <span class="ticker-sep">&#183;</span>
+                <span class="ticker-item"><span class="proof-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</span> "Ik voel me eindelijk goed in mijn vel"</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- PAIN POINT / EMPATHY SECTION -->
+    <section class="empathy-section">
+        <div class="container">
+            <div class="empathy-card">
+                <h2>Herken je dit?</h2>
+                <div class="empathy-grid">
+                    <div class="empathy-item negative">
+                        <span class="empathy-x">&#10005;</span>
+                        <p>Je hebt al 10 dieten geprobeerd maar niks werkt</p>
+                    </div>
+                    <div class="empathy-item negative">
+                        <span class="empathy-x">&#10005;</span>
+                        <p>Je krijgt standaard schema's of copy-paste plannen zonder persoonlijk contact</p>
+                    </div>
+                    <div class="empathy-item negative">
+                        <span class="empathy-x">&#10005;</span>
+                        <p>Je mag bijna niks eten en voelt je ellendig</p>
+                    </div>
+                    <div class="empathy-item negative">
+                        <span class="empathy-x">&#10005;</span>
+                        <p>Je coach reageert pas na 3 dagen (of helemaal niet)</p>
+                    </div>
+                    <div class="empathy-item negative">
+                        <span class="empathy-x">&#10005;</span>
+                        <p>Je voelt je alleen en hebt niemand die je begrijpt</p>
+                    </div>
+                    <div class="empathy-item negative">
+                        <span class="empathy-x">&#10005;</span>
+                        <p>Je weet niet waar je moet beginnen of wat echt werkt</p>
+                    </div>
+                </div>
+                <div class="empathy-divider">
+                    <span>Bij Julia is het anders</span>
+                </div>
+                <div class="empathy-grid">
+                    <div class="empathy-item positive">
+                        <span class="empathy-check">&#10003;</span>
+                        <p>Persoonlijk plan op maat — geen one-size-fits-all</p>
+                    </div>
+                    <div class="empathy-item positive">
+                        <span class="empathy-check">&#10003;</span>
+                        <p>Julia staat ZELF voor je klaar, elke dag</p>
+                    </div>
+                    <div class="empathy-item positive">
+                        <span class="empathy-check">&#10003;</span>
+                        <p>Lekker eten en toch resultaat — geen hongerlijden</p>
+                    </div>
+                    <div class="empathy-item positive">
+                        <span class="empathy-check">&#10003;</span>
+                        <p>Een community van vrouwen die hetzelfde doormaken</p>
+                    </div>
+                    <div class="empathy-item positive">
+                        <span class="empathy-check">&#10003;</span>
+                        <p>Duurzame resultaten — geen jojo-effect</p>
+                    </div>
+                    <div class="empathy-item positive">
+                        <span class="empathy-check">&#10003;</span>
+                        <p>Niet goed? Geld terug. Zonder gedoe.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- GUARANTEE BANNER -->
+    <section class="guarantee-banner">
+        <div class="container">
+            <div class="guarantee-content">
+                <div class="guarantee-shield">
+                    <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><path d="M24 4L6 12v12c0 11.1 7.7 21.5 18 24 10.3-2.5 18-12.9 18-24V12L24 4z" fill="#10B981" opacity="0.15"/><path d="M24 4L6 12v12c0 11.1 7.7 21.5 18 24 10.3-2.5 18-12.9 18-24V12L24 4z" stroke="#10B981" stroke-width="2"/><path d="M16 24l5 5 10-12" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+                <div>
+                    <h3>100% Niet-Goed-Geld-Terug Garantie</h3>
+                    <p>Wij geloven zo sterk in ons programma dat je je geld volledig terugkrijgt als je niet tevreden bent. Geen kleine lettertjes, geen gedoe. Jouw resultaat is onze missie.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- VRAGENLIJST / QUIZ SECTION -->
+    <section id="vragenlijst" class="quiz-section">
+        <div class="container">
+            <div class="quiz-wrapper">
+                <div class="quiz-header">
+                    <h2>Ontdek jouw persoonlijke plan</h2>
+                    <p>Beantwoord een paar vragen zodat Julia je het beste kan helpen</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <span class="progress-text" id="progressText">Stap 1 van 8</span>
+                </div>
+
+                <form id="quizForm">
+                    <!-- STAP 1 -->
+                    <div class="quiz-step active" data-step="1">
+                        <h3>Hoe kan ik je het beste helpen?</h3>
+                        <div class="options-grid">
+                            <label class="option-card">
+                                <input type="radio" name="doel_type" value="Afvallen" required>
+                                <div class="option-content">
+                                    <span class="option-emoji">🔥</span>
+                                    <span class="option-text">Afvallen</span>
+                                </div>
+                            </label>
+                            <label class="option-card">
+                                <input type="radio" name="doel_type" value="Spiermassa opbouwen">
+                                <div class="option-content">
+                                    <span class="option-emoji">💪</span>
+                                    <span class="option-text">Spiermassa opbouwen</span>
+                                </div>
+                            </label>
+                            <label class="option-card">
+                                <input type="radio" name="doel_type" value="Gezonde levensstijl">
+                                <div class="option-content">
+                                    <span class="option-emoji">🥗</span>
+                                    <span class="option-text">Gezonde levensstijl</span>
+                                </div>
+                            </label>
+                            <label class="option-card">
+                                <input type="radio" name="doel_type" value="Lichaamstransformatie">
+                                <div class="option-content">
+                                    <span class="option-emoji">✨</span>
+                                    <span class="option-text">Lichaamstransformatie</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- STAP 2 -->
+                    <div class="quiz-step" data-step="2">
+                        <h3>Wat is jouw leeftijd?</h3>
+                        <div class="options-grid">
+                            <label class="option-card"><input type="radio" name="leeftijd" value="16-17" required><div class="option-content"><span class="option-text">16 — 17 jaar</span></div></label>
+                            <label class="option-card"><input type="radio" name="leeftijd" value="18-25"><div class="option-content"><span class="option-text">18 — 25 jaar</span></div></label>
+                            <label class="option-card"><input type="radio" name="leeftijd" value="25-35"><div class="option-content"><span class="option-text">25 — 35 jaar</span></div></label>
+                            <label class="option-card"><input type="radio" name="leeftijd" value="35+"><div class="option-content"><span class="option-text">35+ jaar</span></div></label>
+                        </div>
+                    </div>
+
+                    <!-- STAP 3 -->
+                    <div class="quiz-step" data-step="3">
+                        <h3>Wat is je absolute nummer 1 doel op het gebied van fitness en gezondheid?</h3>
+                        <textarea name="nummer_een_doel" class="quiz-textarea" placeholder="Vertel hier over je belangrijkste doel..." required></textarea>
+                    </div>
+
+                    <!-- STAP 4 -->
+                    <div class="quiz-step" data-step="4">
+                        <h3>Wat staat je momenteel het meeste in de weg om dit doel te bereiken?</h3>
+                        <p class="step-subtitle">Waarom heb je je doel nog niet behaald?</p>
+                        <textarea name="obstakel" class="quiz-textarea" placeholder="Wat houdt je tegen..." required></textarea>
+                    </div>
+
+                    <!-- STAP 5 -->
+                    <div class="quiz-step" data-step="5">
+                        <h3>Hoe belangrijk is het voor jou om dit nu aan te pakken?</h3>
+                        <div class="scale-options">
+                            <label class="scale-card"><input type="radio" name="urgentie" value="1" required><div class="scale-content"><span class="scale-number">1</span><span class="scale-label">Helemaal niet belangrijk</span><span class="scale-desc">Ik vind mijn doelen nu niet belangrijk genoeg om er iets mee te doen.</span></div></label>
+                            <label class="scale-card"><input type="radio" name="urgentie" value="2"><div class="scale-content"><span class="scale-number">2</span><span class="scale-label">Niet zo belangrijk</span><span class="scale-desc">Ik wil wel verandering maken, maar heb nu geen prioriteit voor.</span></div></label>
+                            <label class="scale-card"><input type="radio" name="urgentie" value="3"><div class="scale-content"><span class="scale-number">3</span><span class="scale-label">Neutraal</span><span class="scale-desc">Ik twijfel nog. Ik wil iets doen, maar heb er geen duidelijke urgentie voor.</span></div></label>
+                            <label class="scale-card"><input type="radio" name="urgentie" value="4"><div class="scale-content"><span class="scale-number">4</span><span class="scale-label">Belangrijk</span><span class="scale-desc">Ik wil serieus aan de slag en zoek hulp om mijn doelen te behalen.</span></div></label>
+                            <label class="scale-card"><input type="radio" name="urgentie" value="5"><div class="scale-content"><span class="scale-number">5</span><span class="scale-label">Zeer belangrijk</span><span class="scale-desc">Absolute prioriteit. Ik wil nu verandering. Ben gemotiveerd om direct te starten.</span></div></label>
+                        </div>
+                    </div>
+
+                    <!-- STAP 6 -->
+                    <div class="quiz-step" data-step="6">
+                        <h3>Stel je zou nu in jezelf investeren, wat zou voor jou per week realistisch voelen?</h3>
+                        <div class="options-grid">
+                            <label class="option-card"><input type="radio" name="budget" value="0-40" required><div class="option-content"><span class="option-text">€0 — €40 per week</span></div></label>
+                            <label class="option-card"><input type="radio" name="budget" value="45-70"><div class="option-content"><span class="option-text">€45 — €70 per week</span></div></label>
+                            <label class="option-card"><input type="radio" name="budget" value="70-100"><div class="option-content"><span class="option-text">€70 — €100 per week</span></div></label>
+                            <label class="option-card"><input type="radio" name="budget" value="geen-idee"><div class="option-content"><span class="option-text">Geen idee, dat hoor ik graag in het gesprek</span></div></label>
+                        </div>
+                    </div>
+
+                    <!-- STAP 7 -->
+                    <div class="quiz-step" data-step="7">
+                        <h3>Ben je bereid om tijd en geld te investeren om je transformatie waar te maken?</h3>
+                        <div class="commitment-section">
+                            <div class="commitment-card">
+                                <span class="commitment-emoji">🙌</span>
+                                <h4>Ja, ik ben er klaar voor!</h4>
+                                <p>Ik wil investeren in mezelf en mijn gezondheid. Laten we dit samen doen!</p>
+                                <label class="btn btn-primary btn-commitment">
+                                    <input type="radio" name="bereid" value="Ja" required>
+                                    Ja! Ik wil starten
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- STAP 8 — CONTACTGEGEVENS -->
+                    <div class="quiz-step" data-step="8">
+                        <h3>Laatste stap — Jouw contactgegevens</h3>
+                        <p class="step-subtitle">Vul je gegevens in zodat Julia persoonlijk contact met je kan opnemen</p>
+                        <div class="contact-form">
+                            <div class="form-group">
+                                <label for="naam">Volledige naam</label>
+                                <input type="text" id="naam" name="naam" placeholder="Je voor- en achternaam" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="email">E-mailadres</label>
+                                <input type="email" id="email" name="email" placeholder="naam@voorbeeld.nl" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="telefoon">Telefoonnummer</label>
+                                <input type="tel" id="telefoon" name="telefoon" placeholder="06-12345678" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="instagram">Hoe heet je op Instagram?</label>
+                                <input type="text" id="instagram" name="instagram" placeholder="@jouwnaam" required>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+
+                <div class="quiz-nav">
+                    <button type="button" class="btn btn-secondary" id="btnVorige" style="display:none;">Vorige</button>
+                    <button type="button" class="btn btn-primary" id="btnVolgende">Volgende</button>
+                    <button type="button" class="btn btn-primary btn-submit" id="btnVerstuur" style="display:none;">Verstuur & Start Jouw Transformatie</button>
+                </div>
+
+                <!-- Mini reviews under quiz -->
+                <div class="quiz-trust">
+                    <div class="quiz-trust-item">
+                        <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="10" fill="#10B981"/><path d="M6 10l3 3 5-6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        <span>100% niet-goed-geld-terug garantie</span>
+                    </div>
+                    <div class="quiz-trust-item">
+                        <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="10" fill="#10B981"/><path d="M6 10l3 3 5-6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        <span>Gratis kennismakingsgesprek</span>
+                    </div>
+                    <div class="quiz-trust-item">
+                        <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="10" fill="#10B981"/><path d="M6 10l3 3 5-6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        <span>Persoonlijk contact met Julia</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- REVIEWS -->
+    <section class="reviews-section">
+        <div class="container">
+            <h2>Wat andere vrouwen zeggen</h2>
+            <div class="reviews-grid">
+                <div class="review-card">
+                    <div class="review-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+                    <p class="review-text">"Na jaren proberen heb ik eindelijk resultaat. Julia begrijpt precies wat je nodig hebt en past alles aan op jouw lichaam en levensstijl."</p>
+                    <div class="review-author">
+                        <div class="review-avatar">S</div>
+                        <div><strong>Sophie, 24</strong><span>-8kg in 12 weken</span></div>
+                    </div>
+                </div>
+                <div class="review-card">
+                    <div class="review-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+                    <p class="review-text">"De persoonlijke begeleiding maakt echt het verschil. Het voelt alsof je een vriendin hebt die ook nog eens expert is in fitness en voeding."</p>
+                    <div class="review-author">
+                        <div class="review-avatar">L</div>
+                        <div><strong>Lisa, 29</strong><span>Compleet lichaamstransformatie</span></div>
+                    </div>
+                </div>
+                <div class="review-card">
+                    <div class="review-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+                    <p class="review-text">"Ik dacht dat ik alles al geprobeerd had. Julia liet me zien dat het niet om dieten gaat, maar om een duurzame levensstijl."</p>
+                    <div class="review-author">
+                        <div class="review-avatar">M</div>
+                        <div><strong>Marieke, 32</strong><span>Van maat 42 naar 38</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TRANSFORMATIES -->
+    <section class="transformations-section">
+        <div class="container">
+            <h2>Van A naar Z — Echte Transformaties</h2>
+            <p class="section-subtitle">Bekijk wat onze klanten hebben bereikt met het 12-weken programma</p>
+            <div class="transformations-grid">
+                <div class="transformation-card">
+                    <div class="transformation-visual">
+                        <div class="before-after">
+                            <div class="ba-side before"><span class="ba-label">Voor</span><div class="ba-placeholder"><span>Week 1</span></div></div>
+                            <div class="ba-arrow">→</div>
+                            <div class="ba-side after"><span class="ba-label">Na</span><div class="ba-placeholder glow"><span>Week 12</span></div></div>
+                        </div>
+                    </div>
+                    <div class="transformation-info">
+                        <h4>Emma's Reis</h4>
+                        <div class="transformation-stats"><span class="t-stat">-7kg</span><span class="t-stat">-12cm taille</span><span class="t-stat">+Zelfvertrouwen</span></div>
+                        <p>"Ik had nooit gedacht dat ik me zo goed kon voelen in mijn eigen lichaam."</p>
+                    </div>
+                </div>
+                <div class="transformation-card">
+                    <div class="transformation-visual">
+                        <div class="before-after">
+                            <div class="ba-side before"><span class="ba-label">Voor</span><div class="ba-placeholder"><span>Week 1</span></div></div>
+                            <div class="ba-arrow">→</div>
+                            <div class="ba-side after"><span class="ba-label">Na</span><div class="ba-placeholder glow"><span>Week 12</span></div></div>
+                        </div>
+                    </div>
+                    <div class="transformation-info">
+                        <h4>Noor's Reis</h4>
+                        <div class="transformation-stats"><span class="t-stat">+5kg spiermassa</span><span class="t-stat">Strakker lichaam</span><span class="t-stat">Meer energie</span></div>
+                        <p>"Julia heeft me laten zien dat sterk zijn beautiful is."</p>
+                    </div>
+                </div>
+                <div class="transformation-card">
+                    <div class="transformation-visual">
+                        <div class="before-after">
+                            <div class="ba-side before"><span class="ba-label">Voor</span><div class="ba-placeholder"><span>Week 1</span></div></div>
+                            <div class="ba-arrow">→</div>
+                            <div class="ba-side after"><span class="ba-label">Na</span><div class="ba-placeholder glow"><span>Week 12</span></div></div>
+                        </div>
+                    </div>
+                    <div class="transformation-info">
+                        <h4>Fleur's Reis</h4>
+                        <div class="transformation-stats"><span class="t-stat">-10kg</span><span class="t-stat">Gezonde relatie met eten</span></div>
+                        <p>"Voor het eerst in jaren voel ik me comfortabel in een bikini."</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- COMMUNITY SECTION -->
+    <section class="community-section">
+        <div class="container">
+            <div class="community-card">
+                <div class="community-text">
+                    <span class="program-badge">Word Onderdeel</span>
+                    <h2>Meer dan een programma — een <span class="highlight">community</span></h2>
+                    <p>Als je start bij Julia word je direct onderdeel van een exclusieve community van vrouwen die dezelfde reis maken als jij. Via onze Discord server deel je ervaringen, vier je successen en steun je elkaar op de moeilijke dagen.</p>
+                    <ul class="community-perks">
+                        <li>
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="10" fill="#E91E8C"/><path d="M6 10l3 3 5-6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            Exclusieve Discord community alleen voor deelnemers
+                        </li>
+                        <li>
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="10" fill="#E91E8C"/><path d="M6 10l3 3 5-6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            Dagelijkse motivatie en support van Julia en de groep
+                        </li>
+                        <li>
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="10" fill="#E91E8C"/><path d="M6 10l3 3 5-6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            Deel je progressie, recepten en tips met andere vrouwen
+                        </li>
+                        <li>
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="10" fill="#E91E8C"/><path d="M6 10l3 3 5-6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            Je staat er nooit alleen voor — altijd iemand die je begrijpt
+                        </li>
+                    </ul>
+                    <a href="#vragenlijst" class="btn btn-primary">Ik wil erbij!</a>
+                </div>
+                <div class="community-visual">
+                    <div class="community-avatars">
+                        <div class="c-avatar" style="background:#F472B6">S</div>
+                        <div class="c-avatar" style="background:#A78BFA">L</div>
+                        <div class="c-avatar" style="background:#FB923C">E</div>
+                        <div class="c-avatar" style="background:#34D399">M</div>
+                        <div class="c-avatar" style="background:#60A5FA">N</div>
+                        <div class="c-avatar" style="background:#F472B6">A</div>
+                        <div class="c-avatar" style="background:#FBBF24">J</div>
+                        <div class="c-avatar" style="background:#A78BFA">D</div>
+                        <div class="c-avatar" style="background:#34D399">R</div>
+                        <div class="c-avatar-more">+487</div>
+                    </div>
+                    <p class="community-count">500+ vrouwen zijn je al voorgegaan</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 12-WEKEN PROGRAMMA -->
+    <section class="program-section" id="programma">
+        <div class="container">
+            <div class="program-header">
+                <span class="program-badge">Het Programma</span>
+                <h2>Het 12-Weken Transformatie Programma</h2>
+                <p class="section-subtitle">Ontdek hoe je binnen 12 weken jouw lichaam en mindset compleet transformeert</p>
+            </div>
+            <div class="phases-grid">
+                <div class="phase-card">
+                    <div class="phase-number">Fase 1</div>
+                    <h3>Week 1—4: De Basis</h3>
+                    <ul><li>Persoonlijk intakegesprek met Julia</li><li>Op maat gemaakt voedingsplan</li><li>Trainingsschema afgestemd op jouw niveau</li><li>Eerste mindset coaching sessie</li></ul>
+                </div>
+                <div class="phase-card featured">
+                    <div class="phase-number">Fase 2</div>
+                    <h3>Week 5—8: De Groei</h3>
+                    <ul><li>Voortgangsmeting & plan aanpassing</li><li>Geavanceerde trainingstechnieken</li><li>Maaltijdplannen met recepten</li><li>Wekelijkse video check-ins met Julia</li></ul>
+                </div>
+                <div class="phase-card">
+                    <div class="phase-number">Fase 3</div>
+                    <h3>Week 9—12: De Transformatie</h3>
+                    <ul><li>Fine-tuning van je programma</li><li>Duurzame gewoonten bouwen</li><li>Finale progressie foto's</li><li>Persoonlijk onderhoudsplan voor na het traject</li></ul>
+                </div>
+            </div>
+            <div class="program-features">
+                <h3>Wat je krijgt</h3>
+                <div class="features-grid">
+                    <div class="feature-item"><span class="feature-icon">👩‍🏫</span><h4>Persoonlijke begeleiding</h4><p>1-op-1 coaching door Julia</p></div>
+                    <div class="feature-item"><span class="feature-icon">🥑</span><h4>Persoonlijke voeding</h4><p>Op maat gemaakte voedingsplannen</p></div>
+                    <div class="feature-item"><span class="feature-icon">🎯</span><h4>Doelgericht toezicht</h4><p>Wekelijkse check-ins</p></div>
+                    <div class="feature-item"><span class="feature-icon">📚</span><h4>Wekelijkse lessen</h4><p>Training, voeding en mindset</p></div>
+                    <div class="feature-item"><span class="feature-icon">🍽️</span><h4>Maaltijdplannen</h4><p>Lekkere recepten op maat</p></div>
+                    <div class="feature-item"><span class="feature-icon">🎥</span><h4>Video's van Julia</h4><p>Trainings- en instructievideo's</p></div>
+                    <div class="feature-item"><span class="feature-icon">💬</span><h4>Feedback van Julia</h4><p>Form checks en voedingsadvies</p></div>
+                    <div class="feature-item"><span class="feature-icon">👯‍♀️</span><h4>Community</h4><p>Exclusieve Discord groep</p></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TESTIMONIALS -->
+    <section class="testimonials-section">
+        <div class="container">
+            <h2>Onze klanten aan het woord</h2>
+            <div class="testimonials-grid">
+                <div class="testimonial-card"><div class="testimonial-quote">"</div><p>Julia is niet zomaar een coach. Ze is een vriendin, een motivator en een expert in een. Ik heb meer bereikt in 12 weken dan in 3 jaar zelf proberen.</p><div class="testimonial-author"><div class="testimonial-avatar">A</div><div><strong>Anna</strong><span>12-weken programma</span></div></div></div>
+                <div class="testimonial-card"><div class="testimonial-quote">"</div><p>De community is zo fijn! Je staat er niet alleen voor. Andere vrouwen begrijpen precies wat je doormaakt en Julia is er altijd.</p><div class="testimonial-author"><div class="testimonial-avatar">D</div><div><strong>Demi</strong><span>12-weken programma</span></div></div></div>
+                <div class="testimonial-card"><div class="testimonial-quote">"</div><p>Ik was altijd bang om te starten. Julia nam die angst weg vanaf dag 1. De resultaten spreken voor zich.</p><div class="testimonial-author"><div class="testimonial-avatar">R</div><div><strong>Rosa</strong><span>12-weken programma</span></div></div></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA SECTION -->
+    <section class="cta-section">
+        <div class="container">
+            <h2>Dit is jouw moment.</h2>
+            <p>Stop met twijfelen. Stop met uitstellen. Start vandaag nog met jouw transformatie.</p>
+            <a href="#vragenlijst" class="btn btn-primary btn-hero">Start Nu — Het Is Gratis</a>
+            <div class="cta-guarantee">
+                <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="10" fill="#10B981"/><path d="M6 10l3 3 5-6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span>Niet goed? Geld terug. Geen risico.</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand"><h3>Julia Den Best</h3><p>Persoonlijke fitness coaching voor vrouwen die klaar zijn voor verandering.</p></div>
+                <div class="footer-links"><a href="#vragenlijst">Start Transformatie</a><a href="#programma">Het Programma</a></div>
+            </div>
+            <div class="footer-bottom"><p>&copy; 2026 Julia Den Best. Alle rechten voorbehouden.</p></div>
+        </div>
+    </footer>
+
+    <!-- SUCCES MODAL -->
+    <div class="modal-overlay" id="succesModal">
+        <div class="modal-content">
+            <div class="modal-icon">🎉</div>
+            <h2>Gelukt!</h2>
+            <p>Bedankt voor het invullen! Julia neemt zo snel mogelijk persoonlijk contact met je op.</p>
+            <p class="modal-subtitle">Check je inbox en Instagram DM's — we nemen binnen 24 uur contact op!</p>
+            <button class="btn btn-primary" onclick="document.getElementById('succesModal').classList.remove('active')">Sluiten</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
