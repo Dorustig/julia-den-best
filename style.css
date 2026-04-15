@@ -145,9 +145,9 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', Georgia, serif; font-weight: 7
     width: 1px; background: #F3E8F0;
 }
 .stat-number {
-    display: block; font-family: 'Playfair Display', serif;
-    font-size: 28px; font-weight: 700; color: var(--pink);
-    line-height: 1.1;
+    display: block; font-family: 'Inter', sans-serif;
+    font-size: 30px; font-weight: 800; color: var(--pink);
+    line-height: 1.1; letter-spacing: -0.02em;
 }
 .stat-label {
     display: block;
@@ -392,6 +392,7 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', Georgia, serif; font-weight: 7
     margin: 0 auto 64px;
     padding: 12px 0 24px;
 }
+/* Static faint track */
 .timeline::before {
     content: '';
     position: absolute;
@@ -399,14 +400,47 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', Georgia, serif; font-weight: 7
     top: 24px;
     bottom: 24px;
     width: 3px;
-    background: linear-gradient(to bottom,
-        rgba(244, 114, 182, 0.25),
-        var(--pink-light) 20%,
-        var(--pink) 50%,
-        var(--pink-light) 80%,
-        rgba(244, 114, 182, 0.25));
+    background: #FCE7F3;
     border-radius: 3px;
-    box-shadow: 0 0 12px rgba(233, 30, 140, 0.25);
+}
+/* Scroll-driven fill (JS updates --fill from 0 to 1) */
+.timeline-fill {
+    position: absolute;
+    left: 38px;
+    top: 24px;
+    bottom: 24px;
+    width: 3px;
+    border-radius: 3px;
+    transform-origin: top;
+    transform: scaleY(var(--fill, 0));
+    background: linear-gradient(to bottom, var(--pink-light), var(--pink) 50%, var(--pink));
+    box-shadow: 0 0 14px rgba(233, 30, 140, 0.45);
+    will-change: transform;
+    transition: transform 0.15s linear;
+    pointer-events: none;
+    z-index: 1;
+}
+/* Active dot: past the scroll-fill fill point, turns solid pink */
+.timeline-dot {
+    transition: background 0.35s ease, color 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease, transform 0.35s ease;
+}
+.timeline-dot.is-active {
+    background: linear-gradient(135deg, var(--pink), var(--pink-light));
+    color: var(--white);
+    border-color: var(--white);
+    box-shadow: 0 6px 22px rgba(233, 30, 140, 0.45);
+    transform: scale(1.06);
+}
+.timeline-phase-label::before {
+    transition: transform 0.35s ease, box-shadow 0.35s ease;
+}
+.timeline-phase.is-active > .timeline-phase-label::before {
+    transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 6px 22px rgba(233, 30, 140, 0.5);
+}
+@media (prefers-reduced-motion: reduce) {
+    .timeline-fill, .timeline-dot, .timeline-phase-label::before { transition: none; }
+    .timeline-fill { transform: scaleY(1); }
 }
 .timeline-phase {
     position: relative;
@@ -765,8 +799,8 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', Georgia, serif; font-weight: 7
     .stat-label { font-size: 13px; font-weight: 600; color: var(--text); }
     .hero-stats { padding: 14px 10px; gap: 0; flex-wrap: nowrap; justify-content: space-between; }
     .hero-image { max-width: 100%; margin-top: 8px; }
-    .hero-img-wrapper { max-height: 480px; min-height: 420px; border-radius: 20px; }
-    .hero-img-wrapper img { min-height: 420px; object-position: center 22%; }
+    .hero-img-wrapper { aspect-ratio: 4/5; max-height: none; min-height: 0; height: auto; border-radius: 20px; }
+    .hero-img-wrapper img { height: 100%; min-height: 0; max-height: none; object-position: center 30%; }
     .hero-float-card { display: none; }
     .hero-cta-group .btn { width: 100%; }
     .hero-usps li { font-size: 14px; }
@@ -815,6 +849,7 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', Georgia, serif; font-weight: 7
     /* Timeline mobile */
     .timeline { padding: 8px 0 16px; }
     .timeline::before { left: 26px; }
+    .timeline-fill { left: 26px; }
     .timeline-phase { margin-bottom: 24px; }
     .timeline-phase-label { padding: 14px 16px 14px 72px; border-radius: 16px; margin-bottom: 14px; }
     .timeline-phase-label::before { left: 14px; width: 28px; height: 28px; font-size: 14px; }

@@ -160,7 +160,7 @@ const T = {
         comPerk3: 'Deel je progressie, recepten en tips met andere vrouwen',
         comPerk4: 'Je staat er nooit alleen voor, altijd iemand die je begrijpt',
         comCta: 'Ik wil erbij!',
-        comCount: '500+ vrouwen zijn je al voorgegaan',
+        comCount: '50+ vrouwen zijn je al voorgegaan',
         // Program
         progBadge: 'Het Programma',
         progTitle: 'Het 16-Weken Transformatie Programma',
@@ -269,7 +269,7 @@ const T = {
         comPerk3: 'Share your progress, recipes and tips with other women',
         comPerk4: "You're never alone, always someone who understands you",
         comCta: 'I want to join!',
-        comCount: '500+ women have gone before you',
+        comCount: '50+ women have gone before you',
         progBadge: 'The Program',
         progTitle: 'The 16-Week Transformation Program',
         progSub: 'Discover how you can completely transform your body and mindset in 16 weeks',
@@ -952,6 +952,58 @@ document.addEventListener('visibilitychange', () => {
             if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openVideo(); }
         });
     }
+})();
+
+// ===== TIMELINE SCROLL-FILL =====
+// As the user scrolls the 16-week timeline into view, the pink line fills
+// from top to bottom and dots light up as they're passed. Smooth + cheap
+// on mobile: rAF-throttled + transform-based (no layout thrashing).
+(function setupTimelineFill() {
+    const timeline = document.querySelector('.timeline');
+    if (!timeline) return;
+    const fill = timeline.querySelector('.timeline-fill');
+    const dots = [...timeline.querySelectorAll('.timeline-dot')];
+    const phases = [...timeline.querySelectorAll('.timeline-phase')];
+    if (!fill || !dots.length) return;
+
+    let ticking = false;
+    function update() {
+        ticking = false;
+        const rect = timeline.getBoundingClientRect();
+        const vh = window.innerHeight || document.documentElement.clientHeight;
+        // Anchor the fill line at ~60% viewport height — feels natural on scroll
+        const anchor = vh * 0.6;
+        // Fill progress: 0 when timeline top hits anchor, 1 when timeline bottom hits anchor
+        const total = rect.height;
+        const progressed = anchor - rect.top;
+        let t = total > 0 ? progressed / total : 0;
+        if (t < 0) t = 0;
+        if (t > 1) t = 1;
+        timeline.style.setProperty('--fill', t.toFixed(4));
+
+        // Light up each dot once its center passes the anchor
+        for (const dot of dots) {
+            const d = dot.getBoundingClientRect();
+            const dotCenter = d.top + d.height / 2;
+            dot.classList.toggle('is-active', dotCenter < anchor);
+        }
+        // Phase label flower icon pulse when phase is actively being passed
+        for (const phase of phases) {
+            const p = phase.getBoundingClientRect();
+            const active = p.top < anchor && p.bottom > anchor * 0.4;
+            phase.classList.toggle('is-active', active);
+        }
+    }
+    function schedule() {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(update);
+    }
+    window.addEventListener('scroll', schedule, { passive: true });
+    window.addEventListener('resize', schedule, { passive: true });
+    // Also update after images/fonts load (affects layout)
+    window.addEventListener('load', update);
+    update();
 })();
 
 // ===== CRM HELPERS =====
