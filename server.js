@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const url = require('url');
 const zlib = require('zlib');
+const crypto = require('crypto');
 
 const PORT = process.env.PORT || 3001;
 const ROOT = __dirname;
@@ -60,11 +61,96 @@ if (!fs.existsSync(TRACKING_FILE)) {
   }
 })();
 
-// ===== ADMIN URL =====
-// Un-guessable admin URL slug. No login required — security through a long
-// random URL that no one can guess. Bookmark this and keep it private.
-// Can be overridden per deploy via env var.
+// ===== ADMIN URL + AUTH =====
+// Un-guessable admin URL slug. The slug hides the admin panel from probes;
+// the login behind it hardens it against anyone who does find the URL.
 const ADMIN_SLUG = process.env.ADMIN_SLUG || 'portal-j8k3m9q2x7p5v4';
+const ADMIN_USER = process.env.ADMIN_USER || 'Dorus';
+const ADMIN_PASS = process.env.ADMIN_PASS || 'Deurenzijncool123';
+
+// Session secret used to sign cookies. Generated once and persisted to the
+// data volume so sessions survive deploys. Override with env var if desired.
+const SECRET_FILE = path.join(DATA_DIR, 'session-secret.txt');
+let SESSION_SECRET = process.env.SESSION_SECRET;
+if (!SESSION_SECRET) {
+  try {
+    if (fs.existsSync(SECRET_FILE)) {
+      SESSION_SECRET = fs.readFileSync(SECRET_FILE, 'utf-8').trim();
+    } else {
+      SESSION_SECRET = crypto.randomBytes(32).toString('hex');
+      fs.writeFileSync(SECRET_FILE, SESSION_SECRET);
+    }
+  } catch (e) {
+    console.warn('[Auth] secret persistence failed:', e.message);
+    SESSION_SECRET = crypto.randomBytes(32).toString('hex');
+  }
+}
+
+const SESSION_COOKIE = 'jdb_session';
+const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+
+function signToken(payload) {
+  const body = Buffer.from(JSON.stringify(payload)).toString('base64url');
+  const sig = crypto.createHmac('sha256', SESSION_SECRET).update(body).digest('base64url');
+  return `${body}.${sig}`;
+}
+function verifyToken(token) {
+  if (!token || typeof token !== 'string') return null;
+  const parts = token.split('.');
+  if (parts.length !== 2) return null;
+  const [body, sig] = parts;
+  const expected = crypto.createHmac('sha256', SESSION_SECRET).update(body).digest('base64url');
+  // Constant-time compare
+  if (sig.length !== expected.length) return null;
+  if (!crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) return null;
+  try {
+    const payload = JSON.parse(Buffer.from(body, 'base64url').toString('utf-8'));
+    if (!payload.exp || payload.exp < Date.now()) return null;
+    return payload;
+  } catch { return null; }
+}
+function parseCookies(req) {
+  const header = req.headers.cookie || '';
+  const out = {};
+  header.split(';').forEach(p => {
+    const idx = p.indexOf('=');
+    if (idx < 0) return;
+    const k = p.slice(0, idx).trim();
+    const v = p.slice(idx + 1).trim();
+    if (k) out[k] = decodeURIComponent(v);
+  });
+  return out;
+}
+function getSession(req) {
+  const cookies = parseCookies(req);
+  return verifyToken(cookies[SESSION_COOKIE]);
+}
+function isHttps(req) {
+  // Railway proxies HTTPS → this header is set; local dev is plain HTTP.
+  return (req.headers['x-forwarded-proto'] || '').toLowerCase() === 'https' ||
+         req.connection?.encrypted === true;
+}
+function setSessionCookie(req, res, token) {
+  // HttpOnly so JS can't read it; SameSite=Lax so form POSTs work; Secure
+  // only over HTTPS (skipped on localhost so login works in dev).
+  const maxAge = Math.floor(SESSION_TTL_MS / 1000);
+  const secure = isHttps(req) ? '; Secure' : '';
+  res.setHeader('Set-Cookie',
+    `${SESSION_COOKIE}=${token}; Path=/; HttpOnly; SameSite=Lax${secure}; Max-Age=${maxAge}`);
+}
+function clearSessionCookie(req, res) {
+  const secure = isHttps(req) ? '; Secure' : '';
+  res.setHeader('Set-Cookie',
+    `${SESSION_COOKIE}=; Path=/; HttpOnly; SameSite=Lax${secure}; Max-Age=0`);
+}
+function requireAuth(req, res) {
+  const session = getSession(req);
+  if (!session) {
+    jsonRes(res, 401, { error: 'Auth required' });
+    return false;
+  }
+  return true;
+}
 
 // MIME types
 const MIME = {
@@ -165,10 +251,48 @@ const server = http.createServer(async (req, res) => {
     return res.end();
   }
 
+  // ===== AUTH ROUTES =====
+
+  // POST /api/login — exchange username+password for a session cookie
+  if (pathname === '/api/login' && req.method === 'POST') {
+    let creds;
+    try { creds = JSON.parse(await readBody(req)); }
+    catch { return jsonRes(res, 400, { error: 'Invalid JSON' }); }
+    const user = String(creds.username || '');
+    const pass = String(creds.password || '');
+    // Constant-time compare on both fields to avoid timing leaks
+    const userBuf = Buffer.from(user.padEnd(64, '\0').slice(0, 64));
+    const passBuf = Buffer.from(pass.padEnd(64, '\0').slice(0, 64));
+    const expectedUser = Buffer.from(ADMIN_USER.padEnd(64, '\0').slice(0, 64));
+    const expectedPass = Buffer.from(ADMIN_PASS.padEnd(64, '\0').slice(0, 64));
+    const ok = crypto.timingSafeEqual(userBuf, expectedUser) &&
+               crypto.timingSafeEqual(passBuf, expectedPass);
+    if (!ok) {
+      return jsonRes(res, 401, { error: 'Ongeldige gebruikersnaam of wachtwoord' });
+    }
+    const token = signToken({ user: ADMIN_USER, role: 'admin', exp: Date.now() + SESSION_TTL_MS });
+    setSessionCookie(req, res, token);
+    return jsonRes(res, 200, { success: true, redirect: `/${ADMIN_SLUG}` });
+  }
+
+  // POST /api/logout — clear session cookie
+  if (pathname === '/api/logout' && req.method === 'POST') {
+    clearSessionCookie(req, res);
+    return jsonRes(res, 200, { success: true });
+  }
+
+  // GET /api/me — return current session (used by frontend to know who's logged in)
+  if (pathname === '/api/me' && req.method === 'GET') {
+    const session = getSession(req);
+    if (!session) return jsonRes(res, 401, { error: 'Not logged in' });
+    return jsonRes(res, 200, { user: session.user, role: session.role });
+  }
+
   // ===== API ROUTES =====
 
-  // GET /api/leads — all leads (admin only, auth already checked)
+  // GET /api/leads — all leads (admin only)
   if (pathname === '/api/leads' && req.method === 'GET') {
+    if (!requireAuth(req, res)) return;
     return jsonRes(res, 200, readLeads());
   }
 
@@ -211,6 +335,7 @@ const server = http.createServer(async (req, res) => {
 
   // DELETE /api/leads/:id — remove lead
   if (pathname.startsWith('/api/leads/') && req.method === 'DELETE') {
+    if (!requireAuth(req, res)) return;
     try {
       const leadId = pathname.split('/').pop();
       const leads = readLeads();
@@ -226,6 +351,7 @@ const server = http.createServer(async (req, res) => {
 
   // PUT /api/leads/:id — update lead
   if (pathname.startsWith('/api/leads/') && req.method === 'PUT') {
+    if (!requireAuth(req, res)) return;
     try {
       const leadId = pathname.split('/').pop();
       const body = await readBody(req);
@@ -243,6 +369,7 @@ const server = http.createServer(async (req, res) => {
 
   // GET /api/stats
   if (pathname === '/api/stats' && req.method === 'GET') {
+    if (!requireAuth(req, res)) return;
     const leads = readLeads();
     const today = new Date().toISOString().slice(0, 10);
     return jsonRes(res, 200, {
@@ -265,6 +392,7 @@ const server = http.createServer(async (req, res) => {
 
   // PUT /api/tracking-config — update tracking IDs from admin panel
   if (pathname === '/api/tracking-config' && req.method === 'PUT') {
+    if (!requireAuth(req, res)) return;
     try {
       const body = await readBody(req);
       const cfg = JSON.parse(body);
@@ -280,6 +408,7 @@ const server = http.createServer(async (req, res) => {
 
   // GET /api/export/json — download all leads as JSON
   if (pathname === '/api/export/json' && req.method === 'GET') {
+    if (!requireAuth(req, res)) return;
     const leads = readLeads();
     const today = new Date().toISOString().slice(0, 10);
     res.writeHead(200, {
@@ -291,6 +420,7 @@ const server = http.createServer(async (req, res) => {
 
   // GET /api/export/csv — download all leads as CSV (server-side)
   if (pathname === '/api/export/csv' && req.method === 'GET') {
+    if (!requireAuth(req, res)) return;
     const leads = readLeads();
     const today = new Date().toISOString().slice(0, 10);
     res.writeHead(200, {
@@ -302,6 +432,7 @@ const server = http.createServer(async (req, res) => {
 
   // POST /api/backup/create — create on-demand timestamped backup
   if (pathname === '/api/backup/create' && req.method === 'POST') {
+    if (!requireAuth(req, res)) return;
     try {
       const leads = readLeads();
       const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
@@ -313,11 +444,13 @@ const server = http.createServer(async (req, res) => {
 
   // GET /api/backup/list — list all backup files
   if (pathname === '/api/backup/list' && req.method === 'GET') {
+    if (!requireAuth(req, res)) return;
     return jsonRes(res, 200, listBackups());
   }
 
   // GET /api/backup/download?file=... — download a specific backup
   if (pathname === '/api/backup/download' && req.method === 'GET') {
+    if (!requireAuth(req, res)) return;
     const file = parsed.query.file;
     if (!file || !/^[\w.-]+\.json$/.test(file)) {
       return jsonRes(res, 400, { error: 'Invalid file name' });
@@ -335,6 +468,7 @@ const server = http.createServer(async (req, res) => {
 
   // DELETE /api/backup/delete?file=... — remove a backup (user-initiated cleanup)
   if (pathname === '/api/backup/delete' && req.method === 'DELETE') {
+    if (!requireAuth(req, res)) return;
     const file = parsed.query.file;
     if (!file || !/^[\w.-]+\.json$/.test(file)) {
       return jsonRes(res, 400, { error: 'Invalid file name' });
@@ -349,6 +483,7 @@ const server = http.createServer(async (req, res) => {
 
   // POST /api/upload-hero — save hero image
   if (pathname === '/api/upload-hero' && req.method === 'POST') {
+    if (!requireAuth(req, res)) return;
     try {
       const body = await readBody(req);
       const { dataUrl } = JSON.parse(body);
@@ -370,16 +505,20 @@ const server = http.createServer(async (req, res) => {
   }
 
   // ===== STATIC FILE SERVING =====
-  // Remap the un-guessable admin slug to serve admin.html content.
-  // The slug URL is the ONLY way to reach the admin panel.
+  // Remap the un-guessable admin slug:
+  //   - if logged in: serve admin.html
+  //   - if not logged in: serve login.html (login form)
   const isAdminSlug =
     pathname === `/${ADMIN_SLUG}` ||
     pathname === `/${ADMIN_SLUG}/` ||
     pathname === `/${ADMIN_SLUG}.html`;
 
-  let filePath = isAdminSlug
-    ? '/admin.html'
-    : (pathname === '/' ? '/index.html' : decodeURIComponent(pathname));
+  let filePath;
+  if (isAdminSlug) {
+    filePath = getSession(req) ? '/admin.html' : '/login.html';
+  } else {
+    filePath = pathname === '/' ? '/index.html' : decodeURIComponent(pathname);
+  }
   filePath = path.join(ROOT, filePath);
 
   // Security: prevent directory traversal

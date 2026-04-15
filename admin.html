@@ -302,6 +302,7 @@
                     <button class="btn-admin btn-refresh" onclick="loadLeads()">&#8635; Ververs</button>
                     <button class="btn-admin btn-export" onclick="downloadServer('csv')">&#8681; CSV</button>
                     <button class="btn-admin btn-export" onclick="downloadServer('json')">&#8681; JSON</button>
+                    <button class="btn-admin btn-refresh" onclick="logout()" title="Uitloggen">&#128682; Uitloggen</button>
                 </div>
             </div>
 
@@ -467,6 +468,11 @@
         async function loadLeads() {
             try {
                 const res = await fetch('/api/leads');
+                if (res.status === 401) {
+                    // Session expired or gone — send back to login
+                    window.location.href = window.location.pathname;
+                    return;
+                }
                 if (res.ok) leads = await res.json();
                 else leads = JSON.parse(localStorage.getItem('julia_leads') || '[]');
             } catch (e) {
@@ -476,6 +482,12 @@
             updateStats();
             renderTable();
             renderAnalytics();
+        }
+
+        async function logout() {
+            try { await fetch('/api/logout', { method: 'POST' }); } catch {}
+            // Slug URL without session cookie shows login page
+            window.location.href = window.location.pathname;
         }
 
         let sourceRange = 'all';

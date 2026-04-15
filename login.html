@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login — Julia Den Best</title>
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #1F2937 0%, #111827 100%);
+            color: #1F2937;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .login-card {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+            padding: 40px 32px;
+            width: 100%;
+            max-width: 400px;
+        }
+        .brand {
+            text-align: center;
+            font-size: 18px;
+            font-weight: 700;
+            color: #F472B6;
+            margin-bottom: 8px;
+        }
+        h1 {
+            text-align: center;
+            font-size: 22px;
+            font-weight: 600;
+            color: #1F2937;
+            margin-bottom: 24px;
+        }
+        .field {
+            margin-bottom: 16px;
+        }
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: #4B5563;
+            margin-bottom: 6px;
+        }
+        input {
+            width: 100%;
+            padding: 12px 14px;
+            font-size: 15px;
+            border: 1.5px solid #E5E7EB;
+            border-radius: 8px;
+            font-family: inherit;
+            transition: border-color 0.15s;
+        }
+        input:focus {
+            outline: none;
+            border-color: #F472B6;
+        }
+        button {
+            width: 100%;
+            padding: 13px;
+            font-size: 15px;
+            font-weight: 600;
+            background: #F472B6;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: background 0.15s;
+            margin-top: 8px;
+        }
+        button:hover { background: #EC4899; }
+        button:disabled { background: #9CA3AF; cursor: not-allowed; }
+        .error {
+            background: #FEE2E2;
+            color: #991B1B;
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 16px;
+            display: none;
+        }
+        .error.visible { display: block; }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 12px;
+            color: #9CA3AF;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <div class="brand">Julia Den Best</div>
+        <h1>Admin Login</h1>
+        <div id="error" class="error"></div>
+        <form id="loginForm" autocomplete="on">
+            <div class="field">
+                <label for="username">Gebruikersnaam</label>
+                <input type="text" id="username" name="username" autocomplete="username" autofocus required>
+            </div>
+            <div class="field">
+                <label for="password">Wachtwoord</label>
+                <input type="password" id="password" name="password" autocomplete="current-password" required>
+            </div>
+            <button type="submit" id="submitBtn">Inloggen</button>
+        </form>
+        <div class="footer">Toegang alleen voor admins.</div>
+    </div>
+
+    <script>
+        const form = document.getElementById('loginForm');
+        const errorEl = document.getElementById('error');
+        const submitBtn = document.getElementById('submitBtn');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            errorEl.classList.remove('visible');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Bezig...';
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const res = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password }),
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    errorEl.textContent = data.error || 'Inloggen mislukt';
+                    errorEl.classList.add('visible');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Inloggen';
+                    return;
+                }
+                // Redirect to admin panel (slug URL returned by server)
+                window.location.href = data.redirect || '/';
+            } catch (err) {
+                errorEl.textContent = 'Verbinding mislukt. Probeer opnieuw.';
+                errorEl.classList.add('visible');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Inloggen';
+            }
+        });
+    </script>
+</body>
+</html>
