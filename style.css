@@ -780,7 +780,7 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', Georgia, serif; font-weight: 7
 }
 
 @media (max-width: 640px) {
-    .container { padding: 0 24px; }
+    .container { padding: 0 28px; }
     .hero { padding-top: 60px; }
     .hero-grid { padding-top: 28px; padding-bottom: 40px; gap: 28px; text-align: left; }
     .hero-text { text-align: left; }
