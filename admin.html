@@ -172,6 +172,58 @@
         .btn-small.danger { color: #991B1B; }
         .btn-small.primary { background: #E91E8C; color: #fff; border-color: #E91E8C; }
 
+        /* Analytics */
+        .analytics-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;
+        }
+        .analytics-card {
+            background: #fff; border-radius: 12px; border: 1px solid #E5E7EB; padding: 20px;
+        }
+        .analytics-card h3 {
+            font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 16px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .analytics-card h3 .tabs { display: flex; gap: 4px; }
+        .analytics-card h3 .tab-btn {
+            font-size: 12px; padding: 4px 10px; border-radius: 6px; border: 1px solid #E5E7EB;
+            background: #F9FAFB; color: #6B7280; cursor: pointer; font-weight: 600;
+        }
+        .analytics-card h3 .tab-btn.active { background: #E91E8C; color: #fff; border-color: #E91E8C; }
+        /* Source bars */
+        .src-row {
+            display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 13px;
+        }
+        .src-label { width: 100px; flex-shrink: 0; color: #374151; font-weight: 500; text-transform: capitalize; }
+        .src-bar-wrap {
+            flex: 1; height: 22px; background: #F3F4F6; border-radius: 6px; overflow: hidden; position: relative;
+        }
+        .src-bar {
+            height: 100%; background: linear-gradient(90deg, #E91E8C, #F472B6); border-radius: 6px;
+            transition: width 0.4s ease;
+        }
+        .src-count { width: 50px; text-align: right; color: #1F2937; font-weight: 700; font-variant-numeric: tabular-nums; }
+        /* Bar chart */
+        .chart-bars {
+            display: flex; align-items: flex-end; gap: 4px; height: 140px;
+            border-bottom: 1px solid #E5E7EB; padding-bottom: 4px; margin-bottom: 8px;
+        }
+        .chart-bar {
+            flex: 1; min-width: 0; background: linear-gradient(180deg, #F472B6, #E91E8C);
+            border-radius: 4px 4px 0 0; position: relative; min-height: 2px;
+            transition: height 0.4s ease; cursor: default;
+        }
+        .chart-bar:hover { filter: brightness(1.1); }
+        .chart-bar .bar-val {
+            position: absolute; top: -18px; left: 50%; transform: translateX(-50%);
+            font-size: 10px; font-weight: 700; color: #1F2937;
+        }
+        .chart-labels {
+            display: flex; gap: 4px; font-size: 10px; color: #9CA3AF;
+        }
+        .chart-labels span { flex: 1; text-align: center; overflow: hidden; }
+        .chart-totals { display: flex; gap: 20px; margin-top: 12px; font-size: 13px; color: #6B7280; }
+        .chart-totals strong { color: #1F2937; font-size: 16px; display: block; }
+
         /* Lead card layout for mobile */
         .lead-cards { display: none; }
         .lead-card {
@@ -218,6 +270,12 @@
             .lead-card-meta { font-size: 12px; gap: 4px 12px; }
             .lead-card-name { font-size: 14px; }
             .lead-card-email { font-size: 11px; }
+            .analytics-grid { grid-template-columns: 1fr; gap: 12px; margin-bottom: 18px; }
+            .analytics-card { padding: 14px; }
+            .src-label { width: 80px; font-size: 12px; }
+            .src-count { width: 44px; font-size: 12px; }
+            .chart-bars { height: 110px; }
+            .analytics-card h3 { flex-wrap: wrap; gap: 8px; font-size: 13px; }
         }
     </style>
 </head>
@@ -264,6 +322,35 @@
                 <div class="stat-card">
                     <div class="stat-card-label">Vandaag</div>
                     <div class="stat-card-value orange" id="statVandaag">0</div>
+                </div>
+            </div>
+
+            <!-- Analytics -->
+            <div class="analytics-grid">
+                <div class="analytics-card">
+                    <h3>
+                        <span>📊 Bronnen (waar leads vandaan komen)</span>
+                        <div class="tabs">
+                            <button class="tab-btn active" data-src-range="all" onclick="setSourceRange('all')">Totaal</button>
+                            <button class="tab-btn" data-src-range="30" onclick="setSourceRange('30')">30 dagen</button>
+                            <button class="tab-btn" data-src-range="7" onclick="setSourceRange('7')">7 dagen</button>
+                        </div>
+                    </h3>
+                    <div id="sourceBars">
+                        <p style="color:#9CA3AF;font-size:13px">Nog geen leads.</p>
+                    </div>
+                </div>
+                <div class="analytics-card">
+                    <h3>
+                        <span>📈 Leads over tijd</span>
+                        <div class="tabs">
+                            <button class="tab-btn active" data-trend-range="7" onclick="setTrendRange('7')">Week</button>
+                            <button class="tab-btn" data-trend-range="30" onclick="setTrendRange('30')">Maand</button>
+                        </div>
+                    </h3>
+                    <div class="chart-bars" id="trendBars"></div>
+                    <div class="chart-labels" id="trendLabels"></div>
+                    <div class="chart-totals" id="trendTotals"></div>
                 </div>
             </div>
 
@@ -388,6 +475,120 @@
             leads.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
             updateStats();
             renderTable();
+            renderAnalytics();
+        }
+
+        let sourceRange = 'all';
+        let trendRange = '7';
+
+        function setSourceRange(r) {
+            sourceRange = r;
+            document.querySelectorAll('[data-src-range]').forEach(b => b.classList.toggle('active', b.dataset.srcRange === r));
+            renderAnalytics();
+        }
+        function setTrendRange(r) {
+            trendRange = r;
+            document.querySelectorAll('[data-trend-range]').forEach(b => b.classList.toggle('active', b.dataset.trendRange === r));
+            renderAnalytics();
+        }
+
+        function leadSource(l) {
+            // utm_source wins. Otherwise derive from bron/referrer.
+            const src = (l.utm_source || '').toLowerCase().trim();
+            if (src) return src;
+            const ref = (l.referrer || '').toLowerCase();
+            if (ref.includes('tiktok')) return 'tiktok';
+            if (ref.includes('instagram') || ref.includes('ig.')) return 'instagram';
+            if (ref.includes('youtube') || ref.includes('yt.')) return 'youtube';
+            if (ref.includes('facebook') || ref.includes('fb.')) return 'facebook';
+            if (ref.includes('google')) return 'google';
+            const b = (l.bron || '').toLowerCase().trim();
+            return b || 'direct';
+        }
+
+        function renderAnalytics() {
+            // --- Source breakdown ---
+            const now = Date.now();
+            const rangeMs = sourceRange === 'all' ? Infinity : parseInt(sourceRange) * 86400000;
+            const filtered = leads.filter(l => {
+                if (!l.timestamp) return sourceRange === 'all';
+                return (now - new Date(l.timestamp).getTime()) <= rangeMs;
+            });
+            const counts = {};
+            filtered.forEach(l => { const s = leadSource(l); counts[s] = (counts[s] || 0) + 1; });
+            const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+            const total = filtered.length;
+            const bars = document.getElementById('sourceBars');
+            if (!sorted.length) {
+                bars.innerHTML = '<p style="color:#9CA3AF;font-size:13px">Nog geen leads in deze periode.</p>';
+            } else {
+                const max = sorted[0][1];
+                bars.innerHTML = sorted.map(([src, n]) => {
+                    const pct = total ? Math.round((n / total) * 100) : 0;
+                    const w = max ? Math.max(4, Math.round((n / max) * 100)) : 0;
+                    return `<div class="src-row">
+                        <span class="src-label">${esc(src)}</span>
+                        <div class="src-bar-wrap"><div class="src-bar" style="width:${w}%"></div></div>
+                        <span class="src-count">${n} <span style="color:#9CA3AF;font-weight:500;font-size:11px">(${pct}%)</span></span>
+                    </div>`;
+                }).join('');
+            }
+
+            // --- Trend (leads per day) --- use LOCAL date so labels match reality
+            const days = parseInt(trendRange);
+            const localKey = (d) => {
+                const y = d.getFullYear(), m = String(d.getMonth() + 1).padStart(2, '0'), day = String(d.getDate()).padStart(2, '0');
+                return `${y}-${m}-${day}`;
+            };
+            const buckets = [];
+            for (let i = days - 1; i >= 0; i--) {
+                const d = new Date();
+                d.setHours(0, 0, 0, 0);
+                d.setDate(d.getDate() - i);
+                buckets.push({ key: localKey(d), date: d, count: 0 });
+            }
+            leads.forEach(l => {
+                if (!l.timestamp) return;
+                const k = localKey(new Date(l.timestamp));
+                const b = buckets.find(x => x.key === k);
+                if (b) b.count++;
+            });
+            const maxCount = Math.max(1, ...buckets.map(b => b.count));
+            const bc = document.getElementById('trendBars');
+            const bl = document.getElementById('trendLabels');
+            bc.innerHTML = buckets.map(b => {
+                const h = (b.count / maxCount) * 100;
+                return `<div class="chart-bar" style="height:${h}%" title="${b.key}: ${b.count}">${b.count > 0 ? `<span class="bar-val">${b.count}</span>` : ''}</div>`;
+            }).join('');
+            // Labels: for 7d show day names, for 30d show every ~5th date
+            bl.innerHTML = buckets.map((b, i) => {
+                let label = '';
+                if (days === 7) {
+                    label = b.date.toLocaleDateString('nl-NL', { weekday: 'short' }).slice(0, 2);
+                } else {
+                    if (i === 0 || i === buckets.length - 1 || i % 5 === 0) {
+                        label = b.date.getDate() + '/' + (b.date.getMonth() + 1);
+                    }
+                }
+                return `<span>${label}</span>`;
+            }).join('');
+            // Totals: this week, this month
+            const today = new Date(); today.setHours(0, 0, 0, 0);
+            const dayOfWeek = (today.getDay() + 6) % 7; // Mon=0
+            const weekStart = new Date(today); weekStart.setDate(today.getDate() - dayOfWeek);
+            const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+            let weekCount = 0, monthCount = 0, todayCount = 0;
+            leads.forEach(l => {
+                if (!l.timestamp) return;
+                const t = new Date(l.timestamp);
+                if (t >= weekStart) weekCount++;
+                if (t >= monthStart) monthCount++;
+                if (t >= today) todayCount++;
+            });
+            document.getElementById('trendTotals').innerHTML =
+                `<div><strong>${todayCount}</strong>vandaag</div>` +
+                `<div><strong>${weekCount}</strong>deze week</div>` +
+                `<div><strong>${monthCount}</strong>deze maand</div>`;
         }
 
         function updateStats() {
@@ -441,7 +642,7 @@
                     <td><div class="urgentie-bar">${urgDots}</div></td>
                     <td><span class="badge badge-${l.status || 'nieuw'}">${l.status || 'nieuw'}</span></td>
                     <td style="font-size:13px;color:#6B7280">${date}</td>
-                    <td><button class="btn-admin btn-status" onclick="event.stopPropagation(); openLead('${l.id}')">Bekijk</button></td>
+                    <td style="white-space:nowrap"><button class="btn-admin btn-status" onclick="event.stopPropagation(); openLead('${l.id}')">Bekijk</button> <button class="btn-admin" style="color:#991B1B;padding:6px 10px" title="Verwijder" onclick="event.stopPropagation(); deleteLead('${l.id}')">&#10005;</button></td>
                 </tr>`;
             }).join('');
 
@@ -512,7 +713,8 @@
                     <button class="btn-admin btn-export" onclick="setStatus('${l.id}','klant')">Klant!</button>
                     <button class="btn-admin btn-status" style="color:#991B1B" onclick="setStatus('${l.id}','lost')">Verloren</button>
                 </div>
-                <div style="margin-top:16px;text-align:right">
+                <div style="margin-top:16px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap">
+                    <button class="btn-admin" style="color:#991B1B;border-color:#FECACA;background:#FEF2F2" onclick="deleteLead('${l.id}')">&#128465; Verwijder lead</button>
                     <button class="btn-admin btn-export" onclick="saveNote('${l.id}')">Opslaan</button>
                 </div>
             `;
@@ -532,6 +734,21 @@
             updateStats();
             renderTable();
             openLead(id);
+        }
+
+        async function deleteLead(id) {
+            const l = leads.find(x => x.id === id);
+            if (!l) return;
+            if (!confirm(`Lead "${l.naam || l.email || id}" definitief verwijderen?\nDeze actie kan niet ongedaan worden gemaakt.`)) return;
+            try {
+                const res = await fetch(`/api/leads/${id}`, { method: 'DELETE' });
+                if (!res.ok) throw new Error('Server fout');
+                leads = leads.filter(x => x.id !== id);
+                closeModal();
+                updateStats();
+                renderTable();
+                renderAnalytics();
+            } catch (e) { alert('Verwijderen mislukt: ' + e.message); }
         }
 
         async function saveNote(id) {

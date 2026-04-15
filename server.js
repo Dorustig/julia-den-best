@@ -159,6 +159,21 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
+  // DELETE /api/leads/:id — remove lead
+  if (pathname.startsWith('/api/leads/') && req.method === 'DELETE') {
+    try {
+      const leadId = pathname.split('/').pop();
+      const leads = readLeads();
+      const idx = leads.findIndex(l => l.id === leadId);
+      if (idx === -1) return jsonRes(res, 404, { error: 'Lead not found' });
+      const removed = leads.splice(idx, 1)[0];
+      writeLeads(leads);
+      return jsonRes(res, 200, { success: true, id: removed.id });
+    } catch (e) {
+      return jsonRes(res, 500, { error: e.message });
+    }
+  }
+
   // PUT /api/leads/:id — update lead
   if (pathname.startsWith('/api/leads/') && req.method === 'PUT') {
     try {
