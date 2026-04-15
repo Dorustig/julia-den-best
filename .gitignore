@@ -4,3 +4,5 @@ data/backups/
 .DS_Store
 data/leads.json
 data/leads-append.jsonl
+data/session-secret.txt
+data/tracking.json
