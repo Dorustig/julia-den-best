@@ -23,6 +23,49 @@ if (!fs.existsSync(TRACKING_FILE)) {
   fs.writeFileSync(TRACKING_FILE, JSON.stringify({ ga4: '', metaPixel: '', tiktokPixel: '' }, null, 2));
 }
 
+// ===== SELF-HEAL ON STARTUP =====
+// If leads.json is empty/corrupted but the append-only log has entries, rebuild
+// from the log. This is the last-resort recovery when a volume goes wrong or
+// a deploy loses state. Runs once at startup.
+(function selfHealLeads() {
+  try {
+    const current = JSON.parse(fs.readFileSync(LEADS_FILE, 'utf-8'));
+    if (!Array.isArray(current)) throw new Error('leads.json not an array');
+    if (current.length > 0) {
+      console.log(`[SelfHeal] leads.json OK (${current.length} leads).`);
+      return;
+    }
+    if (!fs.existsSync(LEADS_APPEND_LOG)) {
+      console.log('[SelfHeal] leads.json empty, no append-log to recover from.');
+      return;
+    }
+    const raw = fs.readFileSync(LEADS_APPEND_LOG, 'utf-8');
+    const lines = raw.split('\n').filter(Boolean);
+    const seen = new Set();
+    const recovered = [];
+    for (const line of lines) {
+      try {
+        const lead = JSON.parse(line);
+        if (lead.id && !seen.has(lead.id)) { seen.add(lead.id); recovered.push(lead); }
+      } catch {}
+    }
+    if (recovered.length) {
+      fs.writeFileSync(LEADS_FILE, JSON.stringify(recovered, null, 2));
+      console.log(`[SelfHeal] REBUILT leads.json from append-log: ${recovered.length} leads recovered.`);
+    } else {
+      console.log('[SelfHeal] append-log had no valid lines.');
+    }
+  } catch (e) {
+    console.warn('[SelfHeal] failed:', e.message);
+  }
+})();
+
+// ===== ADMIN URL =====
+// Un-guessable admin URL slug. No login required — security through a long
+// random URL that no one can guess. Bookmark this and keep it private.
+// Can be overridden per deploy via env var.
+const ADMIN_SLUG = process.env.ADMIN_SLUG || 'portal-j8k3m9q2x7p5v4';
+
 // MIME types
 const MIME = {
   '.html': 'text/html', '.css': 'text/css', '.js': 'application/javascript',
@@ -115,9 +158,16 @@ const server = http.createServer(async (req, res) => {
     return res.end();
   }
 
+  // Block the old predictable /admin.html path entirely — return 404.
+  // Admin lives only at the un-guessable slug (see ADMIN_SLUG + remap below).
+  if (pathname === '/admin.html' || pathname === '/admin' || pathname === '/admin/') {
+    res.writeHead(404, { 'Content-Type': 'text/plain' });
+    return res.end('Not Found');
+  }
+
   // ===== API ROUTES =====
 
-  // GET /api/leads — all leads
+  // GET /api/leads — all leads (admin only, auth already checked)
   if (pathname === '/api/leads' && req.method === 'GET') {
     return jsonRes(res, 200, readLeads());
   }
@@ -320,7 +370,16 @@ const server = http.createServer(async (req, res) => {
   }
 
   // ===== STATIC FILE SERVING =====
-  let filePath = pathname === '/' ? '/index.html' : decodeURIComponent(pathname);
+  // Remap the un-guessable admin slug to serve admin.html content.
+  // The slug URL is the ONLY way to reach the admin panel.
+  const isAdminSlug =
+    pathname === `/${ADMIN_SLUG}` ||
+    pathname === `/${ADMIN_SLUG}/` ||
+    pathname === `/${ADMIN_SLUG}.html`;
+
+  let filePath = isAdminSlug
+    ? '/admin.html'
+    : (pathname === '/' ? '/index.html' : decodeURIComponent(pathname));
   filePath = path.join(ROOT, filePath);
 
   // Security: prevent directory traversal
