@@ -160,14 +160,26 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', Georgia, serif; font-weight: 7
 }
 
 /* Hero Image */
-.hero-image { position: relative; }
+.hero-image {
+    position: relative;
+    /* Stretch to match the text column so the photo doesn't float low when
+       the text column is tall (USP bar + CTA + stats). min-height keeps it
+       tall enough on short text columns (tablet-ish). */
+    align-self: stretch;
+    min-height: 480px;
+}
 .hero-img-wrapper {
-    border-radius: 24px; box-shadow: var(--shadow-lg);
-    max-height: 520px; overflow: hidden;
+    /* Absolute fill so the image can't push the grid row taller than the
+       text column — the photo crops naturally to fit with object-fit cover. */
+    position: absolute;
+    inset: 0;
+    border-radius: 24px;
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
 }
 .hero-img-wrapper img {
     width: 100%; height: 100%; object-fit: cover; display: block;
-    min-height: 400px; object-position: center 22%;
+    object-position: center 22%;
 }
 /* Dropzone for hero photo (shown when no image file exists) */
 .hero-dropzone {
@@ -765,7 +777,10 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', Georgia, serif; font-weight: 7
 /* ===== RESPONSIVE ===== */
 @media (max-width: 900px) {
     .hero-grid { grid-template-columns: 1fr; gap: 32px; text-align: center; }
-    .hero-image { max-width: 360px; margin: 0 auto; }
+    /* Revert desktop's absolute-fill positioning — on mobile the image should
+       flow normally and size from its own aspect ratio. */
+    .hero-image { max-width: 360px; margin: 0 auto; min-height: 0; align-self: auto; }
+    .hero-img-wrapper { position: static; inset: auto; }
     .hero-stats { justify-content: center; }
     .hero-cta-group { display: flex; flex-direction: column; align-items: center; }
     .hero-guarantee { justify-content: center; }

@@ -258,8 +258,9 @@ const server = http.createServer(async (req, res) => {
     let creds;
     try { creds = JSON.parse(await readBody(req)); }
     catch { return jsonRes(res, 400, { error: 'Invalid JSON' }); }
-    const user = String(creds.username || '');
-    const pass = String(creds.password || '');
+    // Trim — defensive against clients that send a trailing newline/space.
+    const user = String(creds.username || '').trim();
+    const pass = String(creds.password || '').trim();
     // Constant-time compare on both fields to avoid timing leaks
     const userBuf = Buffer.from(user.padEnd(64, '\0').slice(0, 64));
     const passBuf = Buffer.from(pass.padEnd(64, '\0').slice(0, 64));
