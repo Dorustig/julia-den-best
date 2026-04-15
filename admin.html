@@ -227,11 +227,11 @@
         <aside class="sidebar">
             <div class="sidebar-brand">Julia Den Best</div>
             <ul class="sidebar-nav">
-                <li><a href="#" class="active">📊 Dashboard</a></li>
-                <li><a href="#">👥 Leads</a></li>
-                <li><a href="#">📞 Te bellen</a></li>
-                <li><a href="#">📅 Afspraken</a></li>
-                <li><a href="#">✅ Klanten</a></li>
+                <li><a href="#" class="active" data-filter="all" onclick="sidebarFilter(event, 'all')">📊 Dashboard</a></li>
+                <li><a href="#" data-filter="all" onclick="sidebarFilter(event, 'all')">👥 Leads</a></li>
+                <li><a href="#" data-filter="nieuw" onclick="sidebarFilter(event, 'nieuw')">📞 Te bellen</a></li>
+                <li><a href="#" data-filter="afspraak" onclick="sidebarFilter(event, 'afspraak')">📅 Afspraken</a></li>
+                <li><a href="#" data-filter="klant" onclick="sidebarFilter(event, 'klant')">✅ Klanten</a></li>
                 <li><a href="index.html">🌐 Landingspagina</a></li>
             </ul>
         </aside>
@@ -363,6 +363,19 @@
 
     <script>
         let leads = [];
+
+        function sidebarFilter(e, status) {
+            e.preventDefault();
+            document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
+            e.currentTarget.classList.add('active');
+            const sel = document.getElementById('statusFilter');
+            sel.value = (status === 'all') ? '' : status;
+            const labels = { all: 'Leads Dashboard', nieuw: 'Te bellen', afspraak: 'Afspraken', klant: 'Klanten' };
+            const h1 = document.querySelector('.topbar h1');
+            if (h1) h1.textContent = labels[status] || 'Leads Dashboard';
+            renderTable();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
 
         async function loadLeads() {
             try {

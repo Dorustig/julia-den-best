@@ -868,7 +868,7 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', Georgia, serif; font-weight: 7
     /* Tickers */
     .social-proof-ticker, .marquee, .social-proof-bar { overflow: hidden; }
     /* Guarantee banner */
-    .guarantee-banner { padding: 18px 14px; margin: 0 -14px; border-radius: 0; }
+    .guarantee-banner { padding: 18px 14px; margin: 0; border-radius: 0; }
     .guarantee-content h3 { font-size: 17px; }
     .guarantee-content p { font-size: 13px; }
     /* Community */
@@ -892,7 +892,7 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', Georgia, serif; font-weight: 7
     .option-card { padding: 12px; font-size: 13px; }
     .nav-cta { padding: 8px 12px; font-size: 12px; }
     .lang-btn { padding: 3px 6px; font-size: 11px; }
-    .guarantee-banner { margin: 0 -18px; }
+    .guarantee-banner { margin: 0; }
 }
 
 /* ===== FAQ ===== */

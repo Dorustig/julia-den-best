@@ -7,7 +7,9 @@ const zlib = require('zlib');
 
 const PORT = process.env.PORT || 3001;
 const ROOT = __dirname;
-const DATA_DIR = path.join(ROOT, 'data');
+// DATA_DIR is the persistent volume path on Railway (/app/data).
+// Overridable via env var for flexibility.
+const DATA_DIR = process.env.DATA_DIR || path.join(ROOT, 'data');
 const BACKUP_DIR = path.join(DATA_DIR, 'backups');
 const LEADS_FILE = path.join(DATA_DIR, 'leads.json');
 const LEADS_APPEND_LOG = path.join(DATA_DIR, 'leads-append.jsonl');
