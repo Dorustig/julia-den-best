@@ -315,6 +315,7 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', Georgia, serif; font-weight: 7
 .form-group input { width: 100%; padding: 14px 16px; border: 2px solid var(--gray); border-radius: var(--radius-sm); font-family: 'Inter', sans-serif; font-size: 15px; transition: var(--transition); }
 .form-group input:focus { outline: none; border-color: var(--pink); box-shadow: 0 0 0 3px var(--pink-glow); }
 .form-group input::placeholder { color: #D1D5DB; }
+.field-error { color: #E91E8C; font-size: 13px; margin-top: 6px; line-height: 1.35; font-weight: 500; }
 
 .quiz-nav { display: flex; justify-content: space-between; margin-top: 32px; gap: 12px; }
 .quiz-nav .btn { min-width: 140px; }

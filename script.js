@@ -621,20 +621,93 @@ function validateCurrentStep() {
 
     const textareas = step.querySelectorAll('textarea[required]');
     for (const ta of textareas) {
-        if (!ta.value.trim()) { ta.style.borderColor = '#E91E8C'; ta.focus(); return false; }
+        if (!ta.value.trim()) { showFieldError(ta, 'Vul dit veld in'); return false; }
     }
 
     const inputs = step.querySelectorAll('input[type="text"][required], input[type="email"][required], input[type="tel"][required]');
     for (const input of inputs) {
-        if (!input.value.trim()) { input.style.borderColor = '#E91E8C'; input.focus(); return false; }
+        if (!input.value.trim()) { showFieldError(input, 'Vul dit veld in'); return false; }
+        clearFieldError(input);
     }
 
     const emailInput = step.querySelector('input[type="email"]');
-    if (emailInput && emailInput.value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.value)) {
-        emailInput.style.borderColor = '#E91E8C'; emailInput.focus(); return false;
+    if (emailInput && emailInput.value) {
+        const emailCheck = validateEmail(emailInput.value);
+        if (!emailCheck.ok) { showFieldError(emailInput, emailCheck.msg); return false; }
+        clearFieldError(emailInput);
+    }
+
+    const telInput = step.querySelector('input[type="tel"]');
+    if (telInput && telInput.value) {
+        const phoneCheck = validateNLPhone(telInput.value);
+        if (!phoneCheck.ok) { showFieldError(telInput, phoneCheck.msg); return false; }
+        telInput.value = phoneCheck.normalized;
+        clearFieldError(telInput);
     }
 
     return true;
+}
+
+// ===== FIELD VALIDATION HELPERS =====
+function showFieldError(input, msg) {
+    input.style.borderColor = '#E91E8C';
+    let err = input.parentElement.querySelector('.field-error');
+    if (!err) {
+        err = document.createElement('div');
+        err.className = 'field-error';
+        input.parentElement.appendChild(err);
+    }
+    err.textContent = msg;
+    input.focus();
+}
+function clearFieldError(input) {
+    input.style.borderColor = '';
+    const err = input.parentElement.querySelector('.field-error');
+    if (err) err.remove();
+}
+function validateEmail(value) {
+    const v = value.trim().toLowerCase();
+    // Strict format: local@domain.tld with valid chars, at least 2-letter TLD
+    const re = /^[a-z0-9._%+-]+@[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)*\.[a-z]{2,}$/;
+    if (!re.test(v)) return { ok: false, msg: 'Vul een geldig e-mailadres in' };
+    // Block obvious fake / test domains
+    const blockedDomains = ['test.com','test.nl','example.com','example.nl','example.org','asdf.com','aaa.com','fake.com','mail.com'];
+    const domain = v.split('@')[1];
+    if (blockedDomains.includes(domain)) return { ok: false, msg: 'Dit e-mailadres lijkt niet echt. Vul je echte mail in.' };
+    // Block local parts that are too short or obviously fake (a@x.nl, aa@x.nl, test@, asdf@, qwerty@)
+    const local = v.split('@')[0];
+    if (local.length < 2) return { ok: false, msg: 'Vul je echte e-mailadres in' };
+    if (['test','asdf','qwerty','abcd','aaaa','xxxx','noreply','no-reply'].includes(local)) {
+        return { ok: false, msg: 'Vul je echte e-mailadres in' };
+    }
+    return { ok: true, normalized: v };
+}
+function validateNLPhone(value) {
+    // Strip everything that's not a digit or leading +
+    let digits = String(value).replace(/[\s\-\.\(\)]/g, '');
+    if (digits.startsWith('+')) digits = digits.slice(1);
+    if (!/^\d+$/.test(digits)) return { ok: false, msg: 'Alleen cijfers toegestaan' };
+
+    // Normalise to 06XXXXXXXX (10 digits)
+    let normalized = null;
+    if (/^06\d{8}$/.test(digits)) normalized = digits;
+    else if (/^316\d{8}$/.test(digits)) normalized = '0' + digits.slice(2);
+    else if (/^00316\d{8}$/.test(digits)) normalized = '0' + digits.slice(4);
+    else if (/^6\d{8}$/.test(digits)) normalized = '0' + digits;
+
+    if (!normalized) return { ok: false, msg: 'Vul een geldig 06-nummer in (bijv. 06-12345678)' };
+
+    // Reject obvious fakes
+    const suffix = normalized.slice(2); // 8 digits after 06
+    // All same digit: 0611111111, 0600000000
+    if (/^(\d)\1{7}$/.test(suffix)) return { ok: false, msg: 'Dit nummer lijkt niet echt. Vul je echte 06-nummer in.' };
+    // Sequential ascending (12345678) or descending (87654321)
+    if (suffix === '12345678' || suffix === '87654321' || suffix === '01234567' || suffix === '23456789') {
+        return { ok: false, msg: 'Dit nummer lijkt niet echt. Vul je echte 06-nummer in.' };
+    }
+    // Display-friendly format: 06-12345678
+    const pretty = '06-' + suffix;
+    return { ok: true, normalized: pretty };
 }
 
 // Auto-advance
@@ -695,21 +768,25 @@ btnVerstuur.addEventListener('click', async () => {
         notities: ''
     };
 
-    // Save to backend
-    try {
-        await fetch('/api/leads', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(lead)
-        });
-    } catch (e) { console.warn('Backend save failed, saving locally:', e); }
-
-    // Also save locally as backup
+    // Always save locally FIRST — guarantees lead is never lost even if backend is down
     try {
         const existing = JSON.parse(localStorage.getItem('julia_leads') || '[]');
         existing.push(lead);
         localStorage.setItem('julia_leads', JSON.stringify(existing));
     } catch (e) { console.error('Storage error:', e); }
+
+    // Try to save to backend with retry. If all retries fail, queue for later retry on next page load.
+    const backendOk = await submitLeadWithRetry(lead);
+    if (!backendOk) {
+        queueLead(lead);
+        // sendBeacon as final attempt — survives page close/reload
+        try {
+            if (navigator.sendBeacon) {
+                const blob = new Blob([JSON.stringify(lead)], { type: 'application/json' });
+                navigator.sendBeacon('/api/leads', blob);
+            }
+        } catch(e) {}
+    }
 
     // Conversion event to all tracking platforms
     if (window.__trackEvent) {
@@ -740,6 +817,70 @@ btnVerstuur.addEventListener('click', async () => {
     form.reset();
     currentStep = 1;
     showStep(1, false);
+});
+
+// ===== LEAD PERSISTENCE (retry + queue + drain) =====
+// Lead submission has absolute priority. Flow:
+// 1. localStorage save (happens before network — never lost even offline).
+// 2. POST with 3 retries + exponential backoff.
+// 3. If still failing → queue locally. Drain queue on every page load.
+// 4. sendBeacon as last-resort fallback (survives page close).
+const LEAD_QUEUE_KEY = 'julia_leads_queue';
+async function submitLeadWithRetry(lead, maxAttempts = 3) {
+    for (let i = 0; i < maxAttempts; i++) {
+        try {
+            const res = await fetch('/api/leads', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(lead),
+                // keepalive lets the request survive page navigation
+                keepalive: true
+            });
+            if (res.ok) return true;
+            if (res.status >= 400 && res.status < 500 && res.status !== 408 && res.status !== 429) {
+                // Client error (bad data) — retrying won't help, but keep queue as safety net
+                console.warn('Lead POST client error:', res.status);
+                return false;
+            }
+        } catch (e) {
+            console.warn(`Lead POST attempt ${i + 1} failed:`, e.message);
+        }
+        // Exponential backoff: 500ms, 1500ms, 4000ms
+        if (i < maxAttempts - 1) {
+            await new Promise(r => setTimeout(r, [500, 1500, 4000][i]));
+        }
+    }
+    return false;
+}
+function queueLead(lead) {
+    try {
+        const q = JSON.parse(localStorage.getItem(LEAD_QUEUE_KEY) || '[]');
+        if (!q.some(l => l.id === lead.id)) q.push(lead);
+        localStorage.setItem(LEAD_QUEUE_KEY, JSON.stringify(q));
+    } catch (e) { console.error('Queue error:', e); }
+}
+async function drainLeadQueue() {
+    let q;
+    try { q = JSON.parse(localStorage.getItem(LEAD_QUEUE_KEY) || '[]'); }
+    catch { return; }
+    if (!q.length) return;
+    const remaining = [];
+    for (const lead of q) {
+        const ok = await submitLeadWithRetry(lead, 2);
+        if (!ok) remaining.push(lead);
+    }
+    try {
+        if (remaining.length) localStorage.setItem(LEAD_QUEUE_KEY, JSON.stringify(remaining));
+        else localStorage.removeItem(LEAD_QUEUE_KEY);
+    } catch(e) {}
+    if (q.length > remaining.length) {
+        console.log(`[Lead queue] drained ${q.length - remaining.length} pending leads`);
+    }
+}
+// Drain on page load + visibility change (covers deploy-in-progress scenarios)
+window.addEventListener('load', () => setTimeout(drainLeadQueue, 1500));
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') drainLeadQueue();
 });
 
 // ===== ALMOST DONE MODAL HANDLERS =====

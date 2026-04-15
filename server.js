@@ -10,6 +10,7 @@ const ROOT = __dirname;
 const DATA_DIR = path.join(ROOT, 'data');
 const BACKUP_DIR = path.join(DATA_DIR, 'backups');
 const LEADS_FILE = path.join(DATA_DIR, 'leads.json');
+const LEADS_APPEND_LOG = path.join(DATA_DIR, 'leads-append.jsonl');
 const TRACKING_FILE = path.join(DATA_DIR, 'tracking.json');
 
 // Ensure data + backup directories exist
@@ -33,13 +34,31 @@ function readLeads() {
   try { return JSON.parse(fs.readFileSync(LEADS_FILE, 'utf-8')); }
   catch { return []; }
 }
+// Atomic write: write to temp file then rename (rename is atomic on POSIX).
+// Prevents corrupted leads.json on crash/deploy mid-write.
 function writeLeads(leads) {
-  fs.writeFileSync(LEADS_FILE, JSON.stringify(leads, null, 2));
+  const json = JSON.stringify(leads, null, 2);
+  const tmp = LEADS_FILE + '.tmp';
+  fs.writeFileSync(tmp, json);
+  fs.renameSync(tmp, LEADS_FILE);
   // Auto-backup: daily snapshot (overwritten per day)
   try {
     const today = new Date().toISOString().slice(0, 10);
-    fs.writeFileSync(path.join(BACKUP_DIR, `leads-${today}.json`), JSON.stringify(leads, null, 2));
+    fs.writeFileSync(path.join(BACKUP_DIR, `leads-${today}.json`), json);
   } catch (e) { console.warn('[Backup] daily snapshot failed:', e.message); }
+}
+// Append-only log: every lead is appended as a JSON line. This file is NEVER
+// rewritten, so even if leads.json gets corrupted or a deploy loses state,
+// the full lead history can be reconstructed from this log.
+function appendLeadLog(lead) {
+  try {
+    fs.appendFileSync(LEADS_APPEND_LOG, JSON.stringify(lead) + '\n');
+  } catch (e) { console.warn('[AppendLog] failed:', e.message); }
+}
+// Deduplicate by lead id — needed because clients may retry the same lead
+// multiple times from their queue during deploy.
+function leadExists(leads, id) {
+  return id && leads.some(l => l.id === id);
 }
 function leadsToCSV(leads) {
   const headers = ['id','timestamp','naam','email','telefoon','instagram','leeftijd','doel_type','nummer_een_doel','obstakel','urgentie','budget','bereid','status','bron','utm_source','utm_medium','utm_campaign','utm_content','referrer','lang','notities'];
@@ -102,19 +121,39 @@ const server = http.createServer(async (req, res) => {
   }
 
   // POST /api/leads — create lead
+  // Idempotent: re-POSTing the same lead.id (from client queue retry) is a no-op.
+  // Every accepted lead is also appended to an append-only JSONL log as a
+  // last-resort safety net against data loss.
   if (pathname === '/api/leads' && req.method === 'POST') {
+    let lead;
     try {
       const body = await readBody(req);
-      const lead = JSON.parse(body);
+      lead = JSON.parse(body);
+    } catch (e) {
+      return jsonRes(res, 400, { error: 'Invalid JSON: ' + e.message });
+    }
+    try {
       lead.id = lead.id || 'lead_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
       lead.timestamp = lead.timestamp || new Date().toISOString();
       lead.status = lead.status || 'nieuw';
+
+      // Append to JSONL log FIRST — this file is never rewritten, so even if
+      // the main leads.json write fails or state is lost, the lead survives.
+      appendLeadLog(lead);
+
       const leads = readLeads();
+      if (leadExists(leads, lead.id)) {
+        // Duplicate (client retry) — already persisted, treat as success
+        return jsonRes(res, 200, { success: true, id: lead.id, duplicate: true });
+      }
       leads.push(lead);
       writeLeads(leads);
       return jsonRes(res, 201, { success: true, id: lead.id });
     } catch (e) {
-      return jsonRes(res, 400, { error: e.message });
+      console.error('[POST /api/leads] write error:', e.message);
+      // Lead is already in the append-log — return 500 so client retries, but
+      // even if it never does, the lead is safe in leads-append.jsonl.
+      return jsonRes(res, 500, { error: e.message });
     }
   }
 
