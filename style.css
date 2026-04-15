@@ -432,54 +432,82 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', Georgia, serif; font-weight: 7
 }
 
 @media (max-width: 640px) {
-    .container { padding: 0 16px; }
-    .hero { padding-top: 64px; }
-    .hero-grid { padding: 24px 0 40px; gap: 24px; }
-    .hero h1 { font-size: 26px; }
-    .hero-subtitle { font-size: 15px; }
-    .hero-stats { flex-direction: row; gap: 16px; flex-wrap: wrap; }
-    .stat-number { font-size: 24px; }
+    .container { padding: 0 14px; }
+    .hero { padding-top: 56px; }
+    .hero-grid { padding: 20px 0 32px; gap: 20px; }
+    .hero h1 { font-size: 24px; line-height: 1.15; }
+    .hero-subtitle { font-size: 14px; }
+    .hero-badge { font-size: 12px; padding: 6px 14px; }
+    .hero-stats { flex-direction: row; gap: 12px; flex-wrap: wrap; }
+    .stat-number { font-size: 22px; }
+    .stat-label { font-size: 12px; }
     .hero-image { max-width: 100%; }
-    .hero-img-wrapper { max-height: 360px; border-radius: 20px; }
-    .hero-img-wrapper img { min-height: 320px; }
+    .hero-img-wrapper { max-height: 340px; border-radius: 18px; }
+    .hero-img-wrapper img { min-height: 300px; }
     .hero-float-card { display: none; }
     .hero-cta-group .btn { width: 100%; }
-    .quiz-wrapper { padding: 20px 14px; border-radius: 16px; }
-    .quiz-section { padding: 40px 0; }
-    .quiz-header h2 { font-size: 22px; }
-    .quiz-step h3 { font-size: 18px; }
-    .options-grid { grid-template-columns: 1fr; }
+    .hero-usps li { font-size: 14px; }
+    .quiz-wrapper { padding: 18px 12px; border-radius: 14px; }
+    .quiz-section { padding: 32px 0; }
+    .quiz-header h2 { font-size: 20px; }
+    .quiz-header p { font-size: 14px; }
+    .quiz-step h3 { font-size: 17px; }
+    .options-grid { grid-template-columns: 1fr; gap: 10px; }
+    .option-card { padding: 14px; font-size: 14px; }
     .scale-content { grid-template-columns: 40px 1fr; }
-    .quiz-nav { flex-direction: column; gap: 10px; }
+    .quiz-nav { flex-direction: column; gap: 8px; }
     .quiz-nav .btn { width: 100%; }
     .features-grid { grid-template-columns: 1fr; }
-    .reviews-section, .transformations-section, .program-section, .testimonials-section, .cta-section, .empathy-section, .community-section { padding: 48px 0; }
-    .reviews-section h2, .transformations-section h2, .program-header h2, .testimonials-section h2, .cta-section h2, .empathy-card h2, .community-text h2 { font-size: 24px; }
-    .footer-content { flex-direction: column; gap: 24px; }
-    .footer-links { flex-direction: column; gap: 12px; }
-    .btn-hero { padding: 14px 24px; font-size: 15px; width: 100%; }
-    .btn { padding: 12px 24px; font-size: 15px; }
-    .modal-content { padding: 32px 20px; margin: 20px; max-width: calc(100vw - 40px); }
-    .nav-brand { font-size: 17px; }
-    .navbar { padding: 12px 0; }
-    .nav-cta { padding: 10px 18px; font-size: 14px; }
-    .lang-switch { gap: 4px; }
-    .lang-btn { padding: 4px 8px; font-size: 13px; }
-    /* Empathy & reviews cards full-width on mobile */
-    .empathy-card, .review-card, .testimonial-card, .phase-card, .transformation-card { padding: 20px 16px; }
-    /* Section headers/text can't overflow */
-    h1, h2, h3 { overflow-wrap: break-word; word-wrap: break-word; }
-    /* Tickers/marquees shouldn't cause horizontal scroll */
-    .social-proof-ticker, .marquee { overflow: hidden; }
-    /* Guarantee banner tighter */
-    .guarantee-banner { padding: 20px 16px; }
-    .guarantee-content h3 { font-size: 18px; }
-    /* Community section */
-    .community-card { padding: 24px 16px; }
+    .reviews-section, .transformations-section, .program-section, .testimonials-section, .cta-section, .empathy-section, .community-section { padding: 40px 0; }
+    .reviews-section h2, .transformations-section h2, .program-header h2, .testimonials-section h2, .cta-section h2, .empathy-card h2, .community-text h2 { font-size: 22px; }
+    .section-subtitle, .program-header p, .reviews-section p, .transformations-section p { font-size: 14px; }
+    .footer-content { flex-direction: column; gap: 20px; padding: 32px 0; }
+    .footer-links { flex-direction: column; gap: 10px; }
+    .btn-hero { padding: 13px 20px; font-size: 14px; width: 100%; }
+    .btn { padding: 11px 20px; font-size: 14px; }
+    .modal-content { padding: 28px 18px; margin: 16px; max-width: calc(100vw - 32px); }
+    .modal-content h2 { font-size: 22px; }
+    .nav-brand { font-size: 16px; }
+    .navbar .container { padding: 0 12px; }
+    .navbar { padding: 10px 0; }
+    .nav-cta { padding: 9px 14px; font-size: 13px; }
+    .lang-switch { gap: 2px; padding: 3px; }
+    .lang-btn { padding: 4px 7px; font-size: 12px; }
+    /* Empathy & cards */
+    .empathy-card, .review-card, .testimonial-card, .phase-card, .transformation-card { padding: 18px 14px; }
+    .empathy-card h2 { margin-bottom: 16px; }
+    .empathy-list li { font-size: 14px; }
+    /* Text overflow safety */
+    h1, h2, h3, p { overflow-wrap: break-word; word-wrap: break-word; hyphens: auto; }
+    /* Tickers */
+    .social-proof-ticker, .marquee, .social-proof-bar { overflow: hidden; }
+    /* Guarantee banner */
+    .guarantee-banner { padding: 18px 14px; margin: 0 -14px; border-radius: 0; }
+    .guarantee-content h3 { font-size: 17px; }
+    .guarantee-content p { font-size: 13px; }
+    /* Community */
+    .community-card { padding: 22px 14px; }
+    .community-text h2 { font-size: 22px; }
+    .community-avatars { flex-wrap: wrap; gap: 6px; justify-content: center; }
+    .community-avatars .avatar { width: 36px; height: 36px; font-size: 14px; }
+    /* Progress bar/text */
+    .progress-text { font-size: 13px; }
+    /* Phase cards tighter */
+    .phase-card ul li { font-size: 14px; }
+    .phase-card h3 { font-size: 18px; }
+    /* Transformation before/after tighter */
+    .transformation-before, .transformation-after { min-height: 100px; }
+    /* Photo dropzone smaller */
+    .dropzone-icon { font-size: 44px; }
+    .dropzone-content p { font-size: 14px; }
 }
 
 @media (max-width: 380px) {
-    .hero h1 { font-size: 24px; }
-    .container { padding: 0 14px; }
-    .quiz-wrapper { padding: 18px 12px; }
+    .hero h1 { font-size: 22px; }
+    .container { padding: 0 12px; }
+    .quiz-wrapper { padding: 16px 10px; }
+    .option-card { padding: 12px; font-size: 13px; }
+    .nav-cta { padding: 8px 12px; font-size: 12px; }
+    .lang-btn { padding: 3px 6px; font-size: 11px; }
+    .guarantee-banner { margin: 0 -12px; }
 }
