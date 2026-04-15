@@ -475,6 +475,11 @@ function setupHeroPhoto() {
 
 // ===== QUIZ NAVIGATION =====
 function showStep(step) {
+    // Clamp step to valid range
+    if (step < 1) step = 1;
+    if (step > TOTAL_STEPS) step = TOTAL_STEPS;
+    currentStep = step;
+
     document.querySelectorAll('.quiz-step').forEach(el => el.classList.remove('active'));
     const target = document.querySelector(`.quiz-step[data-step="${step}"]`);
     if (target) target.classList.add('active');
@@ -532,7 +537,12 @@ document.querySelectorAll('.option-card input[type="radio"], .scale-card input[t
 });
 
 document.querySelector('.btn-commitment')?.addEventListener('click', () => {
-    setTimeout(() => { currentStep++; showStep(currentStep); }, 300);
+    setTimeout(() => {
+        if (currentStep === 7 && currentStep < TOTAL_STEPS) {
+            currentStep++;
+            showStep(currentStep);
+        }
+    }, 300);
 });
 
 btnVolgende.addEventListener('click', () => {
