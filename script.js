@@ -82,7 +82,7 @@ const T = {
         // Hero
         heroBadge: 'Nog maar 5 plekken beschikbaar deze maand',
         heroTitle: 'Girll, jij verdient <span class="highlight">écht</span> een transformatie.',
-        heroSubtitle: 'Ik help elke vrouw, of je nu net begint of al jaren sport. <strong>Bij mij krijg je persoonlijke 1-op-1 begeleiding, een plan op maat en ik sta elke dag voor je klaar.</strong> Tijd om je eindelijk lekker in je lichaam te voelen. ✨',
+        heroSubtitle: 'Of je wil <strong>afvallen</strong>, je <strong>billen laten aankomen</strong>, <strong>gespierd aankomen</strong> of <strong>slanker worden</strong> — ik help elke vrouw in Nederland, beginner of gevorderd. <strong>Je krijgt persoonlijke 1-op-1 begeleiding, een plan op maat en ik sta elke dag voor je klaar.</strong> Tijd om je eindelijk lekker in je lichaam te voelen. ✨',
         usp1: '100% persoonlijke begeleiding',
         usp2: '1-op-1 persoonlijke coaching',
         usp3: 'Op maat gemaakt voor jouw lichaam',
