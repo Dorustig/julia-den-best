@@ -105,7 +105,11 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', Georgia, serif; font-weight: 7
 }
 @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
 
-.hero h1 { font-size: clamp(28px, 4vw, 48px); color: var(--text); margin-bottom: 16px; }
+.hero h1 {
+    font-size: clamp(28px, 4vw, 48px); color: var(--text); margin-bottom: 16px;
+    letter-spacing: -0.02em; text-wrap: balance; hyphens: none; -webkit-hyphens: none;
+    word-break: normal; overflow-wrap: normal;
+}
 .hero-subtitle {
     font-size: clamp(15px, 1.8vw, 18px); color: var(--gray-dark);
     line-height: 1.7; margin-bottom: 28px;
@@ -113,12 +117,14 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', Georgia, serif; font-weight: 7
 .hero-subtitle strong { color: var(--text); }
 /* Hero USP bar */
 .hero-usp-bar {
-    display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px;
+    display: flex; flex-direction: column; gap: 12px; margin-bottom: 28px;
 }
 .usp-item {
-    display: flex; align-items: center; gap: 8px;
-    font-size: 14px; font-weight: 500; color: var(--text);
+    display: flex; align-items: center; gap: 12px;
+    font-size: 15px; font-weight: 500; color: var(--text);
+    line-height: 1.4;
 }
+.usp-item svg { flex-shrink: 0; }
 .hero-cta-group { margin-bottom: 32px; }
 .hero-guarantee {
     display: flex; align-items: center; gap: 8px;
@@ -432,18 +438,26 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', Georgia, serif; font-weight: 7
 }
 
 @media (max-width: 640px) {
-    .container { padding: 0 14px; }
-    .hero { padding-top: 56px; }
-    .hero-grid { padding: 20px 0 32px; gap: 20px; }
-    .hero h1 { font-size: 24px; line-height: 1.15; }
-    .hero-subtitle { font-size: 14px; }
-    .hero-badge { font-size: 12px; padding: 6px 14px; }
-    .hero-stats { flex-direction: row; gap: 12px; flex-wrap: wrap; }
-    .stat-number { font-size: 22px; }
+    .container { padding: 0 20px; }
+    .hero { padding-top: 60px; }
+    .hero-grid { padding: 28px 0 40px; gap: 28px; text-align: left; }
+    .hero-text { text-align: left; }
+    .hero h1 {
+        font-size: 30px; line-height: 1.1; letter-spacing: -0.025em;
+        margin-bottom: 14px; font-weight: 700;
+    }
+    .hero-subtitle { font-size: 15px; line-height: 1.55; margin-bottom: 24px; color: var(--gray-dark); }
+    .hero-badge { font-size: 12px; padding: 6px 14px; margin-bottom: 18px; }
+    .hero-usp-bar { gap: 14px; margin-bottom: 28px; padding: 0; }
+    .usp-item { font-size: 15px; gap: 12px; }
+    .hero-stats { flex-direction: row; gap: 20px; flex-wrap: wrap; justify-content: flex-start; margin-top: 4px; }
+    .hero-guarantee { justify-content: flex-start; }
+    .hero-cta-group { align-items: stretch; }
+    .stat-number { font-size: 24px; }
     .stat-label { font-size: 12px; }
-    .hero-image { max-width: 100%; }
-    .hero-img-wrapper { max-height: 420px; min-height: 360px; border-radius: 18px; }
-    .hero-img-wrapper img { min-height: 360px; object-position: center 68%; }
+    .hero-image { max-width: 100%; margin-top: 8px; }
+    .hero-img-wrapper { max-height: 460px; min-height: 400px; border-radius: 20px; }
+    .hero-img-wrapper img { min-height: 400px; object-position: center 92%; }
     .hero-float-card { display: none; }
     .hero-cta-group .btn { width: 100%; }
     .hero-usps li { font-size: 14px; }
@@ -477,8 +491,9 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', Georgia, serif; font-weight: 7
     .empathy-card, .review-card, .testimonial-card, .phase-card, .transformation-card { padding: 18px 14px; }
     .empathy-card h2 { margin-bottom: 16px; }
     .empathy-list li { font-size: 14px; }
-    /* Text overflow safety */
-    h1, h2, h3, p { overflow-wrap: break-word; word-wrap: break-word; hyphens: auto; }
+    /* Text overflow safety — NO hyphens on headings (ugly mid-word breaks) */
+    p { overflow-wrap: break-word; word-wrap: break-word; hyphens: auto; }
+    h1, h2, h3 { overflow-wrap: break-word; word-wrap: normal; hyphens: none; -webkit-hyphens: none; }
     /* Tickers */
     .social-proof-ticker, .marquee, .social-proof-bar { overflow: hidden; }
     /* Guarantee banner */
@@ -503,13 +518,13 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', Georgia, serif; font-weight: 7
 }
 
 @media (max-width: 380px) {
-    .hero h1 { font-size: 22px; }
-    .container { padding: 0 12px; }
+    .hero h1 { font-size: 26px; }
+    .container { padding: 0 18px; }
     .quiz-wrapper { padding: 16px 10px; }
     .option-card { padding: 12px; font-size: 13px; }
     .nav-cta { padding: 8px 12px; font-size: 12px; }
     .lang-btn { padding: 3px 6px; font-size: 11px; }
-    .guarantee-banner { margin: 0 -12px; }
+    .guarantee-banner { margin: 0 -18px; }
 }
 
 /* ===== MOBILE STICKY CTA ===== */
