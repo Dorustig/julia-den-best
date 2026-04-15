@@ -158,11 +158,11 @@ const server = http.createServer(async (req, res) => {
     return res.end();
   }
 
-  // Block the old predictable /admin.html path entirely — return 404.
-  // Admin lives only at the un-guessable slug (see ADMIN_SLUG + remap below).
+  // Redirect the predictable /admin paths to the public landing page —
+  // anyone guessing lands on the regular site, not a 404 that hints at admin.
   if (pathname === '/admin.html' || pathname === '/admin' || pathname === '/admin/') {
-    res.writeHead(404, { 'Content-Type': 'text/plain' });
-    return res.end('Not Found');
+    res.writeHead(302, { Location: '/' });
+    return res.end();
   }
 
   // ===== API ROUTES =====
