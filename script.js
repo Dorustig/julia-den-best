@@ -474,7 +474,7 @@ function setupHeroPhoto() {
 }
 
 // ===== QUIZ NAVIGATION =====
-function showStep(step) {
+function showStep(step, scroll = true) {
     // Clamp step to valid range
     if (step < 1) step = 1;
     if (step > TOTAL_STEPS) step = TOTAL_STEPS;
@@ -491,7 +491,9 @@ function showStep(step) {
     btnVolgende.style.display = step < TOTAL_STEPS ? 'inline-flex' : 'none';
     btnVerstuur.style.display = step === TOTAL_STEPS ? 'inline-flex' : 'none';
 
-    document.getElementById('vragenlijst').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (scroll) {
+        document.getElementById('vragenlijst').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
 }
 
 function validateCurrentStep() {
@@ -632,8 +634,14 @@ document.querySelectorAll('a[href="#vragenlijst"]').forEach(link => {
 });
 
 // ===== INIT =====
-showStep(1);
+showStep(1, false);
 setupHeroPhoto();
+
+// Force scroll to top on initial page load (prevents browser from restoring previous scroll position)
+if ('scrollRestoration' in history) {
+    history.scrollRestoration = 'manual';
+}
+window.scrollTo(0, 0);
 
 // Apply saved language
 if (currentLang !== 'nl') {
