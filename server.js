@@ -268,8 +268,10 @@ const server = http.createServer(async (req, res) => {
     fs.readFile(p, (err, data) => {
       if (err) return tryServe(paths.slice(1));
       const headers = { 'Content-Type': contentType };
-      if (ext === '.html' || ext === '.js') {
+      if (ext === '.html' || ext === '.js' || ext === '.css') {
         headers['Cache-Control'] = 'no-cache, no-store, must-revalidate';
+        headers['Pragma'] = 'no-cache';
+        headers['Expires'] = '0';
       }
       // Gzip for large files
       const acceptGzip = (req.headers['accept-encoding'] || '').includes('gzip');
