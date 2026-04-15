@@ -376,14 +376,134 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', Georgia, serif; font-weight: 7
 .program-header { text-align: center; margin-bottom: 48px; }
 .program-badge { display: inline-block; background: var(--pink-soft); color: var(--pink); padding: 6px 20px; border-radius: 50px; font-size: 14px; font-weight: 600; margin-bottom: 16px; }
 .program-header h2 { font-size: 32px; margin-bottom: 8px; }
-.phases-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 64px; }
-.phase-card { background: var(--white); border-radius: var(--radius); padding: 32px 24px; border: 2px solid transparent; transition: var(--transition); }
-.phase-card.featured { background: var(--pink-soft); border-color: var(--pink-light); transform: scale(1.02); }
-.phase-number { display: inline-block; background: var(--pink); color: var(--white); padding: 4px 16px; border-radius: 50px; font-size: 13px; font-weight: 600; margin-bottom: 16px; }
-.phase-card h3 { font-size: 20px; margin-bottom: 16px; }
-.phase-card ul { list-style: none; }
-.phase-card li { padding: 6px 0; padding-left: 24px; position: relative; font-size: 14px; color: var(--gray-dark); }
-.phase-card li::before { content: '\2713'; position: absolute; left: 0; color: var(--pink); font-weight: 700; }
+/* ===== TIMELINE ===== */
+.timeline {
+    position: relative;
+    max-width: 760px;
+    margin: 0 auto 64px;
+    padding: 12px 0 24px;
+}
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 38px;
+    top: 24px;
+    bottom: 24px;
+    width: 3px;
+    background: linear-gradient(to bottom,
+        rgba(244, 114, 182, 0.25),
+        var(--pink-light) 20%,
+        var(--pink) 50%,
+        var(--pink-light) 80%,
+        rgba(244, 114, 182, 0.25));
+    border-radius: 3px;
+    box-shadow: 0 0 12px rgba(233, 30, 140, 0.25);
+}
+.timeline-phase {
+    position: relative;
+    margin-bottom: 36px;
+}
+.timeline-phase-label {
+    position: relative;
+    padding: 18px 24px 18px 96px;
+    margin-bottom: 20px;
+    background: linear-gradient(135deg, var(--pink-soft), #FEF6FA);
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(233, 30, 140, 0.08);
+}
+.timeline-phase-label::before {
+    content: '❀';
+    position: absolute;
+    left: 22px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--pink), var(--pink-light));
+    color: var(--white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    box-shadow: 0 4px 16px rgba(233, 30, 140, 0.35);
+}
+.timeline-phase-label .phase-number {
+    display: inline-block;
+    background: var(--pink);
+    color: var(--white);
+    padding: 3px 14px;
+    border-radius: 50px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    letter-spacing: 0.02em;
+}
+.timeline-phase-label h3 {
+    font-size: 22px;
+    margin-bottom: 4px;
+    color: var(--text);
+}
+.timeline-phase-label p {
+    font-size: 14px;
+    color: var(--gray-text);
+    margin: 0;
+}
+.timeline-week {
+    position: relative;
+    padding: 0 0 22px 96px;
+    min-height: 60px;
+}
+.timeline-week:last-child { padding-bottom: 4px; }
+.timeline-dot {
+    position: absolute;
+    left: 18px;
+    top: 0;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--white);
+    border: 3px solid var(--pink);
+    color: var(--pink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 700;
+    font-size: 17px;
+    box-shadow: 0 4px 14px rgba(233, 30, 140, 0.18);
+    z-index: 2;
+}
+.timeline-week.last-week .timeline-dot {
+    background: linear-gradient(135deg, var(--pink), var(--pink-light));
+    color: var(--white);
+    border-color: var(--white);
+    box-shadow: 0 6px 20px rgba(233, 30, 140, 0.4);
+}
+.timeline-content {
+    background: var(--white);
+    border-radius: 16px;
+    padding: 14px 18px;
+    box-shadow: 0 2px 12px rgba(233, 30, 140, 0.06);
+    border: 1px solid #FCE7F3;
+    transition: var(--transition);
+}
+.timeline-content:hover {
+    transform: translateX(4px);
+    box-shadow: 0 6px 22px rgba(233, 30, 140, 0.14);
+    border-color: var(--pink-light);
+}
+.timeline-content h4 {
+    font-size: 17px;
+    margin-bottom: 4px;
+    color: var(--text);
+}
+.timeline-content p {
+    font-size: 14px;
+    color: var(--gray-text);
+    line-height: 1.5;
+    margin: 0;
+}
 
 .program-features { text-align: center; }
 .program-features h3 { font-size: 28px; margin-bottom: 32px; }
@@ -445,9 +565,8 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', Georgia, serif; font-weight: 7
     .empathy-card { padding: 32px 20px; }
     .guarantee-content { flex-direction: column; text-align: center; }
     .community-card { grid-template-columns: 1fr; }
-    .reviews-grid, .transformations-grid, .testimonials-grid, .phases-grid { grid-template-columns: 1fr; gap: 16px; }
+    .reviews-grid, .transformations-grid, .testimonials-grid { grid-template-columns: 1fr; gap: 16px; }
     .features-grid { grid-template-columns: repeat(2, 1fr); }
-    .phase-card.featured { transform: none; }
 }
 
 @media (max-width: 640px) {
@@ -501,7 +620,20 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', Georgia, serif; font-weight: 7
     .lang-switch { gap: 2px; padding: 3px; }
     .lang-btn { padding: 4px 7px; font-size: 12px; }
     /* Empathy & cards */
-    .empathy-card, .review-card, .testimonial-card, .phase-card, .transformation-card { padding: 18px 14px; }
+    .empathy-card, .review-card, .testimonial-card, .transformation-card { padding: 18px 14px; }
+    /* Timeline mobile */
+    .timeline { padding: 8px 0 16px; }
+    .timeline::before { left: 26px; }
+    .timeline-phase { margin-bottom: 24px; }
+    .timeline-phase-label { padding: 14px 16px 14px 72px; border-radius: 16px; margin-bottom: 14px; }
+    .timeline-phase-label::before { left: 14px; width: 28px; height: 28px; font-size: 14px; }
+    .timeline-phase-label h3 { font-size: 17px; }
+    .timeline-phase-label p { font-size: 13px; }
+    .timeline-week { padding: 0 0 14px 72px; }
+    .timeline-dot { left: 12px; width: 34px; height: 34px; font-size: 14px; border-width: 2px; }
+    .timeline-content { padding: 12px 14px; border-radius: 14px; }
+    .timeline-content h4 { font-size: 15px; }
+    .timeline-content p { font-size: 13px; }
     .empathy-card h2 { margin-bottom: 16px; }
     .empathy-list li { font-size: 14px; }
     /* Text overflow safety — NO hyphens on headings (ugly mid-word breaks) */
@@ -520,9 +652,6 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', Georgia, serif; font-weight: 7
     .community-avatars .avatar { width: 36px; height: 36px; font-size: 14px; }
     /* Progress bar/text */
     .progress-text { font-size: 13px; }
-    /* Phase cards tighter */
-    .phase-card ul li { font-size: 14px; }
-    .phase-card h3 { font-size: 18px; }
     /* Transformation before/after tighter */
     .transformation-before, .transformation-after { min-height: 100px; }
     /* Photo dropzone smaller */

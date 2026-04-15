@@ -90,7 +90,7 @@ const T = {
         heroGuarantee: 'Niet goed? Geld terug. Geen risico.',
         stat1: 'Vrouwen geholpen', stat2: 'Beoordeling', stat3: 'Weken traject',
         float1name: 'Emma', float1text: 'Net week 8 afgerond!',
-        float2name: '-7kg in 12 weken', float2text: 'Gemiddeld resultaat',
+        float2name: '-7kg in 16 weken', float2text: 'Gemiddeld resultaat',
         dropzone: 'Sleep hier je foto naartoe<br><small>of klik om te uploaden</small>',
         // Empathy
         empathyTitle: 'Herken je dit?',
@@ -150,7 +150,7 @@ const T = {
         reviewsTitle: 'Wat andere vrouwen zeggen',
         // Transformations
         transTitle: 'Van A naar Z — Echte Transformaties',
-        transSub: 'Bekijk wat onze klanten hebben bereikt met het 12-weken programma',
+        transSub: 'Bekijk wat onze klanten hebben bereikt met het 16-weken programma',
         // Community
         communityBadge: 'Word Onderdeel',
         communityTitle: 'Meer dan een programma — een <span class="highlight">community</span>',
@@ -163,8 +163,8 @@ const T = {
         comCount: '500+ vrouwen zijn je al voorgegaan',
         // Program
         progBadge: 'Het Programma',
-        progTitle: 'Het 12-Weken Transformatie Programma',
-        progSub: 'Ontdek hoe je binnen 12 weken jouw lichaam en mindset compleet transformeert',
+        progTitle: 'Het 16-Weken Transformatie Programma',
+        progSub: 'Ontdek hoe je binnen 16 weken jouw lichaam en mindset compleet transformeert',
         featTitle: 'Wat je krijgt',
         // CTA
         ctaTitle: 'Dit is jouw moment.',
@@ -191,7 +191,7 @@ const T = {
         heroGuarantee: 'Not satisfied? Money back. No risk.',
         stat1: 'Women helped', stat2: 'Rating', stat3: 'Week program',
         float1name: 'Emma', float1text: 'Just completed week 8!',
-        float2name: '-7kg in 12 weeks', float2text: 'Average result',
+        float2name: '-7kg in 16 weeks', float2text: 'Average result',
         dropzone: 'Drag your photo here<br><small>or click to upload</small>',
         empathyTitle: 'Sound familiar?',
         pain1: "You've tried 10 diets and nothing works",
@@ -246,7 +246,7 @@ const T = {
         trust3: 'Personal contact with me',
         reviewsTitle: 'What other women say',
         transTitle: 'From A to Z — Real Transformations',
-        transSub: 'See what our clients have achieved with the 12-week program',
+        transSub: 'See what our clients have achieved with the 16-week program',
         communityBadge: 'Join Us',
         communityTitle: 'More than a program — a <span class="highlight">community</span>',
         communityText: 'When you start with me you immediately become part of an exclusive community of women making the same journey as you. Through our Discord server you share experiences, celebrate wins and support each other on the tough days.',
@@ -257,8 +257,8 @@ const T = {
         comCta: 'I want to join!',
         comCount: '500+ women have gone before you',
         progBadge: 'The Program',
-        progTitle: 'The 12-Week Transformation Program',
-        progSub: 'Discover how you can completely transform your body and mindset in 12 weeks',
+        progTitle: 'The 16-Week Transformation Program',
+        progSub: 'Discover how you can completely transform your body and mindset in 16 weeks',
         featTitle: 'What you get',
         ctaTitle: 'This is your moment.',
         ctaText: 'Stop doubting. Stop postponing. Start your transformation today.',
