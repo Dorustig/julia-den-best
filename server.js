@@ -8,10 +8,12 @@ const zlib = require('zlib');
 const PORT = process.env.PORT || 3001;
 const ROOT = __dirname;
 const DATA_DIR = path.join(ROOT, 'data');
+const BACKUP_DIR = path.join(DATA_DIR, 'backups');
 const LEADS_FILE = path.join(DATA_DIR, 'leads.json');
 
-// Ensure data directory exists
+// Ensure data + backup directories exist
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+if (!fs.existsSync(BACKUP_DIR)) fs.mkdirSync(BACKUP_DIR, { recursive: true });
 if (!fs.existsSync(LEADS_FILE)) fs.writeFileSync(LEADS_FILE, '[]');
 
 // MIME types
@@ -29,6 +31,31 @@ function readLeads() {
 }
 function writeLeads(leads) {
   fs.writeFileSync(LEADS_FILE, JSON.stringify(leads, null, 2));
+  // Auto-backup: daily snapshot (overwritten per day)
+  try {
+    const today = new Date().toISOString().slice(0, 10);
+    fs.writeFileSync(path.join(BACKUP_DIR, `leads-${today}.json`), JSON.stringify(leads, null, 2));
+  } catch (e) { console.warn('[Backup] daily snapshot failed:', e.message); }
+}
+function leadsToCSV(leads) {
+  const headers = ['id','timestamp','naam','email','telefoon','instagram','leeftijd','doel_type','nummer_een_doel','obstakel','urgentie','budget','bereid','status','notities'];
+  const escape = v => {
+    const s = v == null ? '' : String(v);
+    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+  const rows = leads.map(l => headers.map(h => escape(l[h])).join(','));
+  return '\uFEFF' + [headers.join(','), ...rows].join('\n');
+}
+function listBackups() {
+  try {
+    return fs.readdirSync(BACKUP_DIR)
+      .filter(f => f.endsWith('.json'))
+      .map(f => {
+        const stat = fs.statSync(path.join(BACKUP_DIR, f));
+        return { file: f, size: stat.size, modified: stat.mtime.toISOString() };
+      })
+      .sort((a, b) => b.modified.localeCompare(a.modified));
+  } catch { return []; }
 }
 function jsonRes(res, code, data) {
   res.writeHead(code, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
@@ -118,6 +145,75 @@ const server = http.createServer(async (req, res) => {
       urgent: leads.filter(l => parseInt(l.urgentie) >= 4).length,
       vandaag: leads.filter(l => l.timestamp && l.timestamp.startsWith(today)).length,
     });
+  }
+
+  // GET /api/export/json — download all leads as JSON
+  if (pathname === '/api/export/json' && req.method === 'GET') {
+    const leads = readLeads();
+    const today = new Date().toISOString().slice(0, 10);
+    res.writeHead(200, {
+      'Content-Type': 'application/json',
+      'Content-Disposition': `attachment; filename="julia-leads-${today}.json"`,
+    });
+    return res.end(JSON.stringify(leads, null, 2));
+  }
+
+  // GET /api/export/csv — download all leads as CSV (server-side)
+  if (pathname === '/api/export/csv' && req.method === 'GET') {
+    const leads = readLeads();
+    const today = new Date().toISOString().slice(0, 10);
+    res.writeHead(200, {
+      'Content-Type': 'text/csv; charset=utf-8',
+      'Content-Disposition': `attachment; filename="julia-leads-${today}.csv"`,
+    });
+    return res.end(leadsToCSV(leads));
+  }
+
+  // POST /api/backup/create — create on-demand timestamped backup
+  if (pathname === '/api/backup/create' && req.method === 'POST') {
+    try {
+      const leads = readLeads();
+      const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+      const filename = `leads-manual-${ts}.json`;
+      fs.writeFileSync(path.join(BACKUP_DIR, filename), JSON.stringify(leads, null, 2));
+      return jsonRes(res, 201, { success: true, file: filename, count: leads.length });
+    } catch (e) { return jsonRes(res, 500, { error: e.message }); }
+  }
+
+  // GET /api/backup/list — list all backup files
+  if (pathname === '/api/backup/list' && req.method === 'GET') {
+    return jsonRes(res, 200, listBackups());
+  }
+
+  // GET /api/backup/download?file=... — download a specific backup
+  if (pathname === '/api/backup/download' && req.method === 'GET') {
+    const file = parsed.query.file;
+    if (!file || !/^[\w.-]+\.json$/.test(file)) {
+      return jsonRes(res, 400, { error: 'Invalid file name' });
+    }
+    const fp = path.join(BACKUP_DIR, file);
+    if (!fp.startsWith(BACKUP_DIR) || !fs.existsSync(fp)) {
+      return jsonRes(res, 404, { error: 'Backup not found' });
+    }
+    res.writeHead(200, {
+      'Content-Type': 'application/json',
+      'Content-Disposition': `attachment; filename="${file}"`,
+    });
+    return res.end(fs.readFileSync(fp));
+  }
+
+  // DELETE /api/backup/delete?file=... — remove a backup (user-initiated cleanup)
+  if (pathname === '/api/backup/delete' && req.method === 'DELETE') {
+    const file = parsed.query.file;
+    if (!file || !/^[\w.-]+\.json$/.test(file)) {
+      return jsonRes(res, 400, { error: 'Invalid file name' });
+    }
+    const fp = path.join(BACKUP_DIR, file);
+    if (!fp.startsWith(BACKUP_DIR) || !fs.existsSync(fp)) {
+      return jsonRes(res, 404, { error: 'Backup not found' });
+    }
+    fs.unlinkSync(fp);
+    return jsonRes(res, 200, { success: true });
   }
 
   // POST /api/upload-hero — save hero image

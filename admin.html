@@ -149,16 +149,75 @@
         .btn-status { background: #F3F4F6; color: #374151; border: 1px solid #E5E7EB; }
         .btn-status:hover { background: #E5E7EB; }
 
+        /* Backup section */
+        .backup-section {
+            background: #fff; border-radius: 12px; border: 1px solid #E5E7EB;
+            padding: 20px; margin-bottom: 20px;
+        }
+        .backup-section h2 { font-size: 16px; margin-bottom: 12px; }
+        .backup-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+        .backup-list { max-height: 240px; overflow-y: auto; border-top: 1px solid #F3F4F6; margin-top: 8px; }
+        .backup-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 0; border-bottom: 1px solid #F3F4F6; font-size: 13px; gap: 8px;
+        }
+        .backup-item-name { font-family: monospace; color: #374151; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .backup-item-meta { color: #6B7280; font-size: 12px; }
+        .backup-item-actions { display: flex; gap: 6px; flex-shrink: 0; }
+        .btn-small {
+            padding: 5px 10px; font-size: 12px; border-radius: 6px;
+            border: 1px solid #E5E7EB; background: #F9FAFB; cursor: pointer; color: #374151;
+        }
+        .btn-small:hover { background: #E5E7EB; }
+        .btn-small.danger { color: #991B1B; }
+        .btn-small.primary { background: #E91E8C; color: #fff; border-color: #E91E8C; }
+
+        /* Lead card layout for mobile */
+        .lead-cards { display: none; }
+        .lead-card {
+            background: #fff; border: 1px solid #E5E7EB; border-radius: 12px;
+            padding: 16px; margin-bottom: 10px; cursor: pointer;
+        }
+        .lead-card:active { background: #FDF2F8; }
+        .lead-card-head { display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px; gap: 8px; }
+        .lead-card-name { font-weight: 700; font-size: 15px; }
+        .lead-card-email { font-size: 12px; color: #6B7280; word-break: break-all; }
+        .lead-card-meta { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 13px; color: #374151; margin-top: 8px; }
+        .lead-card-meta span strong { color: #6B7280; font-weight: 500; }
+
         /* Responsive */
         @media (max-width: 900px) {
             .sidebar { display: none; }
-            .main { margin-left: 0; padding: 16px; }
+            .main { margin-left: 0; padding: 16px 12px; }
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
             .filters { flex-wrap: wrap; }
+            .filter-input { min-width: 0; flex: 1; }
         }
-        @media (max-width: 640px) {
-            .stats-grid { grid-template-columns: 1fr; }
-            .topbar { flex-direction: column; gap: 12px; align-items: flex-start; }
+        @media (max-width: 700px) {
+            .main { padding: 12px 10px; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+            .stat-card { padding: 14px; }
+            .stat-card-value { font-size: 22px; }
+            .stat-card-label { font-size: 11px; }
+            .topbar { flex-direction: column; gap: 10px; align-items: stretch; }
+            .topbar h1 { font-size: 20px; }
+            .topbar-actions { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; width: 100%; }
+            .btn-admin { padding: 10px 6px; font-size: 13px; white-space: nowrap; }
+            .filter-input, .filter-select { width: 100%; min-width: 0; font-size: 14px; padding: 10px 12px; }
+            .filters { flex-direction: column; align-items: stretch; gap: 8px; }
+            /* Swap table for cards on mobile */
+            .table-wrapper { display: none; }
+            .lead-cards { display: block; }
+            .backup-actions { display: grid; grid-template-columns: 1fr; gap: 8px; }
+            .backup-actions .btn-admin { width: 100%; }
+            .lead-modal-content { padding: 20px; max-height: 95vh; }
+            .lead-modal-header h2 { font-size: 17px; }
+            .lead-modal-content [style*="grid-template-columns:1fr 1fr"] { grid-template-columns: 1fr !important; }
+            .lead-actions { flex-direction: column; }
+            .lead-actions .btn-admin { width: 100%; }
+            .lead-card-meta { font-size: 12px; gap: 4px 12px; }
+            .lead-card-name { font-size: 14px; }
+            .lead-card-email { font-size: 11px; }
         }
     </style>
 </head>
@@ -183,7 +242,8 @@
                 <h1>Leads Dashboard</h1>
                 <div class="topbar-actions">
                     <button class="btn-admin btn-refresh" onclick="loadLeads()">&#8635; Ververs</button>
-                    <button class="btn-admin btn-export" onclick="exportCSV()">&#8681; Export CSV</button>
+                    <button class="btn-admin btn-export" onclick="downloadServer('csv')">&#8681; CSV</button>
+                    <button class="btn-admin btn-export" onclick="downloadServer('json')">&#8681; JSON</button>
                 </div>
             </div>
 
@@ -227,7 +287,7 @@
                 </select>
             </div>
 
-            <!-- Table -->
+            <!-- Table (desktop) -->
             <div class="table-wrapper">
                 <table>
                     <thead>
@@ -245,10 +305,28 @@
                     <tbody id="leadsTable">
                     </tbody>
                 </table>
-                <div class="empty-state" id="emptyState" style="display:none;">
-                    <h3>Nog geen leads</h3>
-                    <p>Leads verschijnen hier zodra iemand de vragenlijst invult op de landingspagina.</p>
+            </div>
+
+            <!-- Cards (mobile) -->
+            <div class="lead-cards" id="leadCards"></div>
+
+            <div class="empty-state" id="emptyState" style="display:none;">
+                <h3>Nog geen leads</h3>
+                <p>Leads verschijnen hier zodra iemand de vragenlijst invult op de landingspagina.</p>
+            </div>
+
+            <!-- Backup & Export -->
+            <div class="backup-section" style="margin-top:24px">
+                <h2>&#128190; Backup &amp; Export</h2>
+                <p style="font-size:13px;color:#6B7280;margin-bottom:12px">
+                    Dagelijks wordt automatisch een backup gemaakt. Je kunt ook handmatig een snapshot maken en alles exporteren.
+                </p>
+                <div class="backup-actions">
+                    <button class="btn-admin btn-export" onclick="downloadServer('json')">&#8681; Download Alle Leads (JSON)</button>
+                    <button class="btn-admin btn-export" onclick="downloadServer('csv')">&#8681; Download Alle Leads (CSV)</button>
+                    <button class="btn-admin btn-refresh" onclick="createBackup()">&#128228; Maak Backup Nu</button>
                 </div>
+                <div id="backupList" class="backup-list"></div>
             </div>
         </main>
     </div>
@@ -300,10 +378,12 @@
             });
 
             const tbody = document.getElementById('leadsTable');
+            const cards = document.getElementById('leadCards');
             const empty = document.getElementById('emptyState');
 
             if (filtered.length === 0) {
                 tbody.innerHTML = '';
+                cards.innerHTML = '';
                 empty.style.display = 'block';
                 return;
             }
@@ -326,6 +406,33 @@
                     <td style="font-size:13px;color:#6B7280">${date}</td>
                     <td><button class="btn-admin btn-status" onclick="event.stopPropagation(); openLead('${l.id}')">Bekijk</button></td>
                 </tr>`;
+            }).join('');
+
+            cards.innerHTML = filtered.map(l => {
+                const urg = parseInt(l.urgentie) || 0;
+                const urgDots = Array.from({length: 5}, (_, j) =>
+                    `<div class="urgentie-dot ${j < urg ? 'active' : ''}"></div>`
+                ).join('');
+                const date = l.timestamp ? new Date(l.timestamp).toLocaleDateString('nl-NL', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '-';
+                return `<div class="lead-card" onclick="openLead('${l.id}')">
+                    <div class="lead-card-head">
+                        <div>
+                            <div class="lead-card-name">${esc(l.naam || '-')}</div>
+                            <div class="lead-card-email">${esc(l.email || '')}</div>
+                        </div>
+                        <span class="badge badge-${l.status || 'nieuw'}">${l.status || 'nieuw'}</span>
+                    </div>
+                    <div class="lead-card-meta">
+                        <span><strong>Doel:</strong> ${esc(l.doel_type || '-')}</span>
+                        <span><strong>Leeftijd:</strong> ${esc(l.leeftijd || '-')}</span>
+                        <span><strong>Budget:</strong> ${l.budget ? '€' + esc(l.budget) : '-'}</span>
+                    </div>
+                    <div class="lead-card-meta" style="align-items:center">
+                        <span><strong>Urgentie:</strong></span>
+                        <div class="urgentie-bar">${urgDots}</div>
+                        <span style="margin-left:auto;color:#6B7280">${date}</span>
+                    </div>
+                </div>`;
             }).join('');
         }
 
@@ -394,25 +501,75 @@
             closeModal();
         }
 
-        function exportCSV() {
+        function downloadServer(format) {
             if (leads.length === 0) { alert('Geen leads om te exporteren.'); return; }
-            const headers = ['Naam','Email','Telefoon','Instagram','Doel','Leeftijd','Nr1 Doel','Obstakel','Urgentie','Budget','Bereid','Status','Notities','Datum'];
-            const rows = leads.map(l => [
-                l.naam, l.email, l.telefoon, l.instagram, l.doel_type, l.leeftijd,
-                `"${(l.nummer_een_doel||'').replace(/"/g,'""')}"`,
-                `"${(l.obstakel||'').replace(/"/g,'""')}"`,
-                l.urgentie, l.budget, l.bereid, l.status,
-                `"${(l.notities||'').replace(/"/g,'""')}"`,
-                l.timestamp
-            ]);
-            const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-            const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
+            // Let the server stream the file — works from any device incl. mobile
             const a = document.createElement('a');
-            a.href = url;
-            a.download = `julia-leads-${new Date().toISOString().slice(0,10)}.csv`;
+            a.href = '/api/export/' + format;
+            a.download = '';
+            document.body.appendChild(a);
             a.click();
-            URL.revokeObjectURL(url);
+            a.remove();
+        }
+
+        async function createBackup() {
+            try {
+                const res = await fetch('/api/backup/create', { method: 'POST' });
+                const data = await res.json();
+                if (data.success) {
+                    alert(`Backup gemaakt: ${data.file} (${data.count} leads)`);
+                    loadBackups();
+                } else {
+                    alert('Backup mislukt: ' + (data.error || 'onbekende fout'));
+                }
+            } catch (e) {
+                alert('Backup mislukt: ' + e.message);
+            }
+        }
+
+        async function loadBackups() {
+            const list = document.getElementById('backupList');
+            try {
+                const res = await fetch('/api/backup/list');
+                const files = await res.json();
+                if (!files.length) {
+                    list.innerHTML = '<p style="color:#9CA3AF;font-size:13px;padding:12px 0">Nog geen backups.</p>';
+                    return;
+                }
+                list.innerHTML = files.map(f => {
+                    const date = new Date(f.modified).toLocaleString('nl-NL', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
+                    const kb = (f.size / 1024).toFixed(1);
+                    return `<div class="backup-item">
+                        <div style="flex:1;min-width:0">
+                            <div class="backup-item-name">${esc(f.file)}</div>
+                            <div class="backup-item-meta">${date} · ${kb} KB</div>
+                        </div>
+                        <div class="backup-item-actions">
+                            <button class="btn-small primary" onclick="downloadBackup('${esc(f.file)}')">&#8681;</button>
+                            <button class="btn-small danger" onclick="deleteBackup('${esc(f.file)}')">&#10005;</button>
+                        </div>
+                    </div>`;
+                }).join('');
+            } catch (e) {
+                list.innerHTML = '<p style="color:#EF4444;font-size:13px">Kon backups niet laden: ' + esc(e.message) + '</p>';
+            }
+        }
+
+        function downloadBackup(file) {
+            const a = document.createElement('a');
+            a.href = '/api/backup/download?file=' + encodeURIComponent(file);
+            a.download = file;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        }
+
+        async function deleteBackup(file) {
+            if (!confirm(`Backup ${file} verwijderen?`)) return;
+            try {
+                await fetch('/api/backup/delete?file=' + encodeURIComponent(file), { method: 'DELETE' });
+                loadBackups();
+            } catch (e) { alert('Verwijderen mislukt: ' + e.message); }
         }
 
         function esc(str) {
@@ -428,6 +585,7 @@
 
         // Init
         loadLeads();
+        loadBackups();
     </script>
 </body>
 </html>
