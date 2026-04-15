@@ -780,9 +780,9 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', Georgia, serif; font-weight: 7
 }
 
 @media (max-width: 640px) {
-    .container { padding: 0 20px; }
+    .container { padding: 0 24px; }
     .hero { padding-top: 60px; }
-    .hero-grid { padding: 28px 0 40px; gap: 28px; text-align: left; }
+    .hero-grid { padding-top: 28px; padding-bottom: 40px; gap: 28px; text-align: left; }
     .hero-text { text-align: left; }
     .hero h1 {
         font-size: 30px; line-height: 1.1; letter-spacing: -0.025em;
@@ -887,7 +887,7 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', Georgia, serif; font-weight: 7
 
 @media (max-width: 380px) {
     .hero h1 { font-size: 26px; }
-    .container { padding: 0 18px; }
+    .container { padding: 0 20px; }
     .quiz-wrapper { padding: 16px 10px; }
     .option-card { padding: 12px; font-size: 13px; }
     .nav-cta { padding: 8px 12px; font-size: 12px; }
