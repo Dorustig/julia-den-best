@@ -10,11 +10,15 @@ const ROOT = __dirname;
 const DATA_DIR = path.join(ROOT, 'data');
 const BACKUP_DIR = path.join(DATA_DIR, 'backups');
 const LEADS_FILE = path.join(DATA_DIR, 'leads.json');
+const TRACKING_FILE = path.join(DATA_DIR, 'tracking.json');
 
 // Ensure data + backup directories exist
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
 if (!fs.existsSync(BACKUP_DIR)) fs.mkdirSync(BACKUP_DIR, { recursive: true });
 if (!fs.existsSync(LEADS_FILE)) fs.writeFileSync(LEADS_FILE, '[]');
+if (!fs.existsSync(TRACKING_FILE)) {
+  fs.writeFileSync(TRACKING_FILE, JSON.stringify({ ga4: '', metaPixel: '', tiktokPixel: '' }, null, 2));
+}
 
 // MIME types
 const MIME = {
@@ -38,7 +42,7 @@ function writeLeads(leads) {
   } catch (e) { console.warn('[Backup] daily snapshot failed:', e.message); }
 }
 function leadsToCSV(leads) {
-  const headers = ['id','timestamp','naam','email','telefoon','instagram','leeftijd','doel_type','nummer_een_doel','obstakel','urgentie','budget','bereid','status','notities'];
+  const headers = ['id','timestamp','naam','email','telefoon','instagram','leeftijd','doel_type','nummer_een_doel','obstakel','urgentie','budget','bereid','status','bron','utm_source','utm_medium','utm_campaign','utm_content','referrer','lang','notities'];
   const escape = v => {
     const s = v == null ? '' : String(v);
     return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
@@ -145,6 +149,27 @@ const server = http.createServer(async (req, res) => {
       urgent: leads.filter(l => parseInt(l.urgentie) >= 4).length,
       vandaag: leads.filter(l => l.timestamp && l.timestamp.startsWith(today)).length,
     });
+  }
+
+  // GET /api/tracking-config — tracking pixel IDs (public, read-only)
+  if (pathname === '/api/tracking-config' && req.method === 'GET') {
+    try { return jsonRes(res, 200, JSON.parse(fs.readFileSync(TRACKING_FILE, 'utf-8'))); }
+    catch { return jsonRes(res, 200, { ga4: '', metaPixel: '', tiktokPixel: '' }); }
+  }
+
+  // PUT /api/tracking-config — update tracking IDs from admin panel
+  if (pathname === '/api/tracking-config' && req.method === 'PUT') {
+    try {
+      const body = await readBody(req);
+      const cfg = JSON.parse(body);
+      const clean = {
+        ga4: String(cfg.ga4 || '').trim(),
+        metaPixel: String(cfg.metaPixel || '').trim(),
+        tiktokPixel: String(cfg.tiktokPixel || '').trim(),
+      };
+      fs.writeFileSync(TRACKING_FILE, JSON.stringify(clean, null, 2));
+      return jsonRes(res, 200, { success: true, config: clean });
+    } catch (e) { return jsonRes(res, 400, { error: e.message }); }
   }
 
   // GET /api/export/json — download all leads as JSON

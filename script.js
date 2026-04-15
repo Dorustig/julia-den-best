@@ -4,6 +4,69 @@ const TOTAL_STEPS = 8;
 let currentStep = 1;
 let currentLang = localStorage.getItem('julia_lang') || 'nl';
 
+// ===== UTM / traffic-source capture =====
+// Saves the first-touch attribution so even if user returns via direct link,
+// we still know the original source that brought them in.
+(function captureUTM() {
+    try {
+        const params = new URLSearchParams(window.location.search);
+        const utm = {
+            utm_source: params.get('utm_source') || '',
+            utm_medium: params.get('utm_medium') || '',
+            utm_campaign: params.get('utm_campaign') || '',
+            utm_content: params.get('utm_content') || '',
+            utm_term: params.get('utm_term') || '',
+            referrer: document.referrer || '',
+            landing_at: new Date().toISOString()
+        };
+        // Only save first-touch — don't overwrite
+        if (!localStorage.getItem('julia_attribution')) {
+            localStorage.setItem('julia_attribution', JSON.stringify(utm));
+        }
+    } catch (e) {}
+})();
+
+function getAttribution() {
+    try { return JSON.parse(localStorage.getItem('julia_attribution') || '{}'); }
+    catch { return {}; }
+}
+
+// ===== FORM PROGRESS SAVE =====
+// Per-device localStorage so visitors can pick up where they left off.
+// Does NOT leak state to other visitors (unlike the earlier scroll bug).
+function saveProgress() {
+    try {
+        const data = {};
+        form.querySelectorAll('input, textarea').forEach(el => {
+            if (el.type === 'radio') { if (el.checked) data[el.name] = el.value; }
+            else if (el.value) data[el.name] = el.value;
+        });
+        localStorage.setItem('julia_form_progress', JSON.stringify({ step: currentStep, data, savedAt: Date.now() }));
+    } catch (e) {}
+}
+function restoreProgress() {
+    try {
+        const raw = localStorage.getItem('julia_form_progress');
+        if (!raw) return;
+        const saved = JSON.parse(raw);
+        // Expire after 7 days
+        if (Date.now() - (saved.savedAt || 0) > 7 * 24 * 3600 * 1000) {
+            localStorage.removeItem('julia_form_progress');
+            return;
+        }
+        Object.entries(saved.data || {}).forEach(([name, value]) => {
+            const fields = form.querySelectorAll(`[name="${name}"]`);
+            fields.forEach(el => {
+                if (el.type === 'radio') { if (el.value === value) el.checked = true; }
+                else el.value = value;
+            });
+        });
+    } catch (e) {}
+}
+function clearProgress() {
+    try { localStorage.removeItem('julia_form_progress'); } catch (e) {}
+}
+
 const form = document.getElementById('quizForm');
 const btnVolgende = document.getElementById('btnVolgende');
 const btnVorige = document.getElementById('btnVorige');
@@ -18,9 +81,9 @@ const T = {
         navCta: 'Start Nu',
         // Hero
         heroBadge: 'Nog maar 5 plekken beschikbaar deze maand',
-        heroTitle: 'Je verdient <span class="highlight">echt</span> persoonlijk advies, geen onzin.',
-        heroSubtitle: 'Geen standaard AI-schema\'s. Geen copy-paste plannen. Geen crash dieten waar je bijna niks mag eten. <strong>Bij Julia krijg je 1-op-1 menselijke begeleiding — van iemand die jou kent, jouw lichaam begrijpt en er elke dag voor je is.</strong>',
-        usp1: '100% menselijk — geen AI',
+        heroTitle: 'Girll, jij verdient <span class="highlight">écht</span> een transformatie.',
+        heroSubtitle: 'Geen copy-paste plannen. Geen crash diëten waar je bijna niks mag eten. <strong>Bij ons krijg je 1-op-1 persoonlijke begeleiding — van iemand die jou kent, jouw lichaam begrijpt en elke dag voor je klaarstaat.</strong> Tijd om de beste versie van jezelf te worden. ✨',
+        usp1: '100% persoonlijke begeleiding',
         usp2: '1-op-1 persoonlijke coaching',
         usp3: 'Op maat gemaakt voor jouw lichaam',
         heroCta: 'Ja, ik wil dit! Start mijn transformatie',
@@ -37,7 +100,7 @@ const T = {
         pain4: 'Je coach reageert pas na 3 dagen (of helemaal niet)',
         pain5: 'Je voelt je alleen en hebt niemand die je begrijpt',
         pain6: 'Je weet niet waar je moet beginnen of wat echt werkt',
-        empathyDivider: 'Bij Julia is het anders',
+        empathyDivider: 'Bij ons is het anders',
         gain1: 'Persoonlijk plan op maat — geen one-size-fits-all',
         gain2: 'Julia staat ZELF voor je klaar, elke dag',
         gain3: 'Lekker eten en toch resultaat — geen hongerlijden',
@@ -91,7 +154,7 @@ const T = {
         // Community
         communityBadge: 'Word Onderdeel',
         communityTitle: 'Meer dan een programma — een <span class="highlight">community</span>',
-        communityText: 'Als je start bij Julia word je direct onderdeel van een exclusieve community van vrouwen die dezelfde reis maken als jij. Via onze Discord server deel je ervaringen, vier je successen en steun je elkaar op de moeilijke dagen.',
+        communityText: 'Als je start bij ons word je direct onderdeel van een exclusieve community van vrouwen die dezelfde reis maken als jij. Via onze Discord server deel je ervaringen, vier je successen en steun je elkaar op de moeilijke dagen.',
         comPerk1: 'Exclusieve Discord community alleen voor deelnemers',
         comPerk2: 'Dagelijkse motivatie en support van Julia en de groep',
         comPerk3: 'Deel je progressie, recepten en tips met andere vrouwen',
@@ -119,9 +182,9 @@ const T = {
     en: {
         navCta: 'Start Now',
         heroBadge: 'Only 5 spots left this month',
-        heroTitle: 'You deserve <span class="highlight">real</span> personal advice, not nonsense.',
-        heroSubtitle: 'No standard AI plans. No copy-paste programs. No crash diets that leave you starving. <strong>With Julia you get 1-on-1 human coaching — from someone who knows you, understands your body and is there for you every day.</strong>',
-        usp1: '100% human — no AI',
+        heroTitle: 'Girll, you <span class="highlight">truly</span> deserve a transformation.',
+        heroSubtitle: 'No copy-paste programs. No crash diets that leave you starving. <strong>With us you get 1-on-1 personal coaching — from someone who knows you, understands your body and is there for you every day.</strong> Time to become the best version of yourself. ✨',
+        usp1: '100% personal coaching',
         usp2: '1-on-1 personal coaching',
         usp3: 'Tailored to your body',
         heroCta: 'Yes, I want this! Start my transformation',
@@ -137,7 +200,7 @@ const T = {
         pain4: 'Your coach responds after 3 days (or not at all)',
         pain5: "You feel alone and have no one who understands you",
         pain6: "You don't know where to start or what actually works",
-        empathyDivider: "With Julia it's different",
+        empathyDivider: "With us it's different",
         gain1: 'Personal plan tailored to you — no one-size-fits-all',
         gain2: 'Julia is there for you HERSELF, every day',
         gain3: 'Eat well and still get results — no starving',
@@ -186,7 +249,7 @@ const T = {
         transSub: 'See what our clients have achieved with the 12-week program',
         communityBadge: 'Join Us',
         communityTitle: 'More than a program — a <span class="highlight">community</span>',
-        communityText: 'When you start with Julia you immediately become part of an exclusive community of women making the same journey as you. Through our Discord server you share experiences, celebrate wins and support each other on the tough days.',
+        communityText: 'When you start with us you immediately become part of an exclusive community of women making the same journey as you. Through our Discord server you share experiences, celebrate wins and support each other on the tough days.',
         comPerk1: 'Exclusive Discord community for participants only',
         comPerk2: 'Daily motivation and support from Julia and the group',
         comPerk3: 'Share your progress, recipes and tips with other women',
@@ -494,6 +557,9 @@ function showStep(step, scroll = true) {
     if (scroll) {
         document.getElementById('vragenlijst').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
+    // Save progress + fire tracking event
+    saveProgress();
+    if (window.__trackEvent) window.__trackEvent('quiz_step_view', { step });
 }
 
 function validateCurrentStep() {
@@ -561,6 +627,7 @@ btnVerstuur.addEventListener('click', async () => {
     if (!validateCurrentStep()) return;
 
     const formData = new FormData(form);
+    const attribution = getAttribution();
     const lead = {
         id: 'lead_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
         timestamp: new Date().toISOString(),
@@ -576,7 +643,12 @@ btnVerstuur.addEventListener('click', async () => {
         telefoon: formData.get('telefoon'),
         instagram: formData.get('instagram'),
         status: 'nieuw',
-        bron: 'landingspagina',
+        bron: attribution.utm_source || 'direct',
+        utm_source: attribution.utm_source || '',
+        utm_medium: attribution.utm_medium || '',
+        utm_campaign: attribution.utm_campaign || '',
+        utm_content: attribution.utm_content || '',
+        referrer: attribution.referrer || '',
         lang: currentLang,
         notities: ''
     };
@@ -597,10 +669,27 @@ btnVerstuur.addEventListener('click', async () => {
         localStorage.setItem('julia_leads', JSON.stringify(existing));
     } catch (e) { console.error('Storage error:', e); }
 
+    // Conversion event to all tracking platforms
+    if (window.__trackEvent) {
+        window.__trackEvent('lead_submitted', {
+            doel: lead.doel_type,
+            urgentie: lead.urgentie,
+            budget: lead.budget,
+            source: lead.bron
+        });
+    }
+    // Meta standard "Lead" event
+    try { if (window.fbq) fbq('track', 'Lead'); } catch(e) {}
+    // TikTok standard "CompleteRegistration"
+    try { if (window.ttq) ttq.track('CompleteRegistration'); } catch(e) {}
+    // GA4 generate_lead
+    try { if (window.gtag) gtag('event', 'generate_lead', { value: Number(lead.budget) || 0, currency: 'EUR' }); } catch(e) {}
+
+    clearProgress();
     document.getElementById('succesModal').classList.add('active');
     form.reset();
     currentStep = 1;
-    showStep(1);
+    showStep(1, false);
 });
 
 // ===== CRM HELPERS =====
@@ -634,8 +723,13 @@ document.querySelectorAll('a[href="#vragenlijst"]').forEach(link => {
 });
 
 // ===== INIT =====
+restoreProgress();
 showStep(1, false);
 setupHeroPhoto();
+
+// Auto-save form progress on any input change
+form.addEventListener('input', saveProgress);
+form.addEventListener('change', saveProgress);
 
 // Force scroll to top on initial page load (prevents browser from restoring previous scroll position)
 if ('scrollRestoration' in history) {
@@ -649,3 +743,33 @@ if (currentLang !== 'nl') {
     document.querySelector('.lang-btn[data-lang="nl"]')?.classList.remove('active');
 }
 applyTranslations(currentLang);
+
+// ===== MOBILE STICKY CTA =====
+// Appears after user scrolls past hero, hides when form section is in view
+(function setupMobileStickyCTA() {
+    const stickyCTA = document.getElementById('mobileStickyCTA');
+    const formSection = document.getElementById('vragenlijst');
+    if (!stickyCTA || !formSection) return;
+
+    let formVisible = false;
+    if ('IntersectionObserver' in window) {
+        const obs = new IntersectionObserver((entries) => {
+            entries.forEach(e => { formVisible = e.isIntersecting; });
+            update();
+        }, { threshold: 0.15 });
+        obs.observe(formSection);
+    }
+
+    let ticking = false;
+    function update() {
+        const scrolled = window.scrollY > 400; // show after passing hero
+        const shouldShow = scrolled && !formVisible;
+        stickyCTA.classList.toggle('visible', shouldShow);
+        stickyCTA.setAttribute('aria-hidden', shouldShow ? 'false' : 'true');
+        ticking = false;
+    }
+    window.addEventListener('scroll', () => {
+        if (!ticking) { requestAnimationFrame(update); ticking = true; }
+    }, { passive: true });
+    update();
+})();

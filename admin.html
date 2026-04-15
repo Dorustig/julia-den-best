@@ -315,6 +315,30 @@
                 <p>Leads verschijnen hier zodra iemand de vragenlijst invult op de landingspagina.</p>
             </div>
 
+            <!-- Tracking Pixels Config -->
+            <div class="backup-section" style="margin-top:24px">
+                <h2>&#128202; Tracking Pixels (voor advertenties)</h2>
+                <p style="font-size:13px;color:#6B7280;margin-bottom:12px">
+                    Vul je pixel-IDs in om Google Analytics, Meta/Facebook Ads en TikTok Ads te koppelen.
+                    Leeg laten = geen tracking. Wordt automatisch op de hele site gebruikt.
+                </p>
+                <div style="display:grid;gap:12px;max-width:500px">
+                    <div>
+                        <label style="font-size:12px;color:#6B7280;font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Google Analytics 4 (GA4)</label>
+                        <input type="text" id="cfgGa4" class="filter-input" placeholder="G-XXXXXXXXXX" style="width:100%;margin-top:4px;font-family:monospace">
+                    </div>
+                    <div>
+                        <label style="font-size:12px;color:#6B7280;font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Meta (Facebook/Instagram) Pixel</label>
+                        <input type="text" id="cfgMeta" class="filter-input" placeholder="123456789012345" style="width:100%;margin-top:4px;font-family:monospace">
+                    </div>
+                    <div>
+                        <label style="font-size:12px;color:#6B7280;font-weight:600;text-transform:uppercase;letter-spacing:0.5px">TikTok Pixel</label>
+                        <input type="text" id="cfgTiktok" class="filter-input" placeholder="ABCDEFGHIJ0123456789" style="width:100%;margin-top:4px;font-family:monospace">
+                    </div>
+                    <button class="btn-admin btn-export" onclick="saveTrackingConfig()" style="margin-top:4px">Opslaan</button>
+                </div>
+            </div>
+
             <!-- Backup & Export -->
             <div class="backup-section" style="margin-top:24px">
                 <h2>&#128190; Backup &amp; Export</h2>
@@ -457,6 +481,12 @@
                 </div>
                 <div class="lead-field" style="margin-top:8px"><label>Nummer 1 Doel</label><div class="value">${esc(l.nummer_een_doel || '-')}</div></div>
                 <div class="lead-field"><label>Obstakel</label><div class="value">${esc(l.obstakel || '-')}</div></div>
+                <div class="lead-field"><label>Bron / Traffic Source</label><div class="value">
+                    <strong>${esc(l.bron || 'direct')}</strong>
+                    ${l.utm_campaign ? `<br><span style="font-size:12px;color:#6B7280">Campagne: ${esc(l.utm_campaign)}</span>` : ''}
+                    ${l.utm_medium ? `<br><span style="font-size:12px;color:#6B7280">Medium: ${esc(l.utm_medium)}</span>` : ''}
+                    ${l.referrer ? `<br><span style="font-size:12px;color:#6B7280;word-break:break-all">Referrer: ${esc(l.referrer)}</span>` : ''}
+                </div></div>
                 <div class="lead-field">
                     <label>Notities</label>
                     <textarea id="noteField" placeholder="Voeg notities toe...">${esc(l.notities || '')}</textarea>
@@ -583,9 +613,38 @@
             if (e.target === document.getElementById('leadModal')) closeModal();
         });
 
+        async function loadTrackingConfig() {
+            try {
+                const res = await fetch('/api/tracking-config');
+                const cfg = await res.json();
+                document.getElementById('cfgGa4').value = cfg.ga4 || '';
+                document.getElementById('cfgMeta').value = cfg.metaPixel || '';
+                document.getElementById('cfgTiktok').value = cfg.tiktokPixel || '';
+            } catch (e) {}
+        }
+
+        async function saveTrackingConfig() {
+            const body = {
+                ga4: document.getElementById('cfgGa4').value.trim(),
+                metaPixel: document.getElementById('cfgMeta').value.trim(),
+                tiktokPixel: document.getElementById('cfgTiktok').value.trim()
+            };
+            try {
+                const res = await fetch('/api/tracking-config', {
+                    method: 'PUT',
+                    headers: {'Content-Type':'application/json'},
+                    body: JSON.stringify(body)
+                });
+                const out = await res.json();
+                if (out.success) alert('Tracking config opgeslagen! Ververs de landingspagina om pixels te laden.');
+                else alert('Opslaan mislukt: ' + (out.error || 'onbekend'));
+            } catch (e) { alert('Opslaan mislukt: ' + e.message); }
+        }
+
         // Init
         loadLeads();
         loadBackups();
+        loadTrackingConfig();
     </script>
 </body>
 </html>

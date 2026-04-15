@@ -2,12 +2,105 @@
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Julia Den Best — Jouw Fitness Transformatie Begint Hier</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#E91E8C">
+
+    <title>Julia Den Best — 1-op-1 Fitness Coaching voor Vrouwen</title>
+    <meta name="description" content="Girll, jij verdient echt een transformatie. Persoonlijk 12-weken traject voor vrouwen met Julia — 1-op-1 coaching, een plan op maat, en een community die je door en door begrijpt. Niet goed, geld terug.">
+    <meta name="keywords" content="fitness coaching vrouwen, personal trainer, afvallen, 12 weken programma, Julia Den Best, 1 op 1 coaching">
+    <meta name="author" content="Julia Den Best">
+    <meta name="robots" content="index, follow">
+
+    <!-- Open Graph / Facebook / WhatsApp / LinkedIn -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Julia Den Best">
+    <meta property="og:url" content="https://julia-den-best-production.up.railway.app/">
+    <meta property="og:title" content="Je verdient écht persoonlijk advies, geen onzin.">
+    <meta property="og:description" content="Girll, jij verdient echt een transformatie. 1-op-1 fitness coaching voor vrouwen — met Julia, een plan op maat en een community die je begrijpt. Niet goed, geld terug.">
+    <meta property="og:image" content="https://julia-den-best-production.up.railway.app/img/julia-team.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:locale" content="nl_NL">
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Je verdient écht persoonlijk advies, geen onzin.">
+    <meta name="twitter:description" content="1-op-1 fitness coaching voor vrouwen. 12 weken transformatie met Julia.">
+    <meta name="twitter:image" content="https://julia-den-best-production.up.railway.app/img/julia-team.jpg">
+
+    <!-- Canonical -->
+    <link rel="canonical" href="https://julia-den-best-production.up.railway.app/">
+
+    <!-- Favicon (using pink dot emoji until Julia has a logo) -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💖</text></svg>">
+    <link rel="apple-touch-icon" href="/img/julia-team.jpg">
+
+    <!-- Schema.org structured data (helps Google surface the business) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Service",
+      "serviceType": "Personal Fitness Coaching",
+      "provider": {
+        "@type": "Person",
+        "name": "Julia Den Best"
+      },
+      "areaServed": "NL",
+      "description": "12-weken 1-op-1 fitness en voedingscoaching voor vrouwen. Persoonlijk plan, dagelijkse begeleiding, exclusieve community.",
+      "offers": {
+        "@type": "Offer",
+        "category": "Fitness Coaching",
+        "availability": "https://schema.org/LimitedAvailability"
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.9",
+        "reviewCount": "500",
+        "bestRating": "5"
+      }
+    }
+    </script>
+
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- ====== TRACKING (vul je eigen IDs in via admin panel) ====== -->
+    <script>
+      window.__TRACKING = { ga4: '', metaPixel: '', tiktokPixel: '' };
+      window.__trackEvent = function(name, params) {
+        try {
+          if (window.gtag) gtag('event', name, params || {});
+          if (window.fbq) fbq('trackCustom', name, params || {});
+          if (window.ttq) ttq.track(name, params || {});
+        } catch(e) {}
+      };
+      // Load tracking pixels from server config
+      fetch('/api/tracking-config').then(r => r.ok ? r.json() : null).then(cfg => {
+        if (!cfg) return;
+        window.__TRACKING = cfg;
+        // Google Analytics 4
+        if (cfg.ga4 && /^G-[A-Z0-9]+$/.test(cfg.ga4)) {
+          const s = document.createElement('script');
+          s.async = true; s.src = 'https://www.googletagmanager.com/gtag/js?id=' + cfg.ga4;
+          document.head.appendChild(s);
+          window.dataLayer = window.dataLayer || [];
+          window.gtag = function(){ dataLayer.push(arguments); };
+          gtag('js', new Date()); gtag('config', cfg.ga4);
+        }
+        // Meta (Facebook) Pixel
+        if (cfg.metaPixel && /^\d{6,}$/.test(cfg.metaPixel)) {
+          !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+          fbq('init', cfg.metaPixel); fbq('track', 'PageView');
+        }
+        // TikTok Pixel
+        if (cfg.tiktokPixel && /^[A-Z0-9]{10,}$/i.test(cfg.tiktokPixel)) {
+          !function(w,d,t){w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e};ttq.load=function(e,n){var i="https://analytics.tiktok.com/i18n/pixel/events.js";ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=i,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};var o=document.createElement("script");o.type="text/javascript",o.async=!0,o.src=i+"?sdkid="+e+"&lib="+t;var a=document.getElementsByTagName("script")[0];a.parentNode.insertBefore(o,a)};
+          ttq.load(cfg.tiktokPixel); ttq.page(); }(window, document, 'ttq');
+        }
+      }).catch(() => {});
+    </script>
 </head>
 <body>
 
@@ -33,12 +126,12 @@
                     <span class="badge-dot"></span>
                     Nog maar 5 plekken beschikbaar deze maand
                 </div>
-                <h1>Je verdient <span class="highlight">echt</span> persoonlijk advies, geen onzin.</h1>
-                <p class="hero-subtitle">Geen standaard AI-schema's. Geen copy-paste plannen. Geen crash dieten waar je bijna niks mag eten. <strong>Bij Julia krijg je 1-op-1 menselijke begeleiding — van iemand die jou kent, jouw lichaam begrijpt en er elke dag voor je is.</strong></p>
+                <h1>Girll, jij verdient <span class="highlight">écht</span> een transformatie.</h1>
+                <p class="hero-subtitle">Geen copy-paste plannen. Geen crash diëten waar je bijna niks mag eten. <strong>Bij ons krijg je 1-op-1 persoonlijke begeleiding — van iemand die jou kent, jouw lichaam begrijpt en elke dag voor je klaarstaat.</strong> Tijd om de beste versie van jezelf te worden. ✨</p>
                 <div class="hero-usp-bar">
                     <span class="usp-item">
                         <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="10" fill="#E91E8C"/><path d="M6 10l3 3 5-6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                        100% menselijk — geen AI
+                        100% persoonlijke begeleiding
                     </span>
                     <span class="usp-item">
                         <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="10" fill="#E91E8C"/><path d="M6 10l3 3 5-6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -161,7 +254,7 @@
                     </div>
                 </div>
                 <div class="empathy-divider">
-                    <span>Bij Julia is het anders</span>
+                    <span>Bij ons is het anders</span>
                 </div>
                 <div class="empathy-grid">
                     <div class="empathy-item positive">
@@ -462,7 +555,7 @@
                 <div class="community-text">
                     <span class="program-badge">Word Onderdeel</span>
                     <h2>Meer dan een programma — een <span class="highlight">community</span></h2>
-                    <p>Als je start bij Julia word je direct onderdeel van een exclusieve community van vrouwen die dezelfde reis maken als jij. Via onze Discord server deel je ervaringen, vier je successen en steun je elkaar op de moeilijke dagen.</p>
+                    <p>Als je start bij ons word je direct onderdeel van een exclusieve community van vrouwen die dezelfde reis maken als jij. Via onze Discord server deel je ervaringen, vier je successen en steun je elkaar op de moeilijke dagen.</p>
                     <ul class="community-perks">
                         <li>
                             <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="10" fill="#E91E8C"/><path d="M6 10l3 3 5-6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -578,6 +671,11 @@
             <div class="footer-bottom"><p>&copy; 2026 Julia Den Best. Alle rechten voorbehouden.</p></div>
         </div>
     </footer>
+
+    <!-- MOBILE STICKY CTA (only visible on phone after scrolling past hero) -->
+    <div class="mobile-sticky-cta" id="mobileStickyCTA" aria-hidden="true">
+        <a href="#vragenlijst" class="btn btn-primary" data-nl="Ja, start mijn transformatie ✨" data-en="Yes, start my transformation ✨">Ja, start mijn transformatie ✨</a>
+    </div>
 
     <!-- SUCCES MODAL -->
     <div class="modal-overlay" id="succesModal">
