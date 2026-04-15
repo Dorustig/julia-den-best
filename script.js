@@ -82,7 +82,7 @@ const T = {
         // Hero
         heroBadge: 'Nog maar 5 plekken beschikbaar deze maand',
         heroTitle: 'Girll, jij verdient <span class="highlight">écht</span> een transformatie.',
-        heroSubtitle: 'Ik help elke vrouw, of je nu net begint of al jaren sport. <strong>Bij mij krijg je persoonlijke 1-op-1 begeleiding, een plan op maat en ik sta elke dag voor je klaar.</strong> Tijd om te stralen. ✨',
+        heroSubtitle: 'Ik help elke vrouw, of je nu net begint of al jaren sport. <strong>Bij mij krijg je persoonlijke 1-op-1 begeleiding, een plan op maat en ik sta elke dag voor je klaar.</strong> Tijd om je eindelijk lekker in je lichaam te voelen. ✨',
         usp1: '100% persoonlijke begeleiding',
         usp2: '1-op-1 persoonlijke coaching',
         usp3: 'Op maat gemaakt voor jouw lichaam',
@@ -117,7 +117,7 @@ const T = {
         q1: 'Hoe kan ik je het beste helpen?',
         q1a: 'Afvallen', q1b: 'Spiermassa opbouwen', q1c: 'Gezonde levensstijl', q1d: 'Lichaamstransformatie',
         q2: 'Wat is jouw leeftijd?',
-        q2a: '16 — 17 jaar', q2b: '18 — 25 jaar', q2c: '25 — 35 jaar', q2d: '35+ jaar',
+        q2a: '16 tot 17 jaar', q2b: '18 tot 25 jaar', q2c: '25 tot 35 jaar', q2d: '35+ jaar',
         q3: 'Wat is je absolute nummer 1 doel op het gebied van fitness en gezondheid?',
         q3ph: 'Vertel hier over je belangrijkste doel...',
         q4: 'Wat staat je momenteel het meeste in de weg om dit doel te bereiken?',
@@ -130,12 +130,12 @@ const T = {
         s4: 'Belangrijk', s4d: 'Ik wil serieus aan de slag en zoek hulp om mijn doelen te behalen.',
         s5: 'Zeer belangrijk', s5d: 'Absolute prioriteit. Ik wil nu verandering. Ben gemotiveerd om direct te starten.',
         q6: 'Stel je zou nu in jezelf investeren, wat zou voor jou per week realistisch voelen?',
-        q6a: '€0 — €40 per week', q6b: '€45 — €70 per week', q6c: '€70 — €100 per week', q6d: 'Geen idee, dat hoor ik graag in het gesprek',
+        q6a: '€0 tot €40 per week', q6b: '€45 tot €70 per week', q6c: '€70 tot €100 per week', q6d: 'Geen idee, dat hoor ik graag in het gesprek',
         q7: 'Ben je bereid om tijd en geld te investeren om je transformatie waar te maken?',
         q7title: 'Ja, ik ben er klaar voor!',
         q7text: 'Ik wil investeren in mezelf en mijn gezondheid. Laten we dit samen doen!',
         q7btn: 'Ja! Ik wil starten',
-        q8: 'Laatste stap — Jouw contactgegevens',
+        q8: 'Laatste stap: jouw contactgegevens',
         q8sub: 'Vul je gegevens in zodat ik persoonlijk contact met je kan opnemen',
         labelNaam: 'Volledige naam', phNaam: 'Je voor- en achternaam',
         labelEmail: 'E-mailadres', phEmail: 'naam@voorbeeld.nl',
@@ -149,16 +149,16 @@ const T = {
         // Reviews
         reviewsTitle: 'Wat andere vrouwen zeggen',
         // Transformations
-        transTitle: 'Van A naar Z — Echte Transformaties',
+        transTitle: 'Van A naar Z, echte transformaties',
         transSub: 'Bekijk wat onze klanten hebben bereikt met het 16-weken programma',
         // Community
         communityBadge: 'Word Onderdeel',
-        communityTitle: 'Meer dan een programma — een <span class="highlight">community</span>',
+        communityTitle: 'Meer dan een programma, een <span class="highlight">community</span>',
         communityText: 'Als je bij mij start word je direct onderdeel van een exclusieve community van vrouwen die dezelfde reis maken als jij. Via onze Discord server deel je ervaringen, vier je successen en steun je elkaar op de moeilijke dagen.',
         comPerk1: 'Exclusieve Discord community alleen voor deelnemers',
         comPerk2: 'Dagelijkse motivatie en support van mij en de groep',
         comPerk3: 'Deel je progressie, recepten en tips met andere vrouwen',
-        comPerk4: 'Je staat er nooit alleen voor — altijd iemand die je begrijpt',
+        comPerk4: 'Je staat er nooit alleen voor, altijd iemand die je begrijpt',
         comCta: 'Ik wil erbij!',
         comCount: '500+ vrouwen zijn je al voorgegaan',
         // Program
@@ -169,21 +169,35 @@ const T = {
         // CTA
         ctaTitle: 'Dit is jouw moment.',
         ctaText: 'Stop met twijfelen. Stop met uitstellen. Start vandaag nog met jouw transformatie.',
-        ctaCta: 'Start Nu — Het Is Gratis',
+        ctaCta: 'Start nu, het is gratis',
         ctaGuarantee: 'Niet goed? Geld terug. Geen risico.',
         // Testimonials
         testTitle: 'Onze klanten aan het woord',
-        // Modal
-        modalTitle: 'Gelukt!',
-        modalText: 'Bedankt voor het invullen! Ik neem zo snel mogelijk persoonlijk contact met je op.',
-        modalSub: 'Check je inbox en Instagram DM\'s — we nemen binnen 24 uur contact op!',
-        modalClose: 'Sluiten',
+        // Modal (bijna klaar)
+        modalBadge: 'Gelukt!',
+        modalTitle: 'Bijna klaar, girll! ✨',
+        modalSub: 'Je hebt het formulier ingevuld. Nog één klein stapje en jouw traject gaat echt beginnen.',
+        modalReminderStrong: 'Herinnering: houd je SMS en WhatsApp in de gaten',
+        modalReminderSpan: 'of geef hier je beschikbaarheid alvast door.',
+        modalCTA: 'Stuur beschikbaarheid',
+        modalDisclaimer: '* Als je het ons niet laat weten, nemen wij binnen 1 uur contact met je op met een vaste datum en tijd.',
+        modalDivider: 'Bekijk daarna de korte video voor de volgende stap',
+        modalVideoTitle: 'Julia legt uit wat er nu gebeurt',
+        modalVideoSub: 'Korte video · klik om te bekijken',
+        avTitle: 'Wanneer komt het jou uit?',
+        avDaysLabel: 'Welke dagen?',
+        avTijdvakLabel: 'Voorkeur tijdvak',
+        avNotesLabel: 'Opmerkingen (optioneel)',
+        avNotesPh: 'Bijv. liever na 19:00',
+        avSubmit: 'Versturen',
+        avSuccessStrong: 'Top, ik heb je beschikbaarheid ontvangen!',
+        avSuccessSpan: 'Ik neem snel contact op.',
     },
     en: {
         navCta: 'Start Now',
         heroBadge: 'Only 5 spots left this month',
         heroTitle: 'Girll, you <span class="highlight">truly</span> deserve a transformation.',
-        heroSubtitle: 'I help every woman, whether you\'re just starting or already experienced. <strong>With me you get personal 1-on-1 coaching, a plan tailored to you and I\'m there for you every day.</strong> Time to shine. ✨',
+        heroSubtitle: 'I help every woman, whether you\'re just starting or already experienced. <strong>With me you get personal 1-on-1 coaching, a plan tailored to you and I\'m there for you every day.</strong> Time to finally feel at home in your body. ✨',
         usp1: '100% personal coaching',
         usp2: '1-on-1 personal coaching',
         usp3: 'Tailored to your body',
@@ -215,7 +229,7 @@ const T = {
         q1: 'How can I help you best?',
         q1a: 'Lose weight', q1b: 'Build muscle', q1c: 'Healthy lifestyle', q1d: 'Body transformation',
         q2: 'What is your age?',
-        q2a: '16 — 17 years', q2b: '18 — 25 years', q2c: '25 — 35 years', q2d: '35+ years',
+        q2a: '16 to 17 years', q2b: '18 to 25 years', q2c: '25 to 35 years', q2d: '35+ years',
         q3: 'What is your absolute #1 goal regarding fitness and health?',
         q3ph: 'Tell us about your most important goal...',
         q4: 'What is currently standing in your way the most?',
@@ -228,12 +242,12 @@ const T = {
         s4: 'Important', s4d: 'I want to get serious and am looking for help to reach my goals.',
         s5: 'Very important', s5d: "Absolute priority. I want change now. I'm motivated to start immediately.",
         q6: 'If you were to invest in yourself, what would feel realistic per week?',
-        q6a: '€0 — €40 per week', q6b: '€45 — €70 per week', q6c: '€70 — €100 per week', q6d: "Not sure, I'd like to discuss in the call",
+        q6a: '€0 to €40 per week', q6b: '€45 to €70 per week', q6c: '€70 to €100 per week', q6d: "Not sure, I'd like to discuss in the call",
         q7: 'Are you willing to invest time and money to make your transformation happen?',
         q7title: "Yes, I'm ready!",
         q7text: 'I want to invest in myself and my health. Let\'s do this together!',
         q7btn: 'Yes! I want to start',
-        q8: 'Last step — Your contact details',
+        q8: 'Last step: your contact details',
         q8sub: 'Fill in your details so I can personally reach out to you',
         labelNaam: 'Full name', phNaam: 'Your first and last name',
         labelEmail: 'Email address', phEmail: 'name@example.com',
@@ -245,15 +259,15 @@ const T = {
         trust2: 'Free introduction call',
         trust3: 'Personal contact with me',
         reviewsTitle: 'What other women say',
-        transTitle: 'From A to Z — Real Transformations',
+        transTitle: 'From A to Z, real transformations',
         transSub: 'See what our clients have achieved with the 16-week program',
         communityBadge: 'Join Us',
-        communityTitle: 'More than a program — a <span class="highlight">community</span>',
+        communityTitle: 'More than a program, a <span class="highlight">community</span>',
         communityText: 'When you start with me you immediately become part of an exclusive community of women making the same journey as you. Through our Discord server you share experiences, celebrate wins and support each other on the tough days.',
         comPerk1: 'Exclusive Discord community for participants only',
         comPerk2: 'Daily motivation and support from me and the group',
         comPerk3: 'Share your progress, recipes and tips with other women',
-        comPerk4: "You're never alone — always someone who understands you",
+        comPerk4: "You're never alone, always someone who understands you",
         comCta: 'I want to join!',
         comCount: '500+ women have gone before you',
         progBadge: 'The Program',
@@ -262,13 +276,27 @@ const T = {
         featTitle: 'What you get',
         ctaTitle: 'This is your moment.',
         ctaText: 'Stop doubting. Stop postponing. Start your transformation today.',
-        ctaCta: 'Start Now — It\'s Free',
+        ctaCta: 'Start now, it\'s free',
         ctaGuarantee: 'Not satisfied? Money back. No risk.',
         testTitle: 'Our clients speak',
-        modalTitle: 'Success!',
-        modalText: 'Thank you for filling this in! I will personally reach out to you as soon as possible.',
-        modalSub: "Check your inbox and Instagram DM's — we'll contact you within 24 hours!",
-        modalClose: 'Close',
+        modalBadge: 'Success!',
+        modalTitle: 'Almost done, girll! ✨',
+        modalSub: 'You submitted the form. One tiny step to go and your journey truly begins.',
+        modalReminderStrong: 'Reminder: keep an eye on your SMS and WhatsApp',
+        modalReminderSpan: 'or share your availability below.',
+        modalCTA: 'Share availability',
+        modalDisclaimer: "* If you don't let us know, we'll contact you within 1 hour with a fixed date and time.",
+        modalDivider: 'Afterwards, watch the short video for the next step',
+        modalVideoTitle: 'Julia explains what happens next',
+        modalVideoSub: 'Short video · click to watch',
+        avTitle: 'When works for you?',
+        avDaysLabel: 'Which days?',
+        avTijdvakLabel: 'Preferred time',
+        avNotesLabel: 'Notes (optional)',
+        avNotesPh: 'E.g. preferably after 19:00',
+        avSubmit: 'Send',
+        avSuccessStrong: 'Got it, your availability is received!',
+        avSuccessSpan: "I'll be in touch soon.",
     }
 };
 
@@ -363,10 +391,24 @@ const TRANSLATION_MAP = [
     // Testimonials
     { sel: '.testimonials-section h2', key: 'testTitle' },
     // Modal
-    { sel: '.modal-content h2', key: 'modalTitle' },
-    { sel: '.modal-content > p:first-of-type', key: 'modalText' },
-    { sel: '.modal-subtitle', key: 'modalSub' },
-    { sel: '.modal-content .btn', key: 'modalClose' },
+    // Bijna klaar modal
+    { sel: '.almost-done-badge span', key: 'modalBadge' },
+    { sel: '.almost-done-title', key: 'modalTitle' },
+    { sel: '.almost-done-sub', key: 'modalSub' },
+    { sel: '.reminder-text strong', key: 'modalReminderStrong' },
+    { sel: '.reminder-text span', key: 'modalReminderSpan' },
+    { sel: '#beschikbaarheidBtn', key: 'modalCTA' },
+    { sel: '.success-disclaimer', key: 'modalDisclaimer' },
+    { sel: '.almost-done-divider span', key: 'modalDivider' },
+    { sel: '.video-caption strong', key: 'modalVideoTitle' },
+    { sel: '.video-caption > span', key: 'modalVideoSub' },
+    { sel: '.availability-form h3', key: 'avTitle' },
+    { sel: '.availability-form .av-field:nth-of-type(1) .av-field-label', key: 'avDaysLabel' },
+    { sel: '.availability-form .av-field:nth-of-type(2) .av-field-label', key: 'avTijdvakLabel' },
+    { sel: '.availability-form .av-field:nth-of-type(3) .av-field-label', key: 'avNotesLabel' },
+    { sel: '#avSubmitBtn', key: 'avSubmit' },
+    { sel: '#avSuccess strong', key: 'avSuccessStrong' },
+    { sel: '#avSuccess > span:last-of-type', key: 'avSuccessSpan' },
 ];
 
 function applyTranslations(lang) {
@@ -686,11 +728,90 @@ btnVerstuur.addEventListener('click', async () => {
     try { if (window.gtag) gtag('event', 'generate_lead', { value: Number(lead.budget) || 0, currency: 'EUR' }); } catch(e) {}
 
     clearProgress();
+    window.__lastLeadId = lead.id;
     document.getElementById('succesModal').classList.add('active');
+    // Reset availability form state for repeat submissions
+    const avForm = document.getElementById('availabilityForm');
+    const avSuccess = document.getElementById('avSuccess');
+    if (avForm) avForm.hidden = true;
+    if (avSuccess) avSuccess.hidden = true;
+    const beschikBtn = document.getElementById('beschikbaarheidBtn');
+    if (beschikBtn) beschikBtn.hidden = false;
     form.reset();
     currentStep = 1;
     showStep(1, false);
 });
+
+// ===== ALMOST DONE MODAL HANDLERS =====
+(function setupAlmostDoneModal() {
+    const modal = document.getElementById('succesModal');
+    if (!modal) return;
+
+    const closeBtn = document.getElementById('successCloseX');
+    if (closeBtn) closeBtn.addEventListener('click', () => modal.classList.remove('active'));
+
+    // Close on backdrop click
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.classList.remove('active');
+    });
+
+    // "Stuur beschikbaarheid" → reveal inline form
+    const beschikBtn = document.getElementById('beschikbaarheidBtn');
+    const avForm = document.getElementById('availabilityForm');
+    if (beschikBtn && avForm) {
+        beschikBtn.addEventListener('click', () => {
+            avForm.hidden = false;
+            beschikBtn.hidden = true;
+            avForm.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        });
+    }
+
+    // Submit availability → PUT /api/leads/:id
+    const avSubmit = document.getElementById('avSubmitBtn');
+    if (avSubmit) {
+        avSubmit.addEventListener('click', async () => {
+            const days = Array.from(document.querySelectorAll('input[name="av_days"]:checked')).map(el => el.value);
+            const tijdvak = document.getElementById('avTijdvak').value;
+            const opmerkingen = document.getElementById('avOpmerkingen').value.trim();
+            const payload = {
+                availability_days: days,
+                availability_tijdvak: tijdvak,
+                availability_opmerkingen: opmerkingen,
+                availability_submitted_at: new Date().toISOString()
+            };
+            const leadId = window.__lastLeadId;
+            avSubmit.disabled = true;
+            avSubmit.textContent = 'Versturen...';
+            try {
+                if (leadId) {
+                    await fetch('/api/leads/' + encodeURIComponent(leadId), {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                }
+            } catch (e) { console.warn('Availability save failed:', e); }
+            // Show success state
+            const fields = avForm.querySelectorAll('.av-field, .availability-form h3, #avSubmitBtn');
+            fields.forEach(f => f.style.display = 'none');
+            document.getElementById('avSuccess').hidden = false;
+            try { if (window.fbq) fbq('trackCustom', 'AvailabilitySubmitted'); } catch(e) {}
+        });
+    }
+
+    // Video card placeholder — opens alert until real video is connected
+    const videoCard = document.getElementById('juliaVideoCard');
+    if (videoCard) {
+        const openVideo = () => {
+            // TODO: replace with real video URL (YouTube iframe or direct mp4)
+            alert('Julia is bezig met het opnemen van de video. Voor nu: we nemen snel contact met je op!');
+        };
+        videoCard.addEventListener('click', openVideo);
+        videoCard.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openVideo(); }
+        });
+    }
+})();
 
 // ===== CRM HELPERS =====
 window.juliaLeads = {
