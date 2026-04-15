@@ -113,6 +113,7 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', Georgia, serif; font-weight: 7
 .hero-subtitle {
     font-size: clamp(15px, 1.8vw, 18px); color: var(--gray-dark);
     line-height: 1.7; margin-bottom: 28px;
+    hyphens: none; -webkit-hyphens: none; text-wrap: pretty;
 }
 .hero-subtitle strong { color: var(--text); }
 /* Hero USP bar */

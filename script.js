@@ -82,7 +82,7 @@ const T = {
         // Hero
         heroBadge: 'Nog maar 5 plekken beschikbaar deze maand',
         heroTitle: 'Girll, jij verdient <span class="highlight">écht</span> een transformatie.',
-        heroSubtitle: 'Geen copy-paste plannen. Geen crash diëten waar je bijna niks mag eten. <strong>Bij ons krijg je 1-op-1 persoonlijke begeleiding — van iemand die jou kent, jouw lichaam begrijpt en elke dag voor je klaarstaat.</strong> Tijd om de beste versie van jezelf te worden. ✨',
+        heroSubtitle: 'Voor elke vrouw, of je nu net begint of al jaren sport. <strong>Bij ons krijg je persoonlijke 1-op-1 begeleiding, een plan op maat en een coach die er elke dag voor je is.</strong> Tijd om te stralen. ✨',
         usp1: '100% persoonlijke begeleiding',
         usp2: '1-op-1 persoonlijke coaching',
         usp3: 'Op maat gemaakt voor jouw lichaam',
@@ -183,7 +183,7 @@ const T = {
         navCta: 'Start Now',
         heroBadge: 'Only 5 spots left this month',
         heroTitle: 'Girll, you <span class="highlight">truly</span> deserve a transformation.',
-        heroSubtitle: 'No copy-paste programs. No crash diets that leave you starving. <strong>With us you get 1-on-1 personal coaching — from someone who knows you, understands your body and is there for you every day.</strong> Time to become the best version of yourself. ✨',
+        heroSubtitle: 'For every woman, whether you\'re just starting or already experienced. <strong>With us you get personal 1-on-1 coaching, a plan tailored to you and a coach who\'s there for you every day.</strong> Time to shine. ✨',
         usp1: '100% personal coaching',
         usp2: '1-on-1 personal coaching',
         usp3: 'Tailored to your body',
