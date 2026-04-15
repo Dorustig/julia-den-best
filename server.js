@@ -158,6 +158,7 @@ const MIME = {
   '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg',
   '.jpeg': 'image/jpeg', '.svg': 'image/svg+xml', '.ico': 'image/x-icon',
   '.webp': 'image/webp', '.gif': 'image/gif', '.woff2': 'font/woff2',
+  '.txt': 'text/plain', '.xml': 'application/xml',
 };
 
 // ===== HELPERS =====
