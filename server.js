@@ -482,6 +482,48 @@ const server = http.createServer(async (req, res) => {
     return jsonRes(res, 200, klanten || []);
   }
 
+  // POST /api/admin/klanten — manually create a klant (for testing or for
+  // clients who bought outside Plug&Pay). Creates auth user + klanten row
+  // and returns a magic-link URL that can be copied/mailed to the client.
+  if (pathname === '/api/admin/klanten' && req.method === 'POST') {
+    if (!requireAuth(req, res)) return;
+    if (!supabaseHelper.isEnabled()) {
+      return jsonRes(res, 503, { error: 'Supabase not configured' });
+    }
+
+    let body;
+    try { body = JSON.parse(await readBody(req)); }
+    catch { return jsonRes(res, 400, { error: 'Invalid JSON' }); }
+
+    const email = (body.email || '').toLowerCase().trim();
+    const naam = (body.naam || '').trim();
+    const telefoon = body.telefoon ? String(body.telefoon).trim() : null;
+
+    if (!email || !email.includes('@')) return jsonRes(res, 400, { error: 'Geldig email vereist' });
+    if (!naam) return jsonRes(res, 400, { error: 'Naam vereist' });
+
+    const auth = await supabaseHelper.createOrGetAuthUser(email, {
+      metadata: { naam, source: 'admin_manual' },
+    });
+    if (!auth.ok) return jsonRes(res, 500, { error: 'Auth user: ' + auth.error });
+
+    const klantRes = await supabaseHelper.createKlant({
+      email, naam, telefoon, authUserId: auth.id,
+    });
+    if (!klantRes.ok) return jsonRes(res, 500, { error: 'Klant: ' + klantRes.error });
+
+    const siteOrigin = process.env.SITE_ORIGIN || `https://${CANONICAL_HOST}`;
+    const magic = await supabaseHelper.generateMagicLink(email, siteOrigin + '/klant/start');
+
+    return jsonRes(res, 200, {
+      ok: true,
+      klant: klantRes.klant,
+      auth_user_created: auth.created,
+      magic_link: magic.ok ? magic.action_link : null,
+      magic_link_error: magic.ok ? null : magic.error,
+    });
+  }
+
   // ===== API ROUTES =====
 
   // GET /api/leads — all leads (admin only)

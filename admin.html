@@ -403,6 +403,48 @@
                 <p>Leads verschijnen hier zodra iemand de vragenlijst invult op de landingspagina.</p>
             </div>
 
+            <!-- Programma Klanten -->
+            <div class="backup-section" style="margin-top:24px">
+                <h2>&#127947;&#127996;&#8205;&#9792;&#65039; Programma Klanten</h2>
+                <p style="font-size:13px;color:#6B7280;margin-bottom:12px">
+                    Hier zie je alle klanten die toegang hebben tot het 16-weken programma. Nieuwe klanten worden automatisch aangemaakt via Plug&amp;Pay, of voeg handmatig iemand toe (bv. voor een test of vriendin).
+                </p>
+
+                <!-- Formulier: klant toevoegen -->
+                <div style="background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:16px;margin-bottom:16px;max-width:640px">
+                    <div style="font-weight:600;font-size:14px;margin-bottom:10px">&#10133; Klant toevoegen</div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+                        <input type="email" id="klantNieuwEmail" class="filter-input" placeholder="email@klant.nl" style="width:100%">
+                        <input type="text" id="klantNieuwNaam" class="filter-input" placeholder="Volledige naam" style="width:100%">
+                    </div>
+                    <input type="tel" id="klantNieuwTelefoon" class="filter-input" placeholder="Telefoon (optioneel)" style="width:100%;margin-bottom:10px">
+                    <button class="btn-admin btn-export" id="klantToevoegenBtn" onclick="klantToevoegen()">Klant aanmaken + magic link</button>
+                    <div id="klantNieuwResult" style="margin-top:10px;font-size:13px"></div>
+                </div>
+
+                <!-- Lijst bestaande klanten -->
+                <div id="klantenLijst" style="display:none">
+                    <div style="font-weight:600;font-size:14px;margin-bottom:10px">Bestaande klanten (<span id="klantenCount">0</span>)</div>
+                    <div class="table-wrapper" style="max-width:100%">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Naam</th>
+                                    <th>Email</th>
+                                    <th>Status</th>
+                                    <th>Week</th>
+                                    <th>Doel</th>
+                                    <th>Start</th>
+                                    <th>Actie</th>
+                                </tr>
+                            </thead>
+                            <tbody id="klantenTbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div id="klantenLeeg" style="color:#9CA3AF;font-size:13px;padding:16px;text-align:center">Nog geen klanten. Voeg er een toe hierboven.</div>
+            </div>
+
             <!-- Tracking Pixels Config -->
             <div class="backup-section" style="margin-top:24px">
                 <h2>&#128202; Tracking Pixels (voor advertenties)</h2>
@@ -883,10 +925,152 @@
             } catch (e) { alert('Opslaan mislukt: ' + e.message); }
         }
 
+        // ===== KLANTEN (Fase 1 programma) =====
+        async function klantToevoegen() {
+            const email = document.getElementById('klantNieuwEmail').value.trim();
+            const naam = document.getElementById('klantNieuwNaam').value.trim();
+            const telefoon = document.getElementById('klantNieuwTelefoon').value.trim();
+            const btn = document.getElementById('klantToevoegenBtn');
+            const out = document.getElementById('klantNieuwResult');
+            out.innerHTML = '';
+
+            if (!email || !email.includes('@')) {
+                out.innerHTML = '<span style="color:#B91C1C">Geldig email vereist.</span>';
+                return;
+            }
+            if (!naam) {
+                out.innerHTML = '<span style="color:#B91C1C">Naam vereist.</span>';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Aanmaken...';
+            try {
+                const r = await fetch('/api/admin/klanten', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ email, naam, telefoon: telefoon || null }),
+                });
+                const data = await r.json();
+                if (!r.ok || data.error) throw new Error(data.error || 'Aanmaken mislukt');
+
+                let html = '<div style="background:#ECFDF5;border:1px solid #A7F3D0;padding:12px;border-radius:8px;color:#065F46">';
+                html += '<strong>&#10003; Klant aangemaakt!</strong><br>';
+                if (data.magic_link) {
+                    html += '<div style="margin-top:8px;font-size:12px">Magic link (1x klikken logt de klant in):</div>';
+                    html += '<div style="margin-top:4px;display:flex;gap:8px;align-items:center">';
+                    html += '<input type="text" readonly value="' + data.magic_link.replace(/"/g, '&quot;') + '" style="flex:1;padding:6px 8px;border:1px solid #A7F3D0;border-radius:6px;font-family:monospace;font-size:11px;background:#fff" onclick="this.select()">';
+                    html += '<button class="btn-admin btn-export" style="padding:6px 10px;font-size:12px" onclick="navigator.clipboard.writeText(\'' + data.magic_link.replace(/'/g, "\\'") + '\');this.textContent=\'&#10003; Gekopieerd\'">Kopieer</button>';
+                    html += '</div>';
+                    html += '<div style="margin-top:6px;font-size:11px;color:#065F46">Stuur deze link naar de klant in een welkomstmail. Hij werkt 1 uur en kan maar 1x gebruikt worden.</div>';
+                } else if (data.magic_link_error) {
+                    html += '<div style="margin-top:8px;font-size:12px;color:#92400E">&#9888; Magic link kon niet gegenereerd worden: ' + data.magic_link_error + '</div>';
+                }
+                html += '</div>';
+                out.innerHTML = html;
+
+                document.getElementById('klantNieuwEmail').value = '';
+                document.getElementById('klantNieuwNaam').value = '';
+                document.getElementById('klantNieuwTelefoon').value = '';
+                loadKlanten();
+            } catch (e) {
+                out.innerHTML = '<span style="color:#B91C1C">Fout: ' + e.message + '</span>';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Klant aanmaken + magic link';
+            }
+        }
+
+        async function loadKlanten() {
+            try {
+                const r = await fetch('/api/klanten', { credentials: 'include' });
+                if (!r.ok) return;
+                const list = await r.json();
+                const tbody = document.getElementById('klantenTbody');
+                const wrap = document.getElementById('klantenLijst');
+                const leeg = document.getElementById('klantenLeeg');
+                const count = document.getElementById('klantenCount');
+
+                if (!list || list.length === 0) {
+                    wrap.style.display = 'none';
+                    leeg.style.display = 'block';
+                    return;
+                }
+                leeg.style.display = 'none';
+                wrap.style.display = 'block';
+                count.textContent = list.length;
+
+                tbody.innerHTML = list.map(k => {
+                    const week = k.start_datum ? Math.max(1, Math.min(16, Math.ceil((Date.now() - new Date(k.start_datum)) / (7*24*60*60*1000)))) : '—';
+                    const statusColors = {
+                        onboarding: '#F59E0B',
+                        actief: '#10B981',
+                        afgerond: '#6366F1',
+                        gepauzeerd: '#9CA3AF',
+                        gestopt: '#EF4444',
+                    };
+                    const kleur = statusColors[k.status] || '#6B7280';
+                    const start = k.start_datum ? new Date(k.start_datum).toLocaleDateString('nl-NL') : '—';
+                    const doel = (k.doel || '—').replace(/_/g, ' ');
+                    return `
+                        <tr>
+                            <td><strong>${escapeHtml(k.naam || '—')}</strong></td>
+                            <td style="font-size:12px;color:#6B7280">${escapeHtml(k.email)}</td>
+                            <td><span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;background:${kleur}22;color:${kleur}">${k.status}</span></td>
+                            <td>${week}/16</td>
+                            <td style="font-size:12px">${escapeHtml(doel)}</td>
+                            <td style="font-size:12px;color:#6B7280">${start}</td>
+                            <td><button class="btn-admin btn-export" style="padding:4px 10px;font-size:11px" onclick="klantNieuweMagicLink('${escapeHtml(k.email)}')">&#128279; Nieuwe link</button></td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (e) {
+                console.warn('loadKlanten error:', e);
+            }
+        }
+
+        async function klantNieuweMagicLink(email) {
+            const btn = event.target;
+            const oldText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = '...';
+            try {
+                // Re-use the admin endpoint — createOrGetAuthUser finds the existing user
+                // and we just need the magic link. We call with minimal body.
+                const klantRow = (await (await fetch('/api/klanten', { credentials:'include' })).json())
+                    .find(k => k.email === email);
+                if (!klantRow) throw new Error('Klant niet gevonden');
+
+                const r = await fetch('/api/admin/klanten', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ email, naam: klantRow.naam }),
+                });
+                const data = await r.json();
+                if (!r.ok || !data.magic_link) throw new Error(data.error || 'Geen link');
+                await navigator.clipboard.writeText(data.magic_link);
+                btn.textContent = '&#10003; Gekopieerd';
+                setTimeout(() => { btn.textContent = oldText; btn.disabled = false; }, 2500);
+            } catch (e) {
+                alert('Fout: ' + e.message);
+                btn.textContent = oldText;
+                btn.disabled = false;
+            }
+        }
+
+        function escapeHtml(s) {
+            return String(s == null ? '' : s)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+
         // Init
         loadLeads();
         loadBackups();
         loadTrackingConfig();
+        loadKlanten();
     </script>
 </body>
 </html>
