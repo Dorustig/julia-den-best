@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
-  <title>Welkom · Julia Besten</title>
+  <title>Dashboard · Julia Besten</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
@@ -13,49 +13,122 @@
     body {
       font-family: 'Inter', sans-serif; color: #1F2937; min-height: 100vh;
       background: linear-gradient(135deg, #FFF1F7 0%, #FFE4EF 50%, #FFEDE4 100%);
-      display: flex; align-items: center; justify-content: center; padding: 24px;
+      padding: 20px 16px 40px;
     }
-    .card {
-      background: #fff; border-radius: 24px; padding: 40px 32px;
-      max-width: 520px; width: 100%;
-      box-shadow: 0 20px 60px rgba(233, 30, 140, 0.12);
-    }
-    .brand { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; color: #E91E8C; text-align: center; margin-bottom: 6px; }
-    .tag { text-align: center; color: #6B7280; font-size: 13px; margin-bottom: 32px; }
-    h1 { font-size: 22px; font-weight: 600; margin-bottom: 8px; text-align: center; }
-    p { color: #4B5563; font-size: 14px; line-height: 1.6; text-align: center; }
-    .loader { display: flex; justify-content: center; padding: 40px 0; }
+    .wrap { max-width: 640px; margin: 0 auto; }
+
+    .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; padding: 0 4px; }
+    .brand { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: #E91E8C; }
+    .btn-logout { background: none; border: none; color: #9CA3AF; font-size: 13px; cursor: pointer; font-family: inherit; padding: 6px 10px; }
+    .btn-logout:hover { color: #E91E8C; }
+
+    .card { background: #fff; border-radius: 20px; padding: 24px; box-shadow: 0 10px 40px rgba(233, 30, 140, 0.08); margin-bottom: 16px; }
+
+    .hero { text-align: center; padding: 28px 24px; background: linear-gradient(135deg, #E91E8C 0%, #F06292 100%); color: #fff; border-radius: 20px; margin-bottom: 16px; box-shadow: 0 12px 32px rgba(233, 30, 140, 0.25); }
+    .hero .hi { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+    .hero .sub { font-size: 14px; opacity: 0.9; margin-bottom: 20px; }
+    .hero .week-row { display: flex; align-items: baseline; justify-content: center; gap: 6px; margin-bottom: 14px; }
+    .hero .week-num { font-family: 'Playfair Display', serif; font-size: 56px; font-weight: 700; line-height: 1; }
+    .hero .week-total { font-size: 20px; opacity: 0.85; }
+    .hero .week-label { font-size: 13px; opacity: 0.85; letter-spacing: 0.5px; text-transform: uppercase; }
+    .hero .progress-bar { height: 6px; background: rgba(255,255,255,0.25); border-radius: 3px; margin-top: 14px; overflow: hidden; }
+    .hero .progress-fill { height: 100%; background: #fff; border-radius: 3px; transition: width 0.4s ease; }
+    .hero .end-date { font-size: 12px; opacity: 0.8; margin-top: 10px; }
+
+    .section-title { font-size: 13px; font-weight: 600; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 10px; padding-left: 4px; }
+
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+    .stat { background: #fff; border-radius: 14px; padding: 16px 12px; text-align: center; box-shadow: 0 4px 16px rgba(233, 30, 140, 0.06); }
+    .stat .label { font-size: 11px; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+    .stat .val { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; color: #1F2937; line-height: 1.1; }
+    .stat .unit { font-size: 13px; color: #9CA3AF; font-family: 'Inter', sans-serif; font-weight: 500; }
+    .stat.highlight { background: #FFF1F7; }
+    .stat.highlight .val { color: #E91E8C; }
+
+    .delta { display: inline-block; font-size: 12px; font-weight: 600; padding: 3px 8px; border-radius: 10px; margin-top: 4px; }
+    .delta.pos { background: #D1FAE5; color: #065F46; }
+    .delta.neg { background: #FEE2E2; color: #991B1B; }
+    .delta.neutral { background: #F3F4F6; color: #6B7280; }
+
+    .chart-wrap { background: #fff; border-radius: 20px; padding: 20px; box-shadow: 0 10px 40px rgba(233, 30, 140, 0.08); margin-bottom: 16px; }
+    .chart-empty { text-align: center; padding: 30px 16px; color: #9CA3AF; }
+    .chart-empty .emoji { font-size: 28px; margin-bottom: 8px; }
+    .chart-empty p { font-size: 14px; line-height: 1.5; }
+
+    .cta-btn { display: block; width: 100%; text-align: center; padding: 16px 20px; background: #E91E8C; color: #fff; border: none; border-radius: 14px; font-size: 15px; font-weight: 600; cursor: pointer; text-decoration: none; font-family: inherit; box-shadow: 0 6px 20px rgba(233, 30, 140, 0.3); transition: all 0.15s; }
+    .cta-btn:hover { background: #D01680; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(233, 30, 140, 0.35); }
+    .cta-btn.secondary { background: #fff; color: #E91E8C; box-shadow: 0 4px 14px rgba(233, 30, 140, 0.1); }
+    .cta-btn.secondary:hover { background: #FFF1F7; }
+
+    .accordion summary { cursor: pointer; font-weight: 600; color: #1F2937; padding: 16px 20px; background: #fff; border-radius: 14px; list-style: none; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 16px rgba(233, 30, 140, 0.06); }
+    .accordion summary::-webkit-details-marker { display: none; }
+    .accordion summary::after { content: '▾'; color: #9CA3AF; transition: transform 0.2s; }
+    .accordion[open] summary::after { transform: rotate(180deg); }
+    .accordion[open] summary { border-radius: 14px 14px 0 0; }
+    .accordion-body { background: #fff; padding: 8px 20px 20px; border-radius: 0 0 14px 14px; box-shadow: 0 4px 16px rgba(233, 30, 140, 0.06); }
+    .data-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #F3F4F6; font-size: 14px; }
+    .data-row:last-child { border-bottom: none; }
+    .data-row .k { color: #6B7280; }
+    .data-row .v { font-weight: 500; color: #1F2937; text-align: right; }
+
+    .loader { display: flex; justify-content: center; padding: 60px 0; }
     .spinner { width: 36px; height: 36px; border: 3px solid #FCE7F3; border-top-color: #E91E8C; border-radius: 50%; animation: spin 0.8s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .btn { display: block; width: 100%; text-align: center; margin-top: 20px; padding: 14px 20px; background: #E91E8C; color: #fff; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; text-decoration: none; font-family: inherit; }
-    .btn:hover { background: #D01680; }
-    .msg { padding: 14px; border-radius: 10px; font-size: 14px; margin: 16px 0; line-height: 1.5; }
+
+    .msg { padding: 14px; border-radius: 12px; font-size: 14px; line-height: 1.5; margin-bottom: 16px; }
     .msg.error { background: #FEE2E2; color: #991B1B; }
-    .welcome { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; color: #E91E8C; text-align: center; margin-bottom: 16px; }
+    .msg.info { background: #DBEAFE; color: #1E40AF; }
+
+    @media (max-width: 480px) {
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .hero .week-num { font-size: 48px; }
+    }
   </style>
 </head>
 <body>
-  <div class="card">
-    <div class="brand">Julia Besten</div>
-    <div class="tag">1-op-1 coaching voor vrouwen</div>
-    <div id="content" class="loader"><div class="spinner"></div></div>
+  <div class="wrap" id="wrap">
+    <div class="loader"><div class="spinner"></div></div>
   </div>
 
   <script type="module">
     import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-    const content = document.getElementById('content');
-    function render(html) { content.className = ''; content.innerHTML = html; }
+    const wrap = document.getElementById('wrap');
+    function render(html) { wrap.innerHTML = html; }
     function renderError(title, detail) {
       render(`
-        <h1>${title}</h1>
-        <p style="color:#991B1B;white-space:pre-wrap;margin-top:8px;">${detail || ''}</p>
-        <a href="/klant/login" class="btn">Terug naar inloggen</a>
+        <div class="card" style="margin-top:40px;">
+          <h1 style="font-family:'Playfair Display',serif;font-size:22px;margin-bottom:12px;">${title}</h1>
+          <div class="msg error">${detail || ''}</div>
+          <a href="/klant/login" class="cta-btn" style="margin-top:8px;">Terug naar inloggen</a>
+        </div>
       `);
     }
 
+    const DOEL_LABEL = {
+      afvallen: 'Afvallen',
+      billen_aankomen: 'Billen aankomen',
+      gespierd_aankomen: 'Gespierd aankomen',
+      slanker_worden: 'Slanker worden',
+      recomposition: 'Vet kwijt + spieren erbij',
+    };
+    const LOCATIE_LABEL = { thuis: 'Thuis', gym: 'Sportschool', beide: 'Thuis & sportschool' };
+    const ERVARING_LABEL = {
+      beginner: 'Beginner (< 6 mnd)',
+      gemiddeld: 'Gemiddeld (6 mnd - 2 jaar)',
+      gevorderd: 'Gevorderd (2+ jaar)',
+    };
+
+    function fmtDate(iso) {
+      if (!iso) return '–';
+      const d = new Date(iso);
+      return d.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+    function escapeHtml(s) {
+      return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
     async function main() {
-      // 1. Config ophalen
       const cfgRes = await fetch('/api/config');
       if (!cfgRes.ok) throw new Error('Config laden mislukt (HTTP ' + cfgRes.status + ')');
       const cfg = await cfgRes.json();
@@ -67,50 +140,129 @@
         window.location.href = '/klant/login';
       };
 
-      // 2. Sessie checken
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         render(`
-          <h1>Je bent niet ingelogd</h1>
-          <p>Log eerst in met je email om door te gaan.</p>
-          <a href="/klant/login" class="btn">Naar inloggen</a>
+          <div class="card" style="margin-top:40px;text-align:center;">
+            <h1 style="font-family:'Playfair Display',serif;font-size:24px;margin-bottom:8px;">Welkom terug</h1>
+            <p style="color:#6B7280;margin-bottom:20px;">Log eerst in met je email.</p>
+            <a href="/klant/login" class="cta-btn">Naar inloggen</a>
+          </div>
         `);
         return;
       }
 
-      // 3. Klant profiel ophalen
       const r = await fetch('/api/klant/me', {
         headers: { Authorization: 'Bearer ' + session.access_token },
       });
+
       if (r.status === 404) {
         render(`
-          <h1>Welkom</h1>
-          <div class="msg error">Er is nog geen klant-profiel voor deze email. Als je net betaald hebt, probeer het over een minuutje opnieuw. Anders: neem contact op met Julia.</div>
-          <a href="mailto:julia@juliabesten.nl" class="btn">Stuur Julia een mailtje</a>
+          <div class="card" style="margin-top:40px;">
+            <h1 style="font-family:'Playfair Display',serif;font-size:22px;margin-bottom:12px;">Welkom</h1>
+            <div class="msg error">Er is nog geen klant-profiel voor deze email. Als je net betaald hebt, probeer het over een minuutje opnieuw. Anders: neem contact op met Julia.</div>
+            <a href="mailto:julia@juliabesten.nl" class="cta-btn">Stuur Julia een mailtje</a>
+          </div>
         `);
         return;
       }
-      if (!r.ok) {
-        render(`<h1>Er ging iets mis</h1><p>Probeer het opnieuw, of log uit en weer in.</p><a href="/klant/login" class="btn">Opnieuw inloggen</a>`);
-        return;
-      }
+      if (!r.ok) throw new Error('Profiel ophalen mislukt (HTTP ' + r.status + ')');
 
       const { klant } = await r.json();
+
+      // Niet klaar met intake? Doorsturen.
       if (klant.status === 'onboarding' || !klant.doel || !klant.start_gewicht_kg) {
         window.location.href = '/klant/intake';
         return;
       }
 
-      // 4. Dashboard renderen
-      const weken = Math.max(1, Math.ceil(
-        (Date.now() - new Date(klant.start_datum).getTime()) / (7 * 24 * 60 * 60 * 1000)
-      ));
-      const weekNum = Math.min(weken, 16);
+      // Week berekening
+      const startMs = new Date(klant.start_datum).getTime();
+      const nowMs = Date.now();
+      const msPerWeek = 7 * 24 * 60 * 60 * 1000;
+      const weekNum = Math.min(16, Math.max(1, Math.ceil((nowMs - startMs) / msPerWeek)));
+      const daysLeft = Math.max(0, Math.ceil((new Date(klant.eind_datum).getTime() - nowMs) / (24 * 60 * 60 * 1000)));
+      const progressPct = Math.min(100, (weekNum / 16) * 100);
+
+      // Gewicht delta (placeholder — nog geen check-ins)
+      const start = klant.start_gewicht_kg;
+      const huidig = start; // later: laatste check-in gewicht
+      const doel = klant.doel_gewicht_kg;
+      const delta = huidig - start;
+      const hasGoal = doel != null;
+
+      let deltaBadge = '<span class="delta neutral">Start</span>';
+      if (delta !== 0) {
+        const pos = delta > 0 ? 'neg' : 'pos'; // afvallen = negatief = positief
+        deltaBadge = `<span class="delta ${pos}">${delta > 0 ? '+' : ''}${delta.toFixed(1)} kg</span>`;
+      }
+
+      const naam = escapeHtml((klant.naam || '').split(' ')[0] || 'daar');
+
       render(`
-        <div class="welcome">Welkom, ${klant.naam}! ✨</div>
-        <p style="margin-bottom: 20px;">Je bent in <strong>week ${weekNum} van 16</strong>.<br>Het volledige klant-panel (video's, check-ins, progressie) komt er zo snel mogelijk aan — je krijgt een mailtje zodra dat live staat.</p>
-        <p style="font-size:13px;color:#9CA3AF;">Voor nu: neem contact op met Julia via WhatsApp of email voor je dagelijkse updates.</p>
-        <button class="btn" onclick="logout()">Uitloggen</button>
+        <div class="topbar">
+          <div class="brand">Julia Besten</div>
+          <button class="btn-logout" onclick="logout()">Uitloggen</button>
+        </div>
+
+        <div class="hero">
+          <div class="hi">Hoi ${naam} ✨</div>
+          <div class="sub">Jouw 16-weken traject</div>
+          <div class="week-row">
+            <span class="week-num">${weekNum}</span>
+            <span class="week-total">/ 16</span>
+          </div>
+          <div class="week-label">Week ${weekNum} van 16</div>
+          <div class="progress-bar"><div class="progress-fill" style="width:${progressPct}%"></div></div>
+          <div class="end-date">Einddatum: ${fmtDate(klant.eind_datum)} · nog ${daysLeft} dagen</div>
+        </div>
+
+        <div class="section-title">Jouw voortgang</div>
+        <div class="stats-grid" style="margin-bottom:20px;">
+          <div class="stat">
+            <div class="label">Start</div>
+            <div class="val">${start}<span class="unit"> kg</span></div>
+          </div>
+          <div class="stat highlight">
+            <div class="label">Huidig</div>
+            <div class="val">${huidig}<span class="unit"> kg</span></div>
+            ${deltaBadge}
+          </div>
+          <div class="stat">
+            <div class="label">Doel</div>
+            <div class="val">${hasGoal ? doel : '–'}<span class="unit">${hasGoal ? ' kg' : ''}</span></div>
+          </div>
+        </div>
+
+        <div class="chart-wrap">
+          <div class="section-title" style="padding-left:0;margin-bottom:6px;">Gewichts-verloop</div>
+          <div class="chart-empty">
+            <div class="emoji">📈</div>
+            <p>Je eerste check-in wacht op je.<br>Daarna zie je hier je progressie.</p>
+          </div>
+        </div>
+
+        <a href="/klant/checkin" class="cta-btn" style="margin-bottom:12px;">📸 Doe je wekelijkse check-in</a>
+        <a href="mailto:julia@juliabesten.nl" class="cta-btn secondary" style="margin-bottom:24px;">💬 Bericht naar Julia</a>
+
+        <div class="section-title">Jouw gegevens</div>
+        <details class="accordion">
+          <summary>Intake-gegevens bekijken</summary>
+          <div class="accordion-body">
+            <div class="data-row"><span class="k">Doel</span><span class="v">${DOEL_LABEL[klant.doel] || klant.doel}</span></div>
+            <div class="data-row"><span class="k">Startgewicht</span><span class="v">${klant.start_gewicht_kg} kg</span></div>
+            <div class="data-row"><span class="k">Doelgewicht</span><span class="v">${klant.doel_gewicht_kg ? klant.doel_gewicht_kg + ' kg' : '–'}</span></div>
+            <div class="data-row"><span class="k">Lengte</span><span class="v">${klant.lengte_cm || '–'} cm</span></div>
+            <div class="data-row"><span class="k">Leeftijd</span><span class="v">${klant.leeftijd || '–'} jaar</span></div>
+            <div class="data-row"><span class="k">Training</span><span class="v">${LOCATIE_LABEL[klant.training_locatie] || klant.training_locatie}</span></div>
+            <div class="data-row"><span class="k">Dagen per week</span><span class="v">${klant.trainingsdagen_per_week || '–'}</span></div>
+            <div class="data-row"><span class="k">Ervaring</span><span class="v">${ERVARING_LABEL[klant.ervaring_niveau] || klant.ervaring_niveau || '–'}</span></div>
+            <div class="data-row"><span class="k">Startdatum</span><span class="v">${fmtDate(klant.start_datum)}</span></div>
+            <div class="data-row"><span class="k">Einddatum</span><span class="v">${fmtDate(klant.eind_datum)}</span></div>
+            ${klant.allergieen ? `<div class="data-row"><span class="k">Allergieën / blessures</span><span class="v" style="max-width:60%;">${escapeHtml(klant.allergieen)}</span></div>` : ''}
+            <p style="font-size:12px;color:#9CA3AF;margin-top:14px;">Klopt iets niet? Laat het Julia weten via WhatsApp of email.</p>
+          </div>
+        </details>
       `);
     }
 
