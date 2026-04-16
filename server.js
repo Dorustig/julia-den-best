@@ -232,10 +232,12 @@ function readBody(req) {
 
 // ===== SERVER =====
 // ===== CANONICAL HOST REDIRECT =====
-// Main domain is juliabesten.nl. Anything else (juliabesten.com, www.*, Railway
-// preview URL) gets a 301 to the canonical host so Google/AI merge signals on
-// one URL instead of splitting them across duplicate sites.
-const CANONICAL_HOST = 'juliabesten.nl';
+// Main domain is www.juliabesten.nl (GoDaddy doesn't allow CNAME at apex, so
+// the apex juliabesten.nl is forwarded to www via GoDaddy Domain Forwarding).
+// Anything else (juliabesten.com, bare juliabesten.nl if it leaks through,
+// Railway preview URL) gets a 301 to the canonical host so Google/AI merge
+// signals on one URL instead of splitting them across duplicate sites.
+const CANONICAL_HOST = 'www.juliabesten.nl';
 const ALLOWED_LOCAL_HOSTS = new Set(['localhost', '127.0.0.1', '0.0.0.0']);
 
 function redirectToCanonical(req, res) {
@@ -245,8 +247,9 @@ function redirectToCanonical(req, res) {
   // Don't redirect when running locally or already on the canonical host.
   if (host === CANONICAL_HOST) return false;
   if (ALLOWED_LOCAL_HOSTS.has(host)) return false;
-  // Every non-canonical host (juliabesten.com, www.*, *.up.railway.app) gets
-  // a 301 to https://juliabesten.nl with the same path + query preserved.
+  // Every non-canonical host (juliabesten.com, bare juliabesten.nl,
+  // *.up.railway.app) gets a 301 to https://www.juliabesten.nl with the
+  // same path + query preserved.
   const target = `https://${CANONICAL_HOST}${req.url}`;
   res.writeHead(301, { Location: target, 'Cache-Control': 'public, max-age=3600' });
   res.end();
