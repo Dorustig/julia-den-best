@@ -527,6 +527,15 @@
                 <p>Leads verschijnen hier zodra iemand de vragenlijst invult op de landingspagina.</p>
             </div>
 
+            <!-- Programma Analytics -->
+            <div class="backup-section" id="programmaStats" style="margin-top:24px">
+                <h2>&#128202; Programma Analytics</h2>
+                <p style="font-size:13px;color:#6B7280;margin-bottom:12px">
+                    Hoe gaat het met je 16-weken klanten? Actief, achter op check-in, gemiddelde gewichtsverandering en top-prestaties.
+                </p>
+                <div id="programmaStatsWrap" style="font-size:13px;color:#9CA3AF">Laden...</div>
+            </div>
+
             <!-- Programma Klanten -->
             <div class="backup-section" style="margin-top:24px">
                 <h2>&#127947;&#127996;&#8205;&#9792;&#65039; Programma Klanten</h2>
@@ -583,6 +592,18 @@
                     <button class="btn-admin btn-export" onclick="openTrainingTemplateEditor()">&#10133; Nieuwe training template</button>
                 </div>
                 <div id="trainingTemplatesList" style="font-size:13px;color:#9CA3AF">Laden...</div>
+            </div>
+
+            <!-- Video Library (Fase 2.6 C) -->
+            <div class="backup-section" style="margin-top:24px">
+                <h2>&#127916; Video Library</h2>
+                <p style="font-size:13px;color:#6B7280;margin-bottom:12px">
+                    Voeg YouTube video's toe (gewoon een link). Klanten zien ze op hun dashboard, gesorteerd per categorie.
+                </p>
+                <div style="margin-bottom:12px">
+                    <button class="btn-admin btn-export" onclick="openVideoEditor()">&#10133; Nieuwe video toevoegen</button>
+                </div>
+                <div id="videoLibList" style="font-size:13px;color:#9CA3AF">Laden...</div>
             </div>
 
             <div class="backup-section" style="margin-top:24px">
@@ -666,6 +687,16 @@
     <!-- Chat Modal (per klant) -->
     <div class="lead-modal" id="chatModal">
         <div class="lead-modal-content" id="chatModalContent" style="max-width:640px;"></div>
+    </div>
+
+    <!-- Notities Modal (per klant) -->
+    <div class="lead-modal" id="notitiesModal">
+        <div class="lead-modal-content" id="notitiesModalContent" style="max-width:640px;"></div>
+    </div>
+
+    <!-- Video Editor Modal -->
+    <div class="lead-modal" id="videoEditorModal">
+        <div class="lead-modal-content" id="videoEditorContent" style="max-width:640px;"></div>
     </div>
 
     <!-- Lightbox voor foto's -->
@@ -1225,6 +1256,7 @@
                                 <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#FCE7F3;color:#E91E8C;margin-right:4px;" onclick="klantBekijkCheckIns('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#128197; Check-ins</button>
                                 <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#FCE7F3;color:#E91E8C;margin-right:4px;" onclick="klantTraining('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#127947; Training</button>
                                 <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#FCE7F3;color:#E91E8C;margin-right:4px;" onclick="klantVoeding('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#129382; Voeding</button>
+                                <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#FEF3C7;color:#92400E;margin-right:4px;" onclick="klantNotities('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#128221; Notities</button>
                                 <button class="btn-admin btn-export" style="padding:4px 10px;font-size:11px" onclick="klantNieuweMagicLink('${escapeHtml(k.email)}')">&#128279; Link</button>
                             </td>
                         </tr>
@@ -1971,6 +2003,295 @@
             if (e.key === 'Escape') closeLightbox(null, true);
         });
 
+        // ============ Coach notities per klant (Fase 2.6 A) ============
+        async function klantNotities(klantId, klantNaam) {
+            const modal = document.getElementById('notitiesModal');
+            const content = document.getElementById('notitiesModalContent');
+            modal.classList.add('active');
+            content.innerHTML = `
+                <div class="lead-modal-header">
+                    <h2>&#128221; Notities — ${escapeHtml(klantNaam)}</h2>
+                    <button class="modal-close" onclick="document.getElementById('notitiesModal').classList.remove('active')">&#10005;</button>
+                </div>
+                <div style="padding:24px;text-align:center;color:#9CA3AF;">Laden...</div>
+            `;
+            try {
+                const r = await fetch('/api/admin/klanten/' + klantId + '/notities', { credentials: 'include' });
+                const { notities } = await r.json();
+                window.__activeNotitiesKlant = { id: klantId, naam: klantNaam };
+                renderNotities(notities || []);
+            } catch (e) {
+                content.innerHTML = `
+                    <div class="lead-modal-header">
+                        <h2>Notities</h2>
+                        <button class="modal-close" onclick="document.getElementById('notitiesModal').classList.remove('active')">&#10005;</button>
+                    </div>
+                    <div style="padding:24px;color:#EF4444;">Fout: ${escapeHtml(e.message)}. Is de SQL migratie van Fase 2.6 gedraaid?</div>
+                `;
+            }
+        }
+
+        function renderNotities(notities) {
+            const { id: klantId, naam } = window.__activeNotitiesKlant || {};
+            const content = document.getElementById('notitiesModalContent');
+            const fmt = (iso) => new Date(iso).toLocaleString('nl-NL', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' });
+
+            const lijst = notities.length ? notities.map(n => `
+                <div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;padding:12px 14px;margin-bottom:10px;">
+                    <div style="font-size:11px;color:#92400E;margin-bottom:6px;display:flex;justify-content:space-between;">
+                        <span>${fmt(n.created_at)}${n.updated_at !== n.created_at ? ' · bijgewerkt ' + fmt(n.updated_at) : ''}</span>
+                        <span>
+                            <button class="btn-admin" style="padding:2px 8px;font-size:11px;background:transparent;color:#92400E;" onclick="editNotitie('${n.id}', ${JSON.stringify(n.content).replace(/"/g,'&quot;')})">Bewerken</button>
+                            <button class="btn-admin" style="padding:2px 8px;font-size:11px;background:transparent;color:#991B1B;" onclick="deleteNotitie('${n.id}')">Verwijder</button>
+                        </span>
+                    </div>
+                    <div style="font-size:14px;color:#1F2937;white-space:pre-wrap;">${escapeHtml(n.content)}</div>
+                </div>
+            `).join('') : '<div style="text-align:center;color:#9CA3AF;font-size:13px;padding:16px 0;">Nog geen notities. Voeg er eentje toe.</div>';
+
+            content.innerHTML = `
+                <div class="lead-modal-header">
+                    <h2>&#128221; Notities — ${escapeHtml(naam)}</h2>
+                    <button class="modal-close" onclick="document.getElementById('notitiesModal').classList.remove('active')">&#10005;</button>
+                </div>
+                <p style="font-size:12px;color:#92400E;background:#FEF3C7;padding:8px 12px;border-radius:8px;margin-bottom:14px;">
+                    &#128274; Privé — alleen jij ziet deze notities, ${escapeHtml((naam||'').split(' ')[0])} nooit.
+                </p>
+                <div class="lead-field">
+                    <label>Nieuwe notitie</label>
+                    <textarea id="notitieNieuw" placeholder="Bv. Klant voelt zich schuldig over eten — we werken aan mindset. Zit in week 3, ligt op schema voor -4 kg." style="min-height:90px;"></textarea>
+                </div>
+                <div class="lead-actions" style="justify-content:flex-end;margin-bottom:18px;">
+                    <button class="btn-admin btn-export" onclick="saveNewNotitie('${klantId}')">Opslaan</button>
+                </div>
+                <div style="font-size:12px;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:8px;">Bestaande notities (${notities.length})</div>
+                ${lijst}
+            `;
+        }
+
+        async function saveNewNotitie(klantId) {
+            const ta = document.getElementById('notitieNieuw');
+            const content = (ta.value || '').trim();
+            if (!content) return;
+            try {
+                const r = await fetch('/api/admin/klanten/' + klantId + '/notities', {
+                    method: 'POST', credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ content }),
+                });
+                if (!r.ok) { const j = await r.json().catch(()=>({})); throw new Error(j.error || 'HTTP ' + r.status); }
+                klantNotities(klantId, window.__activeNotitiesKlant.naam);
+            } catch (e) { alert('Opslaan mislukt: ' + e.message); }
+        }
+
+        function editNotitie(id, content) {
+            const ta = document.getElementById('notitieNieuw');
+            if (!ta) return;
+            const raw = typeof content === 'string' ? content : '';
+            // Maak er een update-flow van: we tonen de tekst, en laten de Opslaan-knop deze notitie updaten
+            ta.value = raw;
+            ta.focus();
+            const btn = document.querySelector('#notitiesModalContent .lead-actions button');
+            if (btn) {
+                btn.textContent = 'Bijwerken';
+                btn.onclick = async () => {
+                    try {
+                        const r = await fetch('/api/admin/notities/' + id, {
+                            method: 'PUT', credentials: 'include',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ content: ta.value.trim() }),
+                        });
+                        if (!r.ok) { const j = await r.json().catch(()=>({})); throw new Error(j.error || 'HTTP ' + r.status); }
+                        const { id: kid, naam } = window.__activeNotitiesKlant;
+                        klantNotities(kid, naam);
+                    } catch (e) { alert('Bijwerken mislukt: ' + e.message); }
+                };
+            }
+        }
+
+        async function deleteNotitie(id) {
+            if (!confirm('Notitie verwijderen?')) return;
+            try {
+                const r = await fetch('/api/admin/notities/' + id, { method: 'DELETE', credentials: 'include' });
+                if (!r.ok) { const j = await r.json().catch(()=>({})); throw new Error(j.error || 'HTTP ' + r.status); }
+                const { id: kid, naam } = window.__activeNotitiesKlant;
+                klantNotities(kid, naam);
+            } catch (e) { alert('Verwijderen mislukt: ' + e.message); }
+        }
+
+        // ============ Video library (Fase 2.6 C) ============
+        async function loadVideoLib() {
+            const wrap = document.getElementById('videoLibList');
+            if (!wrap) return;
+            try {
+                const r = await fetch('/api/admin/videos', { credentials: 'include' });
+                if (!r.ok) { wrap.textContent = 'Videos laden mislukt (is de SQL migratie gedraaid?)'; return; }
+                const { videos } = await r.json();
+                if (!videos || !videos.length) {
+                    wrap.innerHTML = '<div style="color:#9CA3AF;padding:8px 0;">Nog geen video\'s. Voeg er eentje toe met een YouTube link.</div>';
+                    return;
+                }
+                const catColors = { techniek:'#DBEAFE', mindset:'#FCE7F3', voeding:'#D1FAE5', algemeen:'#F3F4F6' };
+                wrap.innerHTML = `
+                    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;">
+                      ${videos.map(v => {
+                        const cat = v.categorie || 'algemeen';
+                        const bg = catColors[cat] || '#F3F4F6';
+                        return `
+                          <div style="background:#fff;border:1px solid #E5E7EB;border-radius:10px;overflow:hidden;">
+                            <div style="aspect-ratio:16/9;background:#000;background-image:url('https://i.ytimg.com/vi/${v.youtube_id}/hqdefault.jpg');background-size:cover;background-position:center;"></div>
+                            <div style="padding:10px 12px;">
+                              <div style="font-weight:600;font-size:13px;line-height:1.3;margin-bottom:4px;">${escapeHtml(v.titel || '')}</div>
+                              <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
+                                <span style="font-size:10px;padding:2px 8px;border-radius:10px;background:${bg};color:#374151;text-transform:uppercase;letter-spacing:0.5px;">${escapeHtml(cat)}</span>
+                                <span>
+                                  <button class="btn-admin" style="padding:2px 8px;font-size:11px;" onclick='openVideoEditor(${JSON.stringify(v).replace(/"/g,"&quot;")})'>Bewerk</button>
+                                  <button class="btn-admin" style="padding:2px 8px;font-size:11px;color:#991B1B;" onclick="deleteVideo('${v.id}')">Verwijder</button>
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        `;
+                      }).join('')}
+                    </div>
+                `;
+            } catch (e) {
+                wrap.textContent = 'Fout: ' + e.message;
+            }
+        }
+
+        function openVideoEditor(existing) {
+            const modal = document.getElementById('videoEditorModal');
+            const content = document.getElementById('videoEditorContent');
+            modal.classList.add('active');
+            const v = existing || { titel:'', beschrijving:'', youtube_url:'', categorie:'algemeen', volgorde:0 };
+            content.innerHTML = `
+                <div class="lead-modal-header">
+                    <h2>&#127916; ${v.id ? 'Video bewerken' : 'Nieuwe video'}</h2>
+                    <button class="modal-close" onclick="document.getElementById('videoEditorModal').classList.remove('active')">&#10005;</button>
+                </div>
+                <div class="lead-field">
+                    <label>Titel</label>
+                    <input id="vidTitel" class="filter-input" value="${escapeHtml(v.titel || '')}" placeholder="bv. Hoe je een squat goed uitvoert" style="width:100%">
+                </div>
+                <div class="lead-field">
+                    <label>YouTube URL</label>
+                    <input id="vidUrl" class="filter-input" value="${escapeHtml(v.youtube_url || '')}" placeholder="https://youtube.com/watch?v=..." style="width:100%">
+                </div>
+                <div class="lead-field">
+                    <label>Categorie</label>
+                    <select id="vidCat" class="filter-input" style="width:100%">
+                        <option value="techniek" ${v.categorie==='techniek'?'selected':''}>Techniek</option>
+                        <option value="mindset" ${v.categorie==='mindset'?'selected':''}>Mindset</option>
+                        <option value="voeding" ${v.categorie==='voeding'?'selected':''}>Voeding</option>
+                        <option value="algemeen" ${v.categorie==='algemeen'?'selected':''}>Algemeen</option>
+                    </select>
+                </div>
+                <div class="lead-field">
+                    <label>Volgorde (lager = hoger in lijst)</label>
+                    <input id="vidVolgorde" class="filter-input" type="number" value="${v.volgorde ?? 0}" style="width:100%">
+                </div>
+                <div class="lead-field">
+                    <label>Beschrijving (optioneel)</label>
+                    <textarea id="vidDesc" placeholder="Korte uitleg..." style="min-height:80px;">${escapeHtml(v.beschrijving || '')}</textarea>
+                </div>
+                <div class="lead-actions" style="justify-content:flex-end">
+                    <button class="btn-admin btn-export" onclick="saveVideo('${v.id || ''}')">${v.id ? 'Bijwerken' : 'Toevoegen'}</button>
+                </div>
+            `;
+        }
+
+        async function saveVideo(id) {
+            const body = {
+                titel: document.getElementById('vidTitel').value.trim(),
+                youtube_url: document.getElementById('vidUrl').value.trim(),
+                categorie: document.getElementById('vidCat').value,
+                volgorde: parseInt(document.getElementById('vidVolgorde').value || '0', 10),
+                beschrijving: document.getElementById('vidDesc').value.trim(),
+            };
+            if (!body.titel || !body.youtube_url) { alert('Titel en YouTube URL zijn verplicht.'); return; }
+            try {
+                const url = id ? '/api/admin/videos/' + id : '/api/admin/videos';
+                const method = id ? 'PUT' : 'POST';
+                const r = await fetch(url, {
+                    method, credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body),
+                });
+                if (!r.ok) { const j = await r.json().catch(()=>({})); throw new Error(j.error || 'HTTP ' + r.status); }
+                document.getElementById('videoEditorModal').classList.remove('active');
+                loadVideoLib();
+            } catch (e) { alert('Opslaan mislukt: ' + e.message); }
+        }
+
+        async function deleteVideo(id) {
+            if (!confirm('Video verwijderen?')) return;
+            try {
+                const r = await fetch('/api/admin/videos/' + id, { method: 'DELETE', credentials: 'include' });
+                if (!r.ok) { const j = await r.json().catch(()=>({})); throw new Error(j.error || 'HTTP ' + r.status); }
+                loadVideoLib();
+            } catch (e) { alert('Verwijderen mislukt: ' + e.message); }
+        }
+
+        // ============ Programma Analytics (Fase 2.6 E) ============
+        async function loadProgrammaStats() {
+            const wrap = document.getElementById('programmaStatsWrap');
+            if (!wrap) return;
+            try {
+                const r = await fetch('/api/admin/stats/overview', { credentials: 'include' });
+                if (!r.ok) { wrap.textContent = 'Stats laden mislukt.'; return; }
+                const s = await r.json();
+                const sc = s.statusCounts || {};
+                const stat = (label, val, color) => `
+                    <div style="background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:14px 16px;text-align:center;">
+                        <div style="font-size:11px;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:6px;">${label}</div>
+                        <div style="font-size:22px;font-weight:700;color:${color||'#1F2937'};">${val}</div>
+                    </div>`;
+
+                const top = (s.topProgress || []).slice(0, 5);
+                const topHtml = top.length ? `
+                    <div style="background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:14px 16px;margin-top:16px;">
+                        <div style="font-size:12px;font-weight:600;color:#6B7280;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">&#127942; Top 5 progressie</div>
+                        ${top.map(t => `
+                            <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #F3F4F6;font-size:13px;">
+                                <span>${escapeHtml(t.naam || '—')}</span>
+                                <span style="font-weight:600;color:${t.delta < 0 ? '#065F46' : (t.delta > 0 ? '#991B1B' : '#6B7280')};">
+                                    ${t.delta > 0 ? '+' : ''}${(t.delta || 0).toFixed(1)} kg
+                                </span>
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : '';
+
+                const achterHtml = (s.klantenAchterlopen && s.klantenAchterlopen.length) ? `
+                    <div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:10px;padding:14px 16px;margin-top:16px;">
+                        <div style="font-size:12px;font-weight:600;color:#991B1B;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">&#9888;&#65039; Geen check-in > 10 dagen (${s.klantenAchterlopen.length})</div>
+                        ${s.klantenAchterlopen.map(k => `
+                            <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;color:#7F1D1D;">
+                                <span>${escapeHtml(k.naam || k.email)}</span>
+                                <span style="font-size:12px;color:#991B1B;">${k.daysSince == null ? 'nooit' : k.daysSince + ' dagen'}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : '';
+
+                wrap.innerHTML = `
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;">
+                        ${stat('Actief', sc.actief || 0, '#10B981')}
+                        ${stat('Onboarding', sc.onboarding || 0, '#F59E0B')}
+                        ${stat('Afgerond', sc.afgerond || 0, '#6366F1')}
+                        ${stat('Gepauzeerd', (sc.gepauzeerd||0) + (sc.gestopt||0), '#9CA3AF')}
+                        ${stat('Nieuw (30d)', s.nieuw30d || 0, '#E91E8C')}
+                        ${stat('Gem. ∆ kg', (s.gemiddeldDelta != null ? (s.gemiddeldDelta > 0 ? '+' : '') + s.gemiddeldDelta.toFixed(1) : '—'), s.gemiddeldDelta < 0 ? '#065F46' : '#1F2937')}
+                    </div>
+                    ${achterHtml}
+                    ${topHtml}
+                `;
+            } catch (e) {
+                wrap.textContent = 'Fout: ' + e.message;
+            }
+        }
+
         // Init
         loadLeads();
         loadBackups();
@@ -1978,6 +2299,8 @@
         loadKlanten();
         loadTrainingTemplates();
         loadVoedingTemplates();
+        loadVideoLib();
+        loadProgrammaStats();
     </script>
 </body>
 </html>

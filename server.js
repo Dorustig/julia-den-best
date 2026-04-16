@@ -886,6 +886,119 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
+  // =============================================================
+  // COACH NOTITIES (Fase 2.6 A) — privé aantekeningen per klant
+  // =============================================================
+
+  // GET /api/admin/klanten/:klantId/notities
+  {
+    const m = pathname.match(/^\/api\/admin\/klanten\/([0-9a-f-]+)\/notities$/i);
+    if (m && req.method === 'GET') {
+      if (!requireAuth(req, res)) return;
+      const rows = await supabaseHelper.listCoachNotities(m[1]);
+      return jsonRes(res, 200, { notities: rows || [] });
+    }
+  }
+
+  // POST /api/admin/klanten/:klantId/notities — create new
+  {
+    const m = pathname.match(/^\/api\/admin\/klanten\/([0-9a-f-]+)\/notities$/i);
+    if (m && req.method === 'POST') {
+      if (!requireAuth(req, res)) return;
+      let body;
+      try { body = JSON.parse(await readBody(req)); }
+      catch { return jsonRes(res, 400, { error: 'Invalid JSON' }); }
+      const r = await supabaseHelper.saveCoachNotitie({ klantId: m[1], content: body.content });
+      if (!r.ok) return jsonRes(res, 400, { error: r.error });
+      return jsonRes(res, 200, { ok: true, notitie: r.notitie });
+    }
+  }
+
+  // PUT/DELETE /api/admin/notities/:id
+  {
+    const m = pathname.match(/^\/api\/admin\/notities\/([0-9a-f-]+)$/i);
+    if (m) {
+      if (!requireAuth(req, res)) return;
+      const id = m[1];
+      if (req.method === 'PUT') {
+        let body;
+        try { body = JSON.parse(await readBody(req)); }
+        catch { return jsonRes(res, 400, { error: 'Invalid JSON' }); }
+        const r = await supabaseHelper.saveCoachNotitie({ id, content: body.content });
+        if (!r.ok) return jsonRes(res, 400, { error: r.error });
+        return jsonRes(res, 200, { ok: true, notitie: r.notitie });
+      }
+      if (req.method === 'DELETE') {
+        const r = await supabaseHelper.deleteCoachNotitie(id);
+        if (!r.ok) return jsonRes(res, 400, { error: r.error });
+        return jsonRes(res, 200, { ok: true });
+      }
+    }
+  }
+
+  // =============================================================
+  // VIDEOS (Fase 2.6 C) — video library
+  // =============================================================
+
+  // GET /api/admin/videos
+  if (pathname === '/api/admin/videos' && req.method === 'GET') {
+    if (!requireAuth(req, res)) return;
+    const rows = await supabaseHelper.listVideos();
+    return jsonRes(res, 200, { videos: rows || [] });
+  }
+
+  // POST /api/admin/videos
+  if (pathname === '/api/admin/videos' && req.method === 'POST') {
+    if (!requireAuth(req, res)) return;
+    let body;
+    try { body = JSON.parse(await readBody(req)); }
+    catch { return jsonRes(res, 400, { error: 'Invalid JSON' }); }
+    const r = await supabaseHelper.saveVideo(body);
+    if (!r.ok) return jsonRes(res, 400, { error: r.error });
+    return jsonRes(res, 200, { ok: true, video: r.video });
+  }
+
+  // PUT/DELETE /api/admin/videos/:id
+  {
+    const m = pathname.match(/^\/api\/admin\/videos\/([0-9a-f-]+)$/i);
+    if (m) {
+      if (!requireAuth(req, res)) return;
+      const id = m[1];
+      if (req.method === 'PUT') {
+        let body;
+        try { body = JSON.parse(await readBody(req)); }
+        catch { return jsonRes(res, 400, { error: 'Invalid JSON' }); }
+        const r = await supabaseHelper.saveVideo({ ...body, id });
+        if (!r.ok) return jsonRes(res, 400, { error: r.error });
+        return jsonRes(res, 200, { ok: true, video: r.video });
+      }
+      if (req.method === 'DELETE') {
+        const r = await supabaseHelper.deleteVideo(id);
+        if (!r.ok) return jsonRes(res, 400, { error: r.error });
+        return jsonRes(res, 200, { ok: true });
+      }
+    }
+  }
+
+  // GET /api/klant/videos — klant ziet alle video's (JWT)
+  if (pathname === '/api/klant/videos' && req.method === 'GET') {
+    const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+    const user = await supabaseHelper.verifyUserToken(token);
+    if (!user) return jsonRes(res, 401, { error: 'Not logged in' });
+    const rows = await supabaseHelper.listVideos();
+    return jsonRes(res, 200, { videos: rows || [] });
+  }
+
+  // =============================================================
+  // ADMIN STATS (Fase 2.6 E)
+  // =============================================================
+
+  if (pathname === '/api/admin/stats/overview' && req.method === 'GET') {
+    if (!requireAuth(req, res)) return;
+    const stats = await supabaseHelper.getAdminStats();
+    return jsonRes(res, 200, stats || {});
+  }
+
   // GET /api/admin/chat/unread — { klantId: count } map voor sidebar badges
   if (pathname === '/api/admin/chat/unread' && req.method === 'GET') {
     if (!requireAuth(req, res)) return;
