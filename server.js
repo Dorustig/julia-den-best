@@ -283,10 +283,12 @@ const server = http.createServer(async (req, res) => {
     return res.end();
   }
 
-  // Redirect the predictable /admin and /coach paths to the public landing
-  // page — anyone guessing lands on the regular site, not a 404 hint.
+  // Redirect the predictable /admin paths to the public landing page —
+  // anyone guessing lands on the regular site, not a 404 that hints at admin.
+  // /coach is a public alias (see isCoachSlug below), but /coach.html blijft
+  // verborgen zodat raw HTML-probes niks leveren.
   if (pathname === '/admin.html' || pathname === '/admin' || pathname === '/admin/' ||
-      pathname === '/coach.html' || pathname === '/coach' || pathname === '/coach/') {
+      pathname === '/coach.html') {
     res.writeHead(302, { Location: '/' });
     return res.end();
   }
@@ -315,7 +317,7 @@ const server = http.createServer(async (req, res) => {
     setSessionCookie(req, res, token);
     // Default post-login destination is the coach dashboard (primary daily workflow).
     // The leads/admin portal is a secondary page, reachable from the coach sidebar.
-    return jsonRes(res, 200, { success: true, redirect: `/${COACH_SLUG}` });
+    return jsonRes(res, 200, { success: true, redirect: '/coach' });
   }
 
   // POST /api/logout — clear session cookie
@@ -339,11 +341,11 @@ const server = http.createServer(async (req, res) => {
     return jsonRes(res, 200, { url: `/${ADMIN_SLUG}` });
   }
 
-  // GET /api/admin/coach-url — returns the secret coach-dashboard URL.
+  // GET /api/admin/coach-url — returns the coach-dashboard URL.
   // Used by admin.html to link over to the coaching workspace.
   if (pathname === '/api/admin/coach-url' && req.method === 'GET') {
     if (!getSession(req)) return jsonRes(res, 401, { error: 'Not logged in' });
-    return jsonRes(res, 200, { url: `/${COACH_SLUG}` });
+    return jsonRes(res, 200, { url: '/coach' });
   }
 
   // GET /api/config — public config for the browser Supabase SDK.
@@ -1385,8 +1387,12 @@ const server = http.createServer(async (req, res) => {
     pathname === `/${ADMIN_SLUG}/` ||
     pathname === `/${ADMIN_SLUG}.html`;
 
-  // Same trick for the coach-dashboard slug.
+  // Coach dashboard is bereikbaar op twee URLs:
+  //  - /coach of /coach/  → vriendelijke publieke URL (login-gated)
+  //  - /COACH_SLUG        → oude secret-slug URL (backward compat + bookmarks)
   const isCoachSlug =
+    pathname === '/coach' ||
+    pathname === '/coach/' ||
     pathname === `/${COACH_SLUG}` ||
     pathname === `/${COACH_SLUG}/` ||
     pathname === `/${COACH_SLUG}.html`;

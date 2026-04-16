@@ -332,7 +332,8 @@
                 <li><a data-section="videos" onclick="navigate('videos')"><span class="nav-label">&#127916; Video's</span></a></li>
             </ul>
             <div class="sidebar-foot">
-                <a href="#" onclick="goToLeadsPortal(event)">&#128100; Leads Portal &rarr;</a>
+                <a href="/klant/login" target="_blank" style="color:#F472B6">&#128100; Klant Portaal &#8599;</a>
+                <a href="#" onclick="goToLeadsPortal(event)">&#128202; Leads Portal &rarr;</a>
                 <a href="/" target="_blank">&#127760; Landingspagina</a>
                 <button onclick="logout()">&#128682; Uitloggen</button>
             </div>
@@ -348,6 +349,20 @@
                         <button class="btn-admin btn-refresh" onclick="loadProgrammaStats();loadKlanten();">&#8635; Ververs</button>
                     </div>
                 </div>
+
+                <!-- Klant Portaal info — URL die je naar klanten stuurt -->
+                <div class="card-block" style="background:linear-gradient(135deg,#FFF1F7,#FCE7F3);border:1px solid #F9A8D4;margin-bottom:20px">
+                    <h2 style="color:#9D174D">&#128100; Klant Portaal</h2>
+                    <p class="hint" style="color:#831843">
+                        Hier loggen je klanten in. Stuur ze deze link (of gebruik de magic-link knop bij de klant in de tabel — die logt ze direct in zonder wachtwoord).
+                    </p>
+                    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px">
+                        <input id="klantPortaalUrl" readonly value="" onclick="this.select()" style="flex:1;min-width:260px;padding:8px 12px;border:1px solid #F9A8D4;border-radius:8px;font-family:monospace;font-size:13px;background:#fff">
+                        <button class="btn-admin btn-export" onclick="copyKlantPortaalUrl(this)" style="background:#EC4899;color:#fff">&#128203; Kopieer</button>
+                        <a class="btn-admin btn-refresh" id="klantPortaalOpen" href="/klant/login" target="_blank" rel="noopener">&#8599; Open</a>
+                    </div>
+                </div>
+
                 <div id="programmaStatsWrap" style="font-size:13px;color:#9CA3AF">Laden...</div>
             </section>
 
@@ -517,6 +532,31 @@
                 }
             } catch {}
             alert('Kon Leads Portal URL niet ophalen. Log opnieuw in.');
+        }
+
+        // Vul het klant-portaal URL veld met de volledige publieke URL,
+        // zodat de coach hem kan kopieren en in een welkomstmail kan plakken.
+        function initKlantPortaalUrl() {
+            const input = document.getElementById('klantPortaalUrl');
+            if (!input) return;
+            const origin = window.location.origin;
+            input.value = origin + '/klant/login';
+        }
+
+        function copyKlantPortaalUrl(btn) {
+            const input = document.getElementById('klantPortaalUrl');
+            if (!input) return;
+            input.select();
+            try {
+                navigator.clipboard.writeText(input.value);
+                const old = btn.innerHTML;
+                btn.innerHTML = '&#10003; Gekopieerd';
+                btn.style.background = '#10B981';
+                setTimeout(() => { btn.innerHTML = old; btn.style.background = '#EC4899'; }, 1800);
+            } catch {
+                // Fallback — selectie staat al, gebruiker kan handmatig Cmd+C
+                alert('Kopieren mislukt. Selecteer de URL en kopieer handmatig.');
+            }
         }
 
         // ========================================================
@@ -1662,6 +1702,7 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             navigate(initialSection());
+            initKlantPortaalUrl();
             loadKlanten();
             loadTrainingTemplates();
             loadVoedingTemplates();
