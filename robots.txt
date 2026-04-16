@@ -76,4 +76,4 @@ Disallow: /portal-j8k3m9q2x7p5v4
 Disallow: /admin
 Disallow: /admin.html
 
-Sitemap: https://julia-den-best-production.up.railway.app/sitemap.xml
+Sitemap: https://juliabesten.nl/sitemap.xml

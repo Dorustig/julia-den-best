@@ -231,7 +231,33 @@ function readBody(req) {
 }
 
 // ===== SERVER =====
+// ===== CANONICAL HOST REDIRECT =====
+// Main domain is juliabesten.nl. Anything else (juliabesten.com, www.*, Railway
+// preview URL) gets a 301 to the canonical host so Google/AI merge signals on
+// one URL instead of splitting them across duplicate sites.
+const CANONICAL_HOST = 'juliabesten.nl';
+const ALLOWED_LOCAL_HOSTS = new Set(['localhost', '127.0.0.1', '0.0.0.0']);
+
+function redirectToCanonical(req, res) {
+  const rawHost = (req.headers['x-forwarded-host'] || req.headers.host || '').toLowerCase();
+  if (!rawHost) return false;
+  const host = rawHost.split(':')[0];
+  // Don't redirect when running locally or already on the canonical host.
+  if (host === CANONICAL_HOST) return false;
+  if (ALLOWED_LOCAL_HOSTS.has(host)) return false;
+  // Every non-canonical host (juliabesten.com, www.*, *.up.railway.app) gets
+  // a 301 to https://juliabesten.nl with the same path + query preserved.
+  const target = `https://${CANONICAL_HOST}${req.url}`;
+  res.writeHead(301, { Location: target, 'Cache-Control': 'public, max-age=3600' });
+  res.end();
+  return true;
+}
+
 const server = http.createServer(async (req, res) => {
+  // Canonical host redirect must run before anything else — otherwise we'd
+  // process the request twice (once on .com, once on .nl).
+  if (redirectToCanonical(req, res)) return;
+
   const parsed = url.parse(req.url, true);
   const pathname = parsed.pathname;
 
