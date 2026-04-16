@@ -494,7 +494,7 @@ const server = http.createServer(async (req, res) => {
     return jsonRes(res, 200, { ok: true, check_in: result.check_in });
   }
 
-  // GET /api/klant/checkins — list own check-ins (requires JWT)
+  // GET /api/klant/checkins — list own check-ins (requires JWT), incl. foto paths/urls
   if (pathname === '/api/klant/checkins' && req.method === 'GET') {
     const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
     const user = await supabaseHelper.verifyUserToken(token);
@@ -503,16 +503,77 @@ const server = http.createServer(async (req, res) => {
     if (!klant) return jsonRes(res, 404, { error: 'No klant profile found' });
 
     const rows = await supabaseHelper.listCheckIns(klant.id);
-    return jsonRes(res, 200, { check_ins: rows || [] });
+    // Attach signed foto urls (client wants to display thumbnails)
+    const enriched = await Promise.all((rows || []).map(async (ci) => {
+      const fotos = await supabaseHelper.listCheckInFotos(klant.id, ci.id);
+      const withUrls = await Promise.all(fotos.map(async (f) => ({
+        positie: f.positie,
+        path: f.path,
+        signed_url: await supabaseHelper.signCheckInFoto(f.path, 1800),
+      })));
+      return { ...ci, fotos: withUrls };
+    }));
+    return jsonRes(res, 200, { check_ins: enriched });
   }
 
-  // GET /api/admin/klanten/:klantId/checkins — admin: list check-ins for a klant
+  // POST /api/klant/checkin-foto — upload one check-in photo as base64 JSON
+  // Body: { check_in_id, positie ('front'|'side'|'back'), data_base64, mime? }
+  if (pathname === '/api/klant/checkin-foto' && req.method === 'POST') {
+    const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+    const user = await supabaseHelper.verifyUserToken(token);
+    if (!user) return jsonRes(res, 401, { error: 'Not logged in' });
+    const klant = await supabaseHelper.getKlantByAuthUserId(user.id);
+    if (!klant) return jsonRes(res, 404, { error: 'No klant profile found' });
+
+    let body;
+    try { body = JSON.parse(await readBody(req)); }
+    catch { return jsonRes(res, 400, { error: 'Invalid JSON' }); }
+
+    const { check_in_id, positie, data_base64, mime } = body;
+    if (!check_in_id || !positie || !data_base64) {
+      return jsonRes(res, 400, { error: 'check_in_id, positie en data_base64 vereist' });
+    }
+
+    // Verify this check-in belongs to this klant (prevent cross-klant writes)
+    const checkins = await supabaseHelper.listCheckIns(klant.id);
+    const own = (checkins || []).some(c => c.id === check_in_id);
+    if (!own) return jsonRes(res, 403, { error: 'Check-in niet van jou' });
+
+    let buffer;
+    try { buffer = Buffer.from(data_base64, 'base64'); }
+    catch { return jsonRes(res, 400, { error: 'Ongeldige base64' }); }
+    if (buffer.length > 8 * 1024 * 1024) {
+      return jsonRes(res, 413, { error: 'Foto te groot (max 8 MB)' });
+    }
+
+    const result = await supabaseHelper.uploadCheckInFoto({
+      klantId: klant.id,
+      checkInId: check_in_id,
+      positie,
+      buffer,
+      contentType: mime || 'image/jpeg',
+    });
+    if (!result.ok) return jsonRes(res, 400, { error: result.error });
+    return jsonRes(res, 200, { ok: true, path: result.path });
+  }
+
+  // GET /api/admin/klanten/:klantId/checkins — admin: list check-ins for a klant (incl. fotos)
   {
     const m = pathname.match(/^\/api\/admin\/klanten\/([0-9a-f-]+)\/checkins$/i);
     if (m && req.method === 'GET') {
       if (!requireAuth(req, res)) return;
-      const rows = await supabaseHelper.listCheckIns(m[1]);
-      return jsonRes(res, 200, { check_ins: rows || [] });
+      const klantId = m[1];
+      const rows = await supabaseHelper.listCheckIns(klantId);
+      const enriched = await Promise.all((rows || []).map(async (ci) => {
+        const fotos = await supabaseHelper.listCheckInFotos(klantId, ci.id);
+        const withUrls = await Promise.all(fotos.map(async (f) => ({
+          positie: f.positie,
+          path: f.path,
+          signed_url: await supabaseHelper.signCheckInFoto(f.path, 1800),
+        })));
+        return { ...ci, fotos: withUrls };
+      }));
+      return jsonRes(res, 200, { check_ins: enriched });
     }
   }
 

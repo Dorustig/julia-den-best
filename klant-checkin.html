@@ -45,6 +45,30 @@
 
     .help { font-size: 12px; color: #9CA3AF; margin-top: 4px; }
 
+    /* Foto slots */
+    .fotos-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+    .foto-slot {
+      position: relative; aspect-ratio: 3/4; background: #F9FAFB; border: 2px dashed #E5E7EB;
+      border-radius: 12px; overflow: hidden; cursor: pointer; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; transition: all 0.15s; text-align: center;
+    }
+    .foto-slot:hover { border-color: #F9A8D4; background: #FFF1F7; }
+    .foto-slot.filled { border-style: solid; border-color: #E91E8C; }
+    .foto-slot .emoji { font-size: 32px; opacity: 0.7; margin-bottom: 8px; }
+    .foto-slot .label { font-size: 11px; font-weight: 600; color: #6B7280; text-transform: uppercase; letter-spacing: 0.5px; }
+    .foto-slot .sublabel { font-size: 10px; color: #9CA3AF; margin-top: 2px; }
+    .foto-slot input[type=file] { display: none; }
+    .foto-slot .preview { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .foto-slot .remove-btn {
+      position: absolute; top: 6px; right: 6px; width: 24px; height: 24px; border-radius: 50%;
+      background: rgba(0,0,0,0.6); color: #fff; border: none; font-size: 14px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; z-index: 2;
+    }
+    .foto-slot .tag {
+      position: absolute; bottom: 6px; left: 6px; background: rgba(0,0,0,0.6); color: #fff;
+      padding: 2px 8px; border-radius: 999px; font-size: 10px; font-weight: 600; letter-spacing: 0.3px;
+    }
+
     /* Slider row */
     .slider-wrap { background: #F9FAFB; border-radius: 12px; padding: 14px; margin-bottom: 10px; }
     .slider-label { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
@@ -233,6 +257,33 @@
             </div>
 
             <div class="section">
+              <div class="section-title"><span class="emoji">📸</span> Voortgangsfoto's <span style="font-weight:400;text-transform:none;color:#9CA3AF;">(optioneel)</span></div>
+              <p style="font-size:12px;color:#9CA3AF;margin-bottom:10px;line-height:1.5;">
+                Voor-, zij- en achterkant. Alleen jij en Julia zien ze. Tip: zelfde licht, tijd, outfit elke week.
+              </p>
+              <div class="fotos-grid">
+                <label class="foto-slot" data-pos="front">
+                  <div class="emoji">📷</div>
+                  <div class="label">Voorkant</div>
+                  <div class="sublabel">tik om te kiezen</div>
+                  <input type="file" accept="image/*" capture="user" data-pos="front">
+                </label>
+                <label class="foto-slot" data-pos="side">
+                  <div class="emoji">📷</div>
+                  <div class="label">Zijkant</div>
+                  <div class="sublabel">tik om te kiezen</div>
+                  <input type="file" accept="image/*" capture="user" data-pos="side">
+                </label>
+                <label class="foto-slot" data-pos="back">
+                  <div class="emoji">📷</div>
+                  <div class="label">Achterkant</div>
+                  <div class="sublabel">tik om te kiezen</div>
+                  <input type="file" accept="image/*" capture="user" data-pos="back">
+                </label>
+              </div>
+            </div>
+
+            <div class="section">
               <div class="section-title"><span class="emoji">💭</span> Notities voor Julia</div>
               <div class="field">
                 <textarea id="notities" name="notities" placeholder="Hoe ging deze week? Wat was makkelijk, wat lastig? Bijzonderheden?"></textarea>
@@ -249,6 +300,68 @@
         const slider = document.getElementById(name);
         const out = document.getElementById(name + 'Val');
         slider.addEventListener('input', () => { out.textContent = slider.value; });
+      });
+
+      // Foto slots — handle file choose, preview, compressie, remove
+      const selectedFotos = {}; // { front: Blob, side: Blob, back: Blob }
+
+      function handleFotoChoose(input) {
+        const file = input.files?.[0];
+        if (!file) return;
+        const pos = input.dataset.pos;
+        const slot = input.closest('.foto-slot');
+
+        compressImage(file, 1600, 0.85).then(blob => {
+          selectedFotos[pos] = blob;
+          const url = URL.createObjectURL(blob);
+          slot.classList.add('filled');
+          slot.innerHTML = `
+            <img class="preview" src="${url}" alt="${pos}">
+            <button type="button" class="remove-btn" aria-label="Verwijderen">×</button>
+            <span class="tag">${pos.toUpperCase()}</span>
+          `;
+          slot.querySelector('.remove-btn').addEventListener('click', (e) => {
+            e.preventDefault(); e.stopPropagation();
+            delete selectedFotos[pos];
+            URL.revokeObjectURL(url);
+            resetSlot(slot, pos);
+          });
+        }).catch(err => {
+          console.error('Compressie fout', err);
+          alert('Kon de foto niet verwerken — probeer een andere.');
+        });
+      }
+
+      function resetSlot(slot, pos) {
+        const labels = { front: 'Voorkant', side: 'Zijkant', back: 'Achterkant' };
+        slot.classList.remove('filled');
+        slot.innerHTML = `
+          <div class="emoji">📷</div>
+          <div class="label">${labels[pos]}</div>
+          <div class="sublabel">tik om te kiezen</div>
+          <input type="file" accept="image/*" capture="user" data-pos="${pos}">
+        `;
+        slot.querySelector('input').addEventListener('change', (e) => handleFotoChoose(e.target));
+      }
+
+      async function compressImage(file, maxDim, quality) {
+        const img = await new Promise((resolve, reject) => {
+          const image = new Image();
+          image.onload = () => resolve(image);
+          image.onerror = reject;
+          image.src = URL.createObjectURL(file);
+        });
+        const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+        const w = Math.round(img.width * scale);
+        const h = Math.round(img.height * scale);
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        return await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', quality));
+      }
+
+      document.querySelectorAll('.foto-slot input[type=file]').forEach(inp => {
+        inp.addEventListener('change', (e) => handleFotoChoose(e.target));
       });
 
       document.getElementById('checkinForm').addEventListener('submit', async (e) => {
@@ -298,6 +411,40 @@
             const j = await r.json().catch(() => ({}));
             throw new Error(j.error || 'HTTP ' + r.status);
           }
+          const { check_in } = await r.json();
+
+          // Upload foto's als die gekozen zijn — als base64 JSON voor eenvoud
+          const fotoPositions = Object.keys(selectedFotos);
+          if (fotoPositions.length > 0) {
+            btn.textContent = 'Foto\'s uploaden...';
+            for (const pos of fotoPositions) {
+              const blob = selectedFotos[pos];
+              const dataB64 = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result.split(',')[1]); // strip data:image/jpeg;base64,
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+              });
+              const fotoRes = await fetch('/api/klant/checkin-foto', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: 'Bearer ' + session.access_token,
+                },
+                body: JSON.stringify({
+                  check_in_id: check_in.id,
+                  positie: pos,
+                  data_base64: dataB64,
+                  mime: blob.type || 'image/jpeg',
+                }),
+              });
+              if (!fotoRes.ok) {
+                const fj = await fotoRes.json().catch(() => ({}));
+                console.warn('Foto upload failed voor ' + pos + ':', fj.error || fotoRes.status);
+              }
+            }
+          }
+
           render(`
             <div class="topbar">
               <a href="/klant/start" class="back" title="Terug">←</a>

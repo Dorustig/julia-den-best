@@ -79,15 +79,51 @@
     .msg.error { background: #FEE2E2; color: #991B1B; }
     .msg.info { background: #DBEAFE; color: #1E40AF; }
 
+    /* Foto thumbnails op de check-in historiek */
+    .foto-thumbs { display: flex; gap: 6px; margin-top: 8px; }
+    .foto-thumb {
+      position: relative; width: 54px; height: 54px; border-radius: 8px;
+      background-size: cover; background-position: center; background-color: #F3F4F6;
+      cursor: pointer; overflow: hidden; border: 1px solid #F3F4F6;
+      transition: transform 0.15s ease;
+    }
+    .foto-thumb:hover { transform: scale(1.04); }
+    .foto-thumb .tag {
+      position: absolute; bottom: 2px; left: 2px;
+      background: rgba(0,0,0,0.55); color: #fff;
+      font-size: 9px; letter-spacing: 0.4px; text-transform: uppercase;
+      padding: 1px 4px; border-radius: 4px; font-weight: 600;
+    }
+
+    /* Lightbox */
+    .lightbox {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.88); z-index: 1000;
+      display: none; align-items: center; justify-content: center; padding: 20px;
+    }
+    .lightbox.active { display: flex; }
+    .lightbox img { max-width: 100%; max-height: 90vh; border-radius: 10px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+    .lightbox-close {
+      position: absolute; top: 16px; right: 16px; width: 40px; height: 40px;
+      border-radius: 50%; background: rgba(255,255,255,0.1); border: none; color: #fff;
+      font-size: 22px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    }
+    .lightbox-close:hover { background: rgba(255,255,255,0.2); }
+
     @media (max-width: 480px) {
       .stats-grid { grid-template-columns: 1fr 1fr; }
       .hero .week-num { font-size: 48px; }
+      .foto-thumb { width: 48px; height: 48px; }
     }
   </style>
 </head>
 <body>
   <div class="wrap" id="wrap">
     <div class="loader"><div class="spinner"></div></div>
+  </div>
+
+  <div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
+    <button class="lightbox-close" onclick="closeLightbox(event, true)" aria-label="Sluiten">✕</button>
+    <img id="lightboxImg" alt="">
   </div>
 
   <script type="module">
@@ -139,6 +175,24 @@
         await supabase.auth.signOut();
         window.location.href = '/klant/login';
       };
+
+      window.openLightbox = (src) => {
+        const lb = document.getElementById('lightbox');
+        const img = document.getElementById('lightboxImg');
+        img.src = src;
+        lb.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      };
+      window.closeLightbox = (ev, forced) => {
+        // alleen sluiten als de klik op de achtergrond of sluitknop was
+        if (!forced && ev && ev.target && ev.target.tagName === 'IMG') return;
+        const lb = document.getElementById('lightbox');
+        lb.classList.remove('active');
+        document.body.style.overflow = '';
+      };
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') window.closeLightbox(null, true);
+      });
 
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
@@ -266,17 +320,36 @@
           ${checkins.slice().reverse().slice(0, 6).map(c => {
             const wk = Math.min(16, Math.max(1, Math.floor((new Date(c.datum).getTime() - startMs) / msPerWeek) + 1));
             const d = new Date(c.datum).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' });
-            return `
-              <div style="padding:12px 20px;border-bottom:1px solid #F3F4F6;display:flex;justify-content:space-between;align-items:center;">
-                <div>
-                  <div style="font-weight:600;font-size:14px;">Week ${wk} · ${d}</div>
-                  <div style="font-size:12px;color:#9CA3AF;margin-top:2px;">
-                    ${c.mood ? '😊 ' + c.mood + '/10  ' : ''}
-                    ${c.energie ? '⚡ ' + c.energie + '/10  ' : ''}
-                    ${c.stappen ? '👣 ' + c.stappen.toLocaleString('nl-NL') : ''}
+            const fotos = Array.isArray(c.fotos) ? c.fotos.filter(f => f && f.signed_url) : [];
+            // sorteer consistent: front, side, back
+            const order = { front: 0, side: 1, back: 2 };
+            fotos.sort((a, b) => (order[a.positie] ?? 9) - (order[b.positie] ?? 9));
+            const fotosHtml = fotos.length ? `
+              <div class="foto-thumbs">
+                ${fotos.map(f => `
+                  <div class="foto-thumb"
+                       style="background-image:url('${f.signed_url}');"
+                       onclick="openLightbox('${f.signed_url}')"
+                       title="${f.positie}">
+                    <span class="tag">${f.positie}</span>
                   </div>
+                `).join('')}
+              </div>
+            ` : '';
+            return `
+              <div style="padding:12px 20px;border-bottom:1px solid #F3F4F6;">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                  <div>
+                    <div style="font-weight:600;font-size:14px;">Week ${wk} · ${d}</div>
+                    <div style="font-size:12px;color:#9CA3AF;margin-top:2px;">
+                      ${c.mood ? '😊 ' + c.mood + '/10  ' : ''}
+                      ${c.energie ? '⚡ ' + c.energie + '/10  ' : ''}
+                      ${c.stappen ? '👣 ' + c.stappen.toLocaleString('nl-NL') : ''}
+                    </div>
+                  </div>
+                  <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#E91E8C;">${parseFloat(c.gewicht_kg).toFixed(1)}<span style="font-size:13px;color:#9CA3AF;font-family:'Inter',sans-serif;"> kg</span></div>
                 </div>
-                <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#E91E8C;">${parseFloat(c.gewicht_kg).toFixed(1)}<span style="font-size:13px;color:#9CA3AF;font-family:'Inter',sans-serif;"> kg</span></div>
+                ${fotosHtml}
               </div>
             `;
           }).join('')}
