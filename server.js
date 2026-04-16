@@ -475,6 +475,47 @@ const server = http.createServer(async (req, res) => {
     return jsonRes(res, 200, { ok: true, klant: result.klant });
   }
 
+  // POST /api/klant/checkin — insert or update weekly check-in (requires JWT)
+  // Body: { datum, gewicht_kg, taille_cm?, heupen_cm?, bil_cm?, stappen?, water_liter?, slaap_uren?, mood?, energie?, honger?, notities? }
+  // Uses upsert on (klant_id, datum) so a klant can overwrite today's check-in.
+  if (pathname === '/api/klant/checkin' && req.method === 'POST') {
+    const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+    const user = await supabaseHelper.verifyUserToken(token);
+    if (!user) return jsonRes(res, 401, { error: 'Not logged in' });
+    const klant = await supabaseHelper.getKlantByAuthUserId(user.id);
+    if (!klant) return jsonRes(res, 404, { error: 'No klant profile found' });
+
+    let body;
+    try { body = JSON.parse(await readBody(req)); }
+    catch { return jsonRes(res, 400, { error: 'Invalid JSON' }); }
+
+    const result = await supabaseHelper.saveCheckIn(klant.id, body);
+    if (!result.ok) return jsonRes(res, 400, { error: result.error });
+    return jsonRes(res, 200, { ok: true, check_in: result.check_in });
+  }
+
+  // GET /api/klant/checkins — list own check-ins (requires JWT)
+  if (pathname === '/api/klant/checkins' && req.method === 'GET') {
+    const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+    const user = await supabaseHelper.verifyUserToken(token);
+    if (!user) return jsonRes(res, 401, { error: 'Not logged in' });
+    const klant = await supabaseHelper.getKlantByAuthUserId(user.id);
+    if (!klant) return jsonRes(res, 404, { error: 'No klant profile found' });
+
+    const rows = await supabaseHelper.listCheckIns(klant.id);
+    return jsonRes(res, 200, { check_ins: rows || [] });
+  }
+
+  // GET /api/admin/klanten/:klantId/checkins — admin: list check-ins for a klant
+  {
+    const m = pathname.match(/^\/api\/admin\/klanten\/([0-9a-f-]+)\/checkins$/i);
+    if (m && req.method === 'GET') {
+      if (!requireAuth(req, res)) return;
+      const rows = await supabaseHelper.listCheckIns(m[1]);
+      return jsonRes(res, 200, { check_ins: rows || [] });
+    }
+  }
+
   // GET /api/klanten — admin list of klanten
   if (pathname === '/api/klanten' && req.method === 'GET') {
     if (!requireAuth(req, res)) return;
@@ -827,6 +868,8 @@ const server = http.createServer(async (req, res) => {
     '/klant/start/': '/klant-start.html',
     '/klant/intake': '/klant-intake.html',
     '/klant/intake/': '/klant-intake.html',
+    '/klant/checkin': '/klant-checkin.html',
+    '/klant/checkin/': '/klant-checkin.html',
     '/klant': '/klant-start.html',
     '/klant/': '/klant-start.html',
   };

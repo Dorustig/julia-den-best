@@ -491,6 +491,12 @@
         </div>
     </div>
 
+    <!-- Klant Check-ins Modal -->
+    <div class="lead-modal" id="checkInsModal">
+        <div class="lead-modal-content" id="checkInsModalContent">
+        </div>
+    </div>
+
     <script>
         let leads = [];
 
@@ -1021,7 +1027,10 @@
                             <td>${week}/16</td>
                             <td style="font-size:12px">${escapeHtml(doel)}</td>
                             <td style="font-size:12px;color:#6B7280">${start}</td>
-                            <td><button class="btn-admin btn-export" style="padding:4px 10px;font-size:11px" onclick="klantNieuweMagicLink('${escapeHtml(k.email)}')">&#128279; Nieuwe link</button></td>
+                            <td style="white-space:nowrap">
+                                <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#FCE7F3;color:#E91E8C;margin-right:4px;" onclick="klantBekijkCheckIns('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#128197; Check-ins</button>
+                                <button class="btn-admin btn-export" style="padding:4px 10px;font-size:11px" onclick="klantNieuweMagicLink('${escapeHtml(k.email)}')">&#128279; Link</button>
+                            </td>
                         </tr>
                     `;
                 }).join('');
@@ -1057,6 +1066,92 @@
                 alert('Fout: ' + e.message);
                 btn.textContent = oldText;
                 btn.disabled = false;
+            }
+        }
+
+        async function klantBekijkCheckIns(klantId, klantNaam) {
+            const modal = document.getElementById('checkInsModal');
+            const content = document.getElementById('checkInsModalContent');
+            modal.classList.add('active');
+            content.innerHTML = `
+                <div class="lead-modal-header">
+                    <h2>&#128197; Check-ins — ${escapeHtml(klantNaam)}</h2>
+                    <button class="modal-close" onclick="document.getElementById('checkInsModal').classList.remove('active')">&#10005;</button>
+                </div>
+                <div style="padding:24px;text-align:center;color:#9CA3AF;">Laden...</div>
+            `;
+            try {
+                const r = await fetch('/api/admin/klanten/' + encodeURIComponent(klantId) + '/checkins', { credentials:'include' });
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                const { check_ins } = await r.json();
+
+                if (!check_ins || check_ins.length === 0) {
+                    content.innerHTML = `
+                        <div class="lead-modal-header">
+                            <h2>&#128197; Check-ins — ${escapeHtml(klantNaam)}</h2>
+                            <button class="modal-close" onclick="document.getElementById('checkInsModal').classList.remove('active')">&#10005;</button>
+                        </div>
+                        <div style="padding:40px 24px;text-align:center;color:#6B7280;">
+                            <div style="font-size:48px;margin-bottom:12px;">&#128196;</div>
+                            <p>Deze klant heeft nog geen check-ins ingevuld.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Nieuwste eerst
+                const sorted = check_ins.slice().sort((a, b) => b.datum.localeCompare(a.datum));
+                const startGewicht = sorted.length ? parseFloat(sorted[sorted.length - 1].gewicht_kg) : null;
+
+                const rows = sorted.map(c => {
+                    const d = new Date(c.datum).toLocaleDateString('nl-NL', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+                    const gewicht = parseFloat(c.gewicht_kg);
+                    const deltaStart = startGewicht != null ? (gewicht - startGewicht).toFixed(1) : null;
+                    const deltaText = deltaStart != null && deltaStart !== '0.0'
+                        ? `<span style="font-size:12px;color:${parseFloat(deltaStart) < 0 ? '#10B981' : '#EF4444'};margin-left:8px;">${parseFloat(deltaStart) > 0 ? '+' : ''}${deltaStart} kg</span>`
+                        : '';
+                    const maten = [c.taille_cm && 'taille ' + c.taille_cm, c.heupen_cm && 'heupen ' + c.heupen_cm, c.bil_cm && 'bil ' + c.bil_cm].filter(Boolean).join(' · ');
+                    const metriek = [
+                        c.mood && '&#128578; ' + c.mood + '/10',
+                        c.energie && '&#9889; ' + c.energie + '/10',
+                        c.honger && '&#127869;&#65039; ' + c.honger + '/10',
+                        c.stappen && '&#128099; ' + c.stappen.toLocaleString('nl-NL'),
+                        c.water_liter && '&#128167; ' + c.water_liter + 'L',
+                        c.slaap_uren && '&#128164; ' + c.slaap_uren + 'u',
+                    ].filter(Boolean).join(' &middot; ');
+
+                    return `
+                        <div style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:16px;margin-bottom:12px;">
+                            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;">
+                                <div style="font-weight:600;font-size:14px;color:#1F2937;">${d}</div>
+                                <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#E91E8C;">
+                                    ${gewicht.toFixed(1)}<span style="font-size:12px;color:#9CA3AF;font-family:'Inter',sans-serif;"> kg</span>${deltaText}
+                                </div>
+                            </div>
+                            ${maten ? `<div style="font-size:12px;color:#6B7280;margin-bottom:6px;">&#128207; ${maten}</div>` : ''}
+                            ${metriek ? `<div style="font-size:12px;color:#6B7280;margin-bottom:6px;">${metriek}</div>` : ''}
+                            ${c.notities ? `<div style="background:#F9FAFB;border-radius:8px;padding:10px 12px;font-size:13px;color:#374151;margin-top:8px;white-space:pre-wrap;">${escapeHtml(c.notities)}</div>` : ''}
+                        </div>
+                    `;
+                }).join('');
+
+                content.innerHTML = `
+                    <div class="lead-modal-header">
+                        <h2>&#128197; Check-ins — ${escapeHtml(klantNaam)} <span style="color:#9CA3AF;font-weight:400;font-size:14px;">(${check_ins.length})</span></h2>
+                        <button class="modal-close" onclick="document.getElementById('checkInsModal').classList.remove('active')">&#10005;</button>
+                    </div>
+                    <div style="padding:16px 24px 24px;">
+                        ${rows}
+                    </div>
+                `;
+            } catch (e) {
+                content.innerHTML = `
+                    <div class="lead-modal-header">
+                        <h2>Check-ins</h2>
+                        <button class="modal-close" onclick="document.getElementById('checkInsModal').classList.remove('active')">&#10005;</button>
+                    </div>
+                    <div style="padding:24px;color:#EF4444;">Fout: ${escapeHtml(e.message)}</div>
+                `;
             }
         }
 

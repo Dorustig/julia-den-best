@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Check-in · Julia Besten</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif; color: #1F2937; min-height: 100vh;
+      background: linear-gradient(135deg, #FFF1F7 0%, #FFE4EF 50%, #FFEDE4 100%);
+      padding: 20px 16px 40px;
+    }
+    .wrap { max-width: 640px; margin: 0 auto; }
+
+    .topbar { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; padding: 0 4px; }
+    .back { font-size: 22px; color: #E91E8C; text-decoration: none; cursor: pointer; background: none; border: none; font-family: inherit; padding: 4px 8px; }
+    .brand { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: #E91E8C; flex: 1; }
+
+    .card { background: #fff; border-radius: 20px; padding: 24px; box-shadow: 0 10px 40px rgba(233, 30, 140, 0.08); margin-bottom: 16px; }
+
+    h1 { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; margin-bottom: 6px; text-align: center; }
+    .intro { text-align: center; color: #6B7280; font-size: 14px; line-height: 1.5; margin-bottom: 24px; }
+    .week-badge { display: inline-block; background: #FCE7F3; color: #E91E8C; padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 600; letter-spacing: 0.3px; margin: 0 auto 14px; }
+    .week-wrap { text-align: center; }
+
+    .section { margin-bottom: 24px; }
+    .section-title { font-size: 13px; font-weight: 600; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+    .section-title .emoji { font-size: 16px; }
+
+    .field { margin-bottom: 14px; }
+    label { display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px; }
+    input[type=number], input[type=text], textarea {
+      width: 100%; padding: 12px 14px; border: 1.5px solid #E5E7EB; border-radius: 10px;
+      font-size: 15px; font-family: inherit; background: #fff; transition: border-color 0.15s;
+    }
+    input:focus, textarea:focus { outline: none; border-color: #E91E8C; }
+    textarea { min-height: 80px; resize: vertical; }
+    .row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+    .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    .help { font-size: 12px; color: #9CA3AF; margin-top: 4px; }
+
+    /* Slider row */
+    .slider-wrap { background: #F9FAFB; border-radius: 12px; padding: 14px; margin-bottom: 10px; }
+    .slider-label { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .slider-label .name { font-size: 14px; font-weight: 500; color: #1F2937; display: flex; align-items: center; gap: 6px; }
+    .slider-label .value { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: #E91E8C; }
+    input[type=range] {
+      -webkit-appearance: none; width: 100%; height: 6px; background: #FCE7F3;
+      border-radius: 3px; outline: none;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none; appearance: none; width: 22px; height: 22px;
+      background: #E91E8C; border-radius: 50%; cursor: pointer;
+      box-shadow: 0 2px 8px rgba(233, 30, 140, 0.4);
+    }
+    input[type=range]::-moz-range-thumb {
+      width: 22px; height: 22px; background: #E91E8C; border-radius: 50%;
+      cursor: pointer; border: none; box-shadow: 0 2px 8px rgba(233, 30, 140, 0.4);
+    }
+    .scale-labels { display: flex; justify-content: space-between; font-size: 11px; color: #9CA3AF; margin-top: 6px; }
+
+    button.submit {
+      width: 100%; padding: 16px 20px; background: #E91E8C; color: #fff;
+      border: none; border-radius: 14px; font-size: 15px; font-weight: 600;
+      cursor: pointer; font-family: inherit; box-shadow: 0 6px 20px rgba(233, 30, 140, 0.3);
+      transition: all 0.15s;
+    }
+    button.submit:hover { background: #D01680; transform: translateY(-1px); }
+    button.submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    .msg { padding: 14px; border-radius: 12px; font-size: 14px; line-height: 1.5; margin-bottom: 16px; display: none; }
+    .msg.error { background: #FEE2E2; color: #991B1B; display: block; }
+    .msg.info { background: #DBEAFE; color: #1E40AF; display: block; }
+    .msg.success { background: #D1FAE5; color: #065F46; display: block; }
+
+    .loader { display: flex; justify-content: center; padding: 60px 0; }
+    .spinner { width: 36px; height: 36px; border: 3px solid #FCE7F3; border-top-color: #E91E8C; border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .success-card { text-align: center; padding: 32px 24px; }
+    .success-card .emoji { font-size: 64px; margin-bottom: 12px; }
+    .success-card h1 { margin-bottom: 12px; }
+    .success-card p { color: #6B7280; margin-bottom: 20px; line-height: 1.6; }
+    .btn-primary { display: inline-block; padding: 14px 24px; background: #E91E8C; color: #fff; border-radius: 12px; text-decoration: none; font-weight: 600; }
+
+    @media (max-width: 480px) {
+      .row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap" id="wrap">
+    <div class="loader"><div class="spinner"></div></div>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+    const wrap = document.getElementById('wrap');
+    function render(html) { wrap.innerHTML = html; }
+    function renderError(title, detail) {
+      render(`
+        <div class="card" style="margin-top:40px;">
+          <h1>${title}</h1>
+          <div class="msg error">${detail || ''}</div>
+          <a href="/klant/start" class="btn-primary" style="display:block;text-align:center;margin-top:12px;">Terug naar dashboard</a>
+        </div>
+      `);
+    }
+
+    function todayISO() { return new Date().toISOString().slice(0, 10); }
+    function weekNrFromStart(startIso, dateIso) {
+      const startMs = new Date(startIso).getTime();
+      const dMs = new Date(dateIso).getTime();
+      const weeks = Math.floor((dMs - startMs) / (7 * 24 * 60 * 60 * 1000)) + 1;
+      return Math.min(16, Math.max(1, weeks));
+    }
+
+    async function main() {
+      const cfg = await (await fetch('/api/config')).json();
+      if (!cfg.supabase_url || !cfg.supabase_anon_key) throw new Error('Supabase niet geconfigureerd');
+      const supabase = createClient(cfg.supabase_url, cfg.supabase_anon_key);
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        window.location.href = '/klant/login';
+        return;
+      }
+
+      const meRes = await fetch('/api/klant/me', {
+        headers: { Authorization: 'Bearer ' + session.access_token },
+      });
+      if (!meRes.ok) throw new Error('Profiel niet gevonden (HTTP ' + meRes.status + ')');
+      const { klant } = await meRes.json();
+      if (klant.status === 'onboarding') {
+        window.location.href = '/klant/intake';
+        return;
+      }
+
+      const today = todayISO();
+      const weekNr = weekNrFromStart(klant.start_datum, today);
+
+      render(`
+        <div class="topbar">
+          <a href="/klant/start" class="back" title="Terug">←</a>
+          <div class="brand">Julia Besten</div>
+        </div>
+
+        <div class="card">
+          <div class="week-wrap"><span class="week-badge">WEEK ${weekNr} VAN 16</span></div>
+          <h1>Check-in van deze week</h1>
+          <p class="intro">Vul zoveel in als je wilt. Alleen je gewicht is verplicht. Hoe meer data, hoe beter Julia je kan sturen.</p>
+
+          <div id="err" class="msg"></div>
+
+          <form id="checkinForm">
+
+            <div class="section">
+              <div class="section-title"><span class="emoji">⚖️</span> Gewicht & maten</div>
+              <div class="field">
+                <label for="gewicht_kg">Gewicht (kg) <span style="color:#E91E8C;">*</span></label>
+                <input type="number" id="gewicht_kg" name="gewicht_kg" step="0.1" min="30" max="200" required placeholder="bijv. 68.5">
+              </div>
+              <div class="row">
+                <div class="field">
+                  <label for="taille_cm">Taille (cm)</label>
+                  <input type="number" id="taille_cm" name="taille_cm" step="0.5" min="40" max="200" placeholder="optioneel">
+                </div>
+                <div class="field">
+                  <label for="heupen_cm">Heupen (cm)</label>
+                  <input type="number" id="heupen_cm" name="heupen_cm" step="0.5" min="40" max="200" placeholder="optioneel">
+                </div>
+                <div class="field">
+                  <label for="bil_cm">Bil (cm)</label>
+                  <input type="number" id="bil_cm" name="bil_cm" step="0.5" min="40" max="200" placeholder="optioneel">
+                </div>
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title"><span class="emoji">🏃🏼‍♀️</span> Activiteit</div>
+              <div class="row-2">
+                <div class="field">
+                  <label for="stappen">Gem. stappen per dag</label>
+                  <input type="number" id="stappen" name="stappen" min="0" max="50000" placeholder="bijv. 8500">
+                </div>
+                <div class="field">
+                  <label for="water_liter">Water (liter/dag)</label>
+                  <input type="number" id="water_liter" name="water_liter" step="0.1" min="0" max="10" placeholder="bijv. 2.5">
+                </div>
+              </div>
+              <div class="field">
+                <label for="slaap_uren">Slaap (uur/nacht gemiddeld)</label>
+                <input type="number" id="slaap_uren" name="slaap_uren" step="0.5" min="0" max="14" placeholder="bijv. 7.5">
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title"><span class="emoji">😊</span> Hoe voel je je?</div>
+
+              <div class="slider-wrap">
+                <div class="slider-label">
+                  <span class="name">😊 Stemming</span>
+                  <span class="value" id="moodVal">7</span>
+                </div>
+                <input type="range" id="mood" name="mood" min="1" max="10" value="7">
+                <div class="scale-labels"><span>1 slecht</span><span>10 top</span></div>
+              </div>
+
+              <div class="slider-wrap">
+                <div class="slider-label">
+                  <span class="name">⚡ Energie</span>
+                  <span class="value" id="energieVal">7</span>
+                </div>
+                <input type="range" id="energie" name="energie" min="1" max="10" value="7">
+                <div class="scale-labels"><span>1 moe</span><span>10 energiek</span></div>
+              </div>
+
+              <div class="slider-wrap">
+                <div class="slider-label">
+                  <span class="name">🍽️ Honger</span>
+                  <span class="value" id="hongerVal">5</span>
+                </div>
+                <input type="range" id="honger" name="honger" min="1" max="10" value="5">
+                <div class="scale-labels"><span>1 weinig</span><span>10 veel</span></div>
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title"><span class="emoji">💭</span> Notities voor Julia</div>
+              <div class="field">
+                <textarea id="notities" name="notities" placeholder="Hoe ging deze week? Wat was makkelijk, wat lastig? Bijzonderheden?"></textarea>
+              </div>
+            </div>
+
+            <button type="submit" class="submit" id="submitBtn">Check-in versturen →</button>
+          </form>
+        </div>
+      `);
+
+      // Slider live values
+      ['mood', 'energie', 'honger'].forEach(name => {
+        const slider = document.getElementById(name);
+        const out = document.getElementById(name + 'Val');
+        slider.addEventListener('input', () => { out.textContent = slider.value; });
+      });
+
+      document.getElementById('checkinForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('submitBtn');
+        const err = document.getElementById('err');
+        err.className = 'msg';
+        err.textContent = '';
+        btn.disabled = true;
+        btn.textContent = 'Versturen...';
+
+        const f = new FormData(e.target);
+        const num = (k) => { const v = f.get(k); return v ? parseFloat(v) : null; };
+        const intv = (k) => { const v = f.get(k); return v ? parseInt(v, 10) : null; };
+
+        const payload = {
+          datum: today,
+          gewicht_kg: num('gewicht_kg'),
+          taille_cm: num('taille_cm'),
+          heupen_cm: num('heupen_cm'),
+          bil_cm: num('bil_cm'),
+          stappen: intv('stappen'),
+          water_liter: num('water_liter'),
+          slaap_uren: num('slaap_uren'),
+          mood: intv('mood'),
+          energie: intv('energie'),
+          honger: intv('honger'),
+          notities: (f.get('notities') || '').trim() || null,
+        };
+
+        if (!payload.gewicht_kg) {
+          err.className = 'msg error'; err.textContent = 'Vul je gewicht in.';
+          btn.disabled = false; btn.textContent = 'Check-in versturen →';
+          return;
+        }
+
+        try {
+          const r = await fetch('/api/klant/checkin', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: 'Bearer ' + session.access_token,
+            },
+            body: JSON.stringify(payload),
+          });
+          if (!r.ok) {
+            const j = await r.json().catch(() => ({}));
+            throw new Error(j.error || 'HTTP ' + r.status);
+          }
+          render(`
+            <div class="topbar">
+              <a href="/klant/start" class="back" title="Terug">←</a>
+              <div class="brand">Julia Besten</div>
+            </div>
+            <div class="card success-card">
+              <div class="emoji">✨</div>
+              <h1>Gelukt!</h1>
+              <p>Je week ${weekNr} check-in is opgeslagen.<br>Julia krijgt een seintje.</p>
+              <a href="/klant/start" class="btn-primary">Terug naar dashboard</a>
+            </div>
+          `);
+        } catch (ex) {
+          err.className = 'msg error';
+          err.textContent = 'Er ging iets mis: ' + ex.message;
+          btn.disabled = false;
+          btn.textContent = 'Check-in versturen →';
+        }
+      });
+    }
+
+    main().catch((err) => {
+      console.error('[klant-checkin]', err);
+      renderError('Er ging iets mis', err?.message || String(err));
+    });
+  </script>
+</body>
+</html>

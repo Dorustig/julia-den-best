@@ -152,9 +152,10 @@
         return;
       }
 
-      const r = await fetch('/api/klant/me', {
-        headers: { Authorization: 'Bearer ' + session.access_token },
-      });
+      const [r, cr] = await Promise.all([
+        fetch('/api/klant/me', { headers: { Authorization: 'Bearer ' + session.access_token } }),
+        fetch('/api/klant/checkins', { headers: { Authorization: 'Bearer ' + session.access_token } }),
+      ]);
 
       if (r.status === 404) {
         render(`
@@ -169,6 +170,7 @@
       if (!r.ok) throw new Error('Profiel ophalen mislukt (HTTP ' + r.status + ')');
 
       const { klant } = await r.json();
+      const checkins = (cr && cr.ok ? (await cr.json()).check_ins : []) || [];
 
       // Niet klaar met intake? Doorsturen.
       if (klant.status === 'onboarding' || !klant.doel || !klant.start_gewicht_kg) {
@@ -184,18 +186,29 @@
       const daysLeft = Math.max(0, Math.ceil((new Date(klant.eind_datum).getTime() - nowMs) / (24 * 60 * 60 * 1000)));
       const progressPct = Math.min(100, (weekNum / 16) * 100);
 
-      // Gewicht delta (placeholder — nog geen check-ins)
+      // Goal-aware delta: afvallen doelen = daling positief, aankomen = stijging positief
+      const afvalDoelen = new Set(['afvallen', 'slanker_worden', 'recomposition']);
+      const willDown = afvalDoelen.has(klant.doel);
+
       const start = klant.start_gewicht_kg;
-      const huidig = start; // later: laatste check-in gewicht
       const doel = klant.doel_gewicht_kg;
-      const delta = huidig - start;
       const hasGoal = doel != null;
+      const laatste = checkins.length ? checkins[checkins.length - 1] : null;
+      const huidig = laatste ? parseFloat(laatste.gewicht_kg) : start;
+      const delta = +(huidig - start).toFixed(1);
 
       let deltaBadge = '<span class="delta neutral">Start</span>';
       if (delta !== 0) {
-        const pos = delta > 0 ? 'neg' : 'pos'; // afvallen = negatief = positief
-        deltaBadge = `<span class="delta ${pos}">${delta > 0 ? '+' : ''}${delta.toFixed(1)} kg</span>`;
+        const goodDirection = (willDown && delta < 0) || (!willDown && delta > 0);
+        const cls = goodDirection ? 'pos' : 'neg';
+        deltaBadge = `<span class="delta ${cls}">${delta > 0 ? '+' : ''}${delta.toFixed(1)} kg</span>`;
+      } else if (laatste) {
+        deltaBadge = '<span class="delta neutral">±0 kg</span>';
       }
+
+      // Heeft klant deze week al een check-in gedaan?
+      const weekStart = new Date(Date.now() - (weekNum - 1) * msPerWeek - new Date().getDay() * 86400000);
+      const thisWeekCheckIn = laatste && (Date.now() - new Date(laatste.datum).getTime()) < msPerWeek;
 
       const naam = escapeHtml((klant.naam || '').split(' ')[0] || 'daar');
 
@@ -236,14 +249,39 @@
 
         <div class="chart-wrap">
           <div class="section-title" style="padding-left:0;margin-bottom:6px;">Gewichts-verloop</div>
-          <div class="chart-empty">
-            <div class="emoji">📈</div>
-            <p>Je eerste check-in wacht op je.<br>Daarna zie je hier je progressie.</p>
-          </div>
+          ${checkins.length === 0 ? `
+            <div class="chart-empty">
+              <div class="emoji">📈</div>
+              <p>Je eerste check-in wacht op je.<br>Daarna zie je hier je progressie.</p>
+            </div>
+          ` : `<div id="chart"></div>`}
         </div>
 
-        <a href="/klant/checkin" class="cta-btn" style="margin-bottom:12px;">📸 Doe je wekelijkse check-in</a>
+        <a href="/klant/checkin" class="cta-btn" style="margin-bottom:12px;">${thisWeekCheckIn ? '✨ Check-in updaten' : '📸 Doe je wekelijkse check-in'}</a>
         <a href="mailto:julia@juliabesten.nl" class="cta-btn secondary" style="margin-bottom:24px;">💬 Bericht naar Julia</a>
+
+        ${checkins.length > 0 ? `
+        <div class="section-title">Check-in historiek</div>
+        <div class="card" style="padding:8px 0;margin-bottom:20px;">
+          ${checkins.slice().reverse().slice(0, 6).map(c => {
+            const wk = Math.min(16, Math.max(1, Math.floor((new Date(c.datum).getTime() - startMs) / msPerWeek) + 1));
+            const d = new Date(c.datum).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' });
+            return `
+              <div style="padding:12px 20px;border-bottom:1px solid #F3F4F6;display:flex;justify-content:space-between;align-items:center;">
+                <div>
+                  <div style="font-weight:600;font-size:14px;">Week ${wk} · ${d}</div>
+                  <div style="font-size:12px;color:#9CA3AF;margin-top:2px;">
+                    ${c.mood ? '😊 ' + c.mood + '/10  ' : ''}
+                    ${c.energie ? '⚡ ' + c.energie + '/10  ' : ''}
+                    ${c.stappen ? '👣 ' + c.stappen.toLocaleString('nl-NL') : ''}
+                  </div>
+                </div>
+                <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#E91E8C;">${parseFloat(c.gewicht_kg).toFixed(1)}<span style="font-size:13px;color:#9CA3AF;font-family:'Inter',sans-serif;"> kg</span></div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+        ` : ''}
 
         <div class="section-title">Jouw gegevens</div>
         <details class="accordion">
@@ -264,6 +302,82 @@
           </div>
         </details>
       `);
+
+      // Chart renderen (als er check-ins zijn)
+      if (checkins.length > 0) {
+        const chartEl = document.getElementById('chart');
+        if (chartEl) drawChart(chartEl, {
+          startGewicht: start,
+          doelGewicht: doel,
+          checkIns: checkins,
+          willDown,
+        });
+      }
+    }
+
+    function drawChart(el, { startGewicht, doelGewicht, checkIns, willDown }) {
+      // SVG area chart — simpel maar mooi
+      const W = el.clientWidth || 560;
+      const H = 180;
+      const P = { top: 16, right: 12, bottom: 28, left: 36 };
+
+      // Datapunten: start + elke check-in
+      const points = [
+        { datum: null, gewicht: parseFloat(startGewicht), isStart: true },
+        ...checkIns.map(c => ({ datum: c.datum, gewicht: parseFloat(c.gewicht_kg) })),
+      ];
+
+      const ys = points.map(p => p.gewicht).filter(v => !isNaN(v));
+      const withGoal = doelGewicht != null ? [...ys, parseFloat(doelGewicht)] : ys;
+      let minY = Math.min(...withGoal);
+      let maxY = Math.max(...withGoal);
+      const pad = Math.max(1, (maxY - minY) * 0.2);
+      minY = Math.floor(minY - pad);
+      maxY = Math.ceil(maxY + pad);
+
+      const x = (i) => P.left + (i / Math.max(1, points.length - 1)) * (W - P.left - P.right);
+      const y = (v) => P.top + (1 - (v - minY) / (maxY - minY || 1)) * (H - P.top - P.bottom);
+
+      const linePath = points.map((p, i) => (i === 0 ? 'M' : 'L') + x(i).toFixed(1) + ',' + y(p.gewicht).toFixed(1)).join(' ');
+      const areaPath = linePath + ` L${x(points.length - 1).toFixed(1)},${(H - P.bottom).toFixed(1)} L${x(0).toFixed(1)},${(H - P.bottom).toFixed(1)} Z`;
+
+      const goalLine = doelGewicht != null
+        ? `<line x1="${P.left}" y1="${y(parseFloat(doelGewicht))}" x2="${W - P.right}" y2="${y(parseFloat(doelGewicht))}" stroke="#9CA3AF" stroke-dasharray="4 4" stroke-width="1" />
+           <text x="${W - P.right - 2}" y="${y(parseFloat(doelGewicht)) - 4}" text-anchor="end" fill="#9CA3AF" font-size="10" font-family="Inter,sans-serif">doel ${doelGewicht} kg</text>`
+        : '';
+
+      // Y-axis ticks (3 stuks)
+      const ticks = [minY, Math.round((minY + maxY) / 2), maxY];
+      const ticksSvg = ticks.map(t => `
+        <text x="${P.left - 6}" y="${y(t) + 3}" text-anchor="end" fill="#9CA3AF" font-size="10" font-family="Inter,sans-serif">${t}</text>
+        <line x1="${P.left}" y1="${y(t)}" x2="${W - P.right}" y2="${y(t)}" stroke="#F3F4F6" stroke-width="1"/>
+      `).join('');
+
+      // Datapunten (cirkels)
+      const dots = points.map((p, i) => {
+        const cx = x(i), cy = y(p.gewicht);
+        const label = p.isStart ? 'Start' : new Date(p.datum).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' });
+        return `
+          <circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="4" fill="#fff" stroke="#E91E8C" stroke-width="2"/>
+          <text x="${cx.toFixed(1)}" y="${(H - P.bottom + 16).toFixed(1)}" text-anchor="middle" fill="#9CA3AF" font-size="10" font-family="Inter,sans-serif">${label}</text>
+        `;
+      }).join('');
+
+      el.innerHTML = `
+        <svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block;">
+          <defs>
+            <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#E91E8C" stop-opacity="0.3"/>
+              <stop offset="100%" stop-color="#E91E8C" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          ${ticksSvg}
+          ${goalLine}
+          <path d="${areaPath}" fill="url(#areaGrad)"/>
+          <path d="${linePath}" stroke="#E91E8C" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          ${dots}
+        </svg>
+      `;
     }
 
     main().catch((err) => {
