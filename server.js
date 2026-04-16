@@ -6,6 +6,11 @@ const url = require('url');
 const zlib = require('zlib');
 const crypto = require('crypto');
 
+// Load .env (dev only — Railway injects env vars directly, no .env file there)
+try { require('dotenv').config({ path: path.join(__dirname, '.env') }); } catch {}
+
+const supabaseHelper = require('./lib/supabase');
+
 const PORT = process.env.PORT || 3001;
 const ROOT = __dirname;
 // DATA_DIR is the persistent volume path on Railway (/app/data).
@@ -319,11 +324,203 @@ const server = http.createServer(async (req, res) => {
     return jsonRes(res, 200, { user: session.user, role: session.role });
   }
 
+  // GET /api/config — public config for the browser Supabase SDK.
+  // The anon key is safe to expose: Row Level Security on Supabase ensures
+  // that even with this key, clients can only see their own data.
+  if (pathname === '/api/config' && req.method === 'GET') {
+    return jsonRes(res, 200, {
+      supabase_url: process.env.SUPABASE_URL || '',
+      supabase_anon_key: process.env.SUPABASE_ANON_KEY || '',
+      site_origin: process.env.SITE_ORIGIN || `https://${CANONICAL_HOST}`,
+    });
+  }
+
+  // ===== PLUG&PAY WEBHOOK =====
+  // Plug&Pay sends a POST when an order is paid. We create a Supabase auth
+  // user + klanten row and (optionally) trigger a magic link email.
+  if (pathname === '/api/webhooks/plugandpay' && req.method === 'POST') {
+    const rawBody = await readBody(req);
+
+    // Optional HMAC verification — Plug&Pay signs the body when a secret is
+    // configured in their dashboard. Header name varies by provider; we
+    // check several common variants.
+    const secret = process.env.PLUGANDPAY_WEBHOOK_SECRET;
+    if (secret) {
+      const sigHeader =
+        req.headers['x-pnp-signature'] ||
+        req.headers['x-signature'] ||
+        req.headers['x-webhook-signature'] ||
+        '';
+      const expected = crypto.createHmac('sha256', secret).update(rawBody).digest('hex');
+      const given = String(sigHeader).replace(/^sha256=/, '').trim();
+      if (!given || given.length !== expected.length ||
+          !crypto.timingSafeEqual(Buffer.from(given), Buffer.from(expected))) {
+        console.warn('[Plug&Pay webhook] signature mismatch');
+        return jsonRes(res, 401, { error: 'Invalid signature' });
+      }
+    } else {
+      console.warn('[Plug&Pay webhook] PLUGANDPAY_WEBHOOK_SECRET not set — accepting without verification');
+    }
+
+    let payload;
+    try { payload = JSON.parse(rawBody); }
+    catch { return jsonRes(res, 400, { error: 'Invalid JSON' }); }
+
+    console.log('[Plug&Pay webhook] event:', payload.event || payload.type || '?',
+                '| order:', payload.id || payload.order_id || payload.order?.id || '?');
+
+    // Extract customer info — Plug&Pay payload shapes vary. Look in several
+    // common locations so this works even if their schema changes slightly.
+    const customer = payload.customer || payload.buyer || payload.user || payload;
+    const email = (customer.email || payload.email || '').toLowerCase().trim();
+    const firstname = customer.firstname || customer.first_name || customer.voornaam || '';
+    const lastname = customer.lastname || customer.last_name || customer.achternaam || '';
+    const naam = (customer.name || `${firstname} ${lastname}`).trim() || email;
+    const telefoon = customer.phone || customer.telefoon || null;
+    const orderId = String(payload.id || payload.order_id || payload.order?.id || '') || null;
+    const productId = String(
+      payload.product_id || payload.product?.id ||
+      (payload.products && payload.products[0]?.id) || ''
+    ) || null;
+
+    // Ignore non-payment events so test pings or subscription changes don't
+    // create klanten. Accept any event name that looks like a successful payment.
+    const eventName = String(payload.event || payload.type || 'payment').toLowerCase();
+    const paymentLike = /paid|success|completed|payment|order_created|new/.test(eventName);
+    if (!paymentLike) {
+      console.log('[Plug&Pay webhook] ignoring event:', eventName);
+      return jsonRes(res, 200, { ignored: true, event: eventName });
+    }
+
+    if (!email) {
+      return jsonRes(res, 400, { error: 'Missing email in payload' });
+    }
+
+    // Idempotent: skip if we already processed this order_id
+    if (orderId && supabaseHelper.isEnabled()) {
+      const existing = await supabaseHelper.getKlantByEmail(email);
+      if (existing && existing.plan_pay_order_id === orderId) {
+        return jsonRes(res, 200, { ok: true, duplicate: true, klant_id: existing.id });
+      }
+    }
+
+    // 1. Create (or fetch) Supabase auth user
+    const authRes = await supabaseHelper.createOrGetAuthUser(email, {
+      metadata: { naam, plan_pay_order_id: orderId },
+      emailConfirm: true,
+    });
+    if (!authRes.ok) {
+      console.error('[Plug&Pay webhook] auth create failed:', authRes.error);
+      return jsonRes(res, 500, { error: 'Auth user create failed: ' + authRes.error });
+    }
+
+    // 2. Create klant row
+    const klantRes = await supabaseHelper.createKlant({
+      email,
+      naam,
+      telefoon,
+      authUserId: authRes.id,
+      planPayOrderId: orderId,
+      planPayProductId: productId,
+    });
+    if (!klantRes.ok) {
+      console.error('[Plug&Pay webhook] klant create failed:', klantRes.error);
+      return jsonRes(res, 500, { error: 'Klant create failed: ' + klantRes.error });
+    }
+
+    // 3. Generate magic link for immediate login
+    const siteOrigin = process.env.SITE_ORIGIN || `https://${CANONICAL_HOST}`;
+    const linkRes = await supabaseHelper.generateMagicLink(
+      email,
+      `${siteOrigin}/klant/start`
+    );
+
+    console.log('[Plug&Pay webhook] klant aangemaakt:', email, 'id:', klantRes.klant.id);
+
+    return jsonRes(res, 200, {
+      ok: true,
+      klant_id: klantRes.klant.id,
+      auth_user_id: authRes.id,
+      new_user: authRes.created,
+      login_link: linkRes.ok ? linkRes.action_link : null,
+    });
+  }
+
+  // ===== KLANT API =====
+
+  // GET /api/klant/me — current klant profile (requires Supabase JWT in Authorization: Bearer)
+  if (pathname === '/api/klant/me' && req.method === 'GET') {
+    const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+    const user = await supabaseHelper.verifyUserToken(token);
+    if (!user) return jsonRes(res, 401, { error: 'Not logged in' });
+    const klant = await supabaseHelper.getKlantByAuthUserId(user.id);
+    if (!klant) return jsonRes(res, 404, { error: 'No klant profile found for this user' });
+    return jsonRes(res, 200, { klant });
+  }
+
+  // POST /api/klant/intake — save intake form (requires Supabase JWT)
+  if (pathname === '/api/klant/intake' && req.method === 'POST') {
+    const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+    const user = await supabaseHelper.verifyUserToken(token);
+    if (!user) return jsonRes(res, 401, { error: 'Not logged in' });
+    const klant = await supabaseHelper.getKlantByAuthUserId(user.id);
+    if (!klant) return jsonRes(res, 404, { error: 'No klant profile found' });
+
+    let intake;
+    try { intake = JSON.parse(await readBody(req)); }
+    catch { return jsonRes(res, 400, { error: 'Invalid JSON' }); }
+
+    const result = await supabaseHelper.saveIntake(klant.id, intake);
+    if (!result.ok) return jsonRes(res, 400, { error: result.error });
+    return jsonRes(res, 200, { ok: true, klant: result.klant });
+  }
+
+  // GET /api/klanten — admin list of klanten
+  if (pathname === '/api/klanten' && req.method === 'GET') {
+    if (!requireAuth(req, res)) return;
+    const klanten = await supabaseHelper.listKlanten();
+    return jsonRes(res, 200, klanten || []);
+  }
+
   // ===== API ROUTES =====
 
   // GET /api/leads — all leads (admin only)
+  // Prefers Supabase when available (canonical store going forward),
+  // falls back to the file-based store.
   if (pathname === '/api/leads' && req.method === 'GET') {
     if (!requireAuth(req, res)) return;
+    if (supabaseHelper.isEnabled()) {
+      const sbLeads = await supabaseHelper.listLeads();
+      if (sbLeads) {
+        // Map Supabase rows back to the shape the admin UI expects.
+        const mapped = sbLeads.map(l => ({
+          id: l.legacy_id || l.id,
+          supabase_id: l.id,
+          naam: l.naam,
+          email: l.email,
+          telefoon: l.telefoon,
+          instagram: l.instagram,
+          leeftijd: l.leeftijd,
+          doel_type: l.doel_type,
+          nummer_een_doel: l.nummer_een_doel,
+          obstakel: l.obstakel,
+          urgentie: l.urgentie,
+          budget: l.budget,
+          bereid: l.bereid,
+          lang: l.lang,
+          bron: l.bron,
+          utm_source: l.utm_source,
+          utm_medium: l.utm_medium,
+          utm_campaign: l.utm_campaign,
+          utm_content: l.utm_content,
+          referrer: l.referrer,
+          status: l.status,
+          notities: l.notities_julia,
+          timestamp: l.created_at,
+        }));
+        return jsonRes(res, 200, mapped);
+      }
+    }
     return jsonRes(res, 200, readLeads());
   }
 
@@ -344,10 +541,18 @@ const server = http.createServer(async (req, res) => {
       lead.timestamp = lead.timestamp || new Date().toISOString();
       lead.status = lead.status || 'nieuw';
 
-      // Append to JSONL log FIRST — this file is never rewritten, so even if
+      // 1. Append to JSONL log FIRST — this file is never rewritten, so even if
       // the main leads.json write fails or state is lost, the lead survives.
       appendLeadLog(lead);
 
+      // 2. Write to Supabase (primary store going forward).
+      //    Non-blocking on failure — file-write below is the safety net.
+      const sbResult = await supabaseHelper.saveLead(lead);
+      if (!sbResult.ok) {
+        console.warn('[POST /api/leads] Supabase write failed, file-only:', sbResult.error);
+      }
+
+      // 3. Write to file (legacy store — kept as fallback during migration).
       const leads = readLeads();
       if (leadExists(leads, lead.id)) {
         // Duplicate (client retry) — already persisted, treat as success
@@ -355,44 +560,72 @@ const server = http.createServer(async (req, res) => {
       }
       leads.push(lead);
       writeLeads(leads);
-      return jsonRes(res, 201, { success: true, id: lead.id });
+      return jsonRes(res, 201, { success: true, id: lead.id, supabase: sbResult.ok });
     } catch (e) {
       console.error('[POST /api/leads] write error:', e.message);
-      // Lead is already in the append-log — return 500 so client retries, but
-      // even if it never does, the lead is safe in leads-append.jsonl.
+      // Lead is already in the append-log + Supabase (if reachable) — file error
+      // is not fatal. Return 500 so client retries, but data is safe.
       return jsonRes(res, 500, { error: e.message });
     }
   }
 
-  // DELETE /api/leads/:id — remove lead
+  // DELETE /api/leads/:id — remove lead (both Supabase + file)
   if (pathname.startsWith('/api/leads/') && req.method === 'DELETE') {
     if (!requireAuth(req, res)) return;
     try {
-      const leadId = pathname.split('/').pop();
+      const leadId = decodeURIComponent(pathname.split('/').pop());
+
+      // Delete from Supabase (non-blocking)
+      if (supabaseHelper.isEnabled()) {
+        const r = await supabaseHelper.deleteLead(leadId);
+        if (!r.ok) console.warn('[DELETE lead] Supabase:', r.error);
+      }
+
+      // Delete from file (may miss leads that only live in Supabase — OK)
       const leads = readLeads();
       const idx = leads.findIndex(l => l.id === leadId);
-      if (idx === -1) return jsonRes(res, 404, { error: 'Lead not found' });
-      const removed = leads.splice(idx, 1)[0];
-      writeLeads(leads);
-      return jsonRes(res, 200, { success: true, id: removed.id });
+      if (idx !== -1) {
+        leads.splice(idx, 1);
+        writeLeads(leads);
+      }
+      return jsonRes(res, 200, { success: true, id: leadId });
     } catch (e) {
       return jsonRes(res, 500, { error: e.message });
     }
   }
 
-  // PUT /api/leads/:id — update lead
+  // PUT /api/leads/:id — update lead (both Supabase + file)
   if (pathname.startsWith('/api/leads/') && req.method === 'PUT') {
     if (!requireAuth(req, res)) return;
     try {
-      const leadId = pathname.split('/').pop();
+      const leadId = decodeURIComponent(pathname.split('/').pop());
       const body = await readBody(req);
       const updates = JSON.parse(body);
+
+      // Patch for Supabase — map legacy field names to schema columns
+      const sbPatch = {};
+      if (updates.naam !== undefined) sbPatch.naam = updates.naam;
+      if (updates.email !== undefined) sbPatch.email = updates.email;
+      if (updates.telefoon !== undefined) sbPatch.telefoon = updates.telefoon;
+      if (updates.instagram !== undefined) sbPatch.instagram = updates.instagram;
+      if (updates.status !== undefined) sbPatch.status = updates.status;
+      if (updates.notities !== undefined) sbPatch.notities_julia = updates.notities;
+
+      if (supabaseHelper.isEnabled() && Object.keys(sbPatch).length) {
+        const r = await supabaseHelper.updateLead(leadId, sbPatch);
+        if (!r.ok) console.warn('[PUT lead] Supabase:', r.error);
+      }
+
+      // Update file (legacy)
       const leads = readLeads();
       const idx = leads.findIndex(l => l.id === leadId);
-      if (idx === -1) return jsonRes(res, 404, { error: 'Lead not found' });
-      Object.assign(leads[idx], updates);
-      writeLeads(leads);
-      return jsonRes(res, 200, { success: true, lead: leads[idx] });
+      let updated = null;
+      if (idx !== -1) {
+        Object.assign(leads[idx], updates);
+        writeLeads(leads);
+        updated = leads[idx];
+      }
+      return jsonRes(res, 200, { success: true, lead: updated || { id: leadId, ...updates } });
     } catch (e) {
       return jsonRes(res, 400, { error: e.message });
     }
@@ -544,9 +777,23 @@ const server = http.createServer(async (req, res) => {
     pathname === `/${ADMIN_SLUG}/` ||
     pathname === `/${ADMIN_SLUG}.html`;
 
+  // Klant routes — pretty URLs that map to real HTML files
+  const klantRouteMap = {
+    '/klant/login': '/klant-login.html',
+    '/klant/login/': '/klant-login.html',
+    '/klant/start': '/klant-start.html',
+    '/klant/start/': '/klant-start.html',
+    '/klant/intake': '/klant-intake.html',
+    '/klant/intake/': '/klant-intake.html',
+    '/klant': '/klant-start.html',
+    '/klant/': '/klant-start.html',
+  };
+
   let filePath;
   if (isAdminSlug) {
     filePath = getSession(req) ? '/admin.html' : '/login.html';
+  } else if (klantRouteMap[pathname]) {
+    filePath = klantRouteMap[pathname];
   } else {
     filePath = pathname === '/' ? '/index.html' : decodeURIComponent(pathname);
   }

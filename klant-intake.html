@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Intake · Julia Besten</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif; color: #1F2937; min-height: 100vh;
+      background: linear-gradient(135deg, #FFF1F7 0%, #FFE4EF 50%, #FFEDE4 100%);
+      padding: 24px 16px;
+    }
+    .wrap { max-width: 640px; margin: 0 auto; }
+    .card {
+      background: #fff; border-radius: 24px; padding: 32px 28px;
+      box-shadow: 0 20px 60px rgba(233, 30, 140, 0.12);
+    }
+    .brand { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: #E91E8C; text-align: center; margin-bottom: 4px; }
+    .tag { text-align: center; color: #6B7280; font-size: 13px; margin-bottom: 24px; }
+    h1 { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; text-align: center; margin-bottom: 6px; color: #1F2937; }
+    .intro { text-align: center; color: #6B7280; font-size: 14px; line-height: 1.6; margin-bottom: 28px; }
+
+    .section { margin-bottom: 28px; }
+    .section-title { font-size: 15px; font-weight: 600; color: #1F2937; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+    .section-title .num { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: #FCE7F3; color: #E91E8C; font-size: 12px; font-weight: 700; }
+
+    .field { margin-bottom: 14px; }
+    label { display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px; }
+    input[type=number], input[type=text], textarea, select {
+      width: 100%; padding: 12px 14px; border: 1.5px solid #E5E7EB; border-radius: 10px;
+      font-size: 15px; font-family: inherit; transition: border-color 0.2s; background: #fff;
+    }
+    input:focus, textarea:focus, select:focus { outline: none; border-color: #E91E8C; }
+    textarea { min-height: 80px; resize: vertical; }
+
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .choice {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 14px 10px; border: 1.5px solid #E5E7EB; border-radius: 12px; cursor: pointer;
+      text-align: center; transition: all 0.15s; font-size: 13.5px; font-weight: 500;
+      line-height: 1.3; min-height: 74px;
+    }
+    .choice .emoji { font-size: 22px; margin-bottom: 6px; }
+    .choice input { display: none; }
+    .choice:hover { border-color: #F9A8D4; }
+    .choice.selected { border-color: #E91E8C; background: #FFF1F7; color: #E91E8C; }
+
+    .choices-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+    button.submit {
+      width: 100%; padding: 15px 20px; background: #E91E8C; color: #fff;
+      border: none; border-radius: 12px; font-size: 15px; font-weight: 600;
+      cursor: pointer; font-family: inherit; margin-top: 8px;
+    }
+    button.submit:hover { background: #D01680; }
+    button.submit:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .msg { padding: 12px 14px; border-radius: 10px; font-size: 14px; margin-bottom: 16px; line-height: 1.5; display: none; }
+    .msg.error { background: #FEE2E2; color: #991B1B; display: block; }
+    .msg.info { background: #DBEAFE; color: #1E40AF; display: block; }
+
+    .loader { display: flex; justify-content: center; padding: 40px 0; }
+    .spinner { width: 32px; height: 32px; border: 3px solid #FCE7F3; border-top-color: #E91E8C; border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .help { font-size: 12px; color: #9CA3AF; margin-top: 4px; }
+
+    @media (max-width: 480px) {
+      .card { padding: 24px 20px; }
+      .choices { grid-template-columns: 1fr; }
+      .choices-3 { grid-template-columns: 1fr 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="brand">Julia Besten</div>
+      <div class="tag">1-op-1 coaching voor vrouwen</div>
+      <div id="content">
+        <div class="loader"><div class="spinner"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+    const cfg = await (await fetch('/api/config')).json();
+    const supabase = createClient(cfg.supabase_url, cfg.supabase_anon_key);
+    const content = document.getElementById('content');
+
+    // 1. Auth check
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      window.location.href = '/klant/login';
+      throw new Error('no session');
+    }
+
+    // 2. Verify klant exists
+    const meRes = await fetch('/api/klant/me', {
+      headers: { Authorization: 'Bearer ' + session.access_token },
+    });
+    if (meRes.status === 404) {
+      content.innerHTML = `
+        <h1>Welkom</h1>
+        <div class="msg error" style="display:block;">Er is nog geen klant-profiel voor deze email. Als je net betaald hebt, probeer het over een minuutje opnieuw.</div>
+        <a href="mailto:julia@juliabesten.nl" style="display:block;text-align:center;margin-top:16px;color:#E91E8C;">Mail Julia</a>
+      `;
+      throw new Error('no klant');
+    }
+    const { klant } = await meRes.json();
+
+    // 3. If intake already complete, bounce to dashboard
+    if (klant.doel && klant.start_gewicht_kg && klant.status !== 'onboarding') {
+      window.location.href = '/klant/start';
+      throw new Error('already done');
+    }
+
+    // 4. Render the intake form
+    const naam = (klant.naam || '').split(' ')[0] || 'daar';
+    content.innerHTML = `
+      <h1>Welkom, ${naam}!</h1>
+      <p class="intro">Vul dit formulier in zodat Julia jouw plan op maat kan maken. Duurt ongeveer 3 minuten.</p>
+
+      <div id="err" class="msg"></div>
+
+      <form id="intakeForm">
+        <div class="section">
+          <div class="section-title"><span class="num">1</span> Wat is jouw hoofddoel?</div>
+          <div class="choices">
+            <label class="choice"><input type="radio" name="doel" value="afvallen"><span class="emoji">🔥</span>Afvallen</label>
+            <label class="choice"><input type="radio" name="doel" value="billen_aankomen"><span class="emoji">🍑</span>Billen aankomen</label>
+            <label class="choice"><input type="radio" name="doel" value="gespierd_aankomen"><span class="emoji">💪</span>Gespierd aankomen</label>
+            <label class="choice"><input type="radio" name="doel" value="slanker_worden"><span class="emoji">✨</span>Slanker worden</label>
+            <label class="choice"><input type="radio" name="doel" value="recomposition"><span class="emoji">⚖️</span>Vet kwijt + spieren erbij</label>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title"><span class="num">2</span> Jouw gegevens</div>
+          <div class="row">
+            <div class="field">
+              <label for="start_gewicht_kg">Huidig gewicht (kg)</label>
+              <input type="number" id="start_gewicht_kg" name="start_gewicht_kg" step="0.1" min="30" max="200" required>
+            </div>
+            <div class="field">
+              <label for="doel_gewicht_kg">Doel gewicht (kg)</label>
+              <input type="number" id="doel_gewicht_kg" name="doel_gewicht_kg" step="0.1" min="30" max="200">
+              <div class="help">Laat leeg als geen exact doel</div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="field">
+              <label for="lengte_cm">Lengte (cm)</label>
+              <input type="number" id="lengte_cm" name="lengte_cm" min="140" max="210" required>
+            </div>
+            <div class="field">
+              <label for="leeftijd">Leeftijd</label>
+              <input type="number" id="leeftijd" name="leeftijd" min="16" max="80" required>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title"><span class="num">3</span> Training</div>
+          <div class="field">
+            <label>Waar train je?</label>
+            <div class="choices choices-3">
+              <label class="choice"><input type="radio" name="training_locatie" value="thuis" required><span class="emoji">🏠</span>Thuis</label>
+              <label class="choice"><input type="radio" name="training_locatie" value="gym"><span class="emoji">🏋🏼‍♀️</span>Sportschool</label>
+              <label class="choice"><input type="radio" name="training_locatie" value="beide"><span class="emoji">↔️</span>Beide</label>
+            </div>
+          </div>
+          <div class="row">
+            <div class="field">
+              <label for="trainingsdagen_per_week">Dagen per week</label>
+              <select id="trainingsdagen_per_week" name="trainingsdagen_per_week" required>
+                <option value="">Kies...</option>
+                <option value="2">2 dagen</option>
+                <option value="3">3 dagen</option>
+                <option value="4">4 dagen</option>
+                <option value="5">5 dagen</option>
+                <option value="6">6 dagen</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="ervaring_niveau">Ervaring</label>
+              <select id="ervaring_niveau" name="ervaring_niveau" required>
+                <option value="">Kies...</option>
+                <option value="beginner">Beginner (&lt; 6 maanden)</option>
+                <option value="gemiddeld">Gemiddeld (6 mnd - 2 jaar)</option>
+                <option value="gevorderd">Gevorderd (2+ jaar)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title"><span class="num">4</span> Nog iets om te weten?</div>
+          <div class="field">
+            <label for="allergieen">Allergieën, blessures of voedingsvoorkeuren</label>
+            <textarea id="allergieen" name="allergieen" placeholder="Bijv: lactose-intolerant, knie-blessure, vegetarisch... of niets"></textarea>
+          </div>
+        </div>
+
+        <button type="submit" class="submit" id="submitBtn">Verstuur intake →</button>
+      </form>
+    `;
+
+    // Radio card selection styling
+    document.querySelectorAll('.choice input').forEach(input => {
+      input.addEventListener('change', () => {
+        const name = input.name;
+        document.querySelectorAll(`.choice input[name="${name}"]`).forEach(i => {
+          i.closest('.choice').classList.toggle('selected', i.checked);
+        });
+      });
+    });
+
+    // Form submit
+    document.getElementById('intakeForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const btn = document.getElementById('submitBtn');
+      const err = document.getElementById('err');
+      err.className = 'msg';
+      err.textContent = '';
+      btn.disabled = true;
+      btn.textContent = 'Versturen...';
+
+      const fd = new FormData(form);
+      const doel = fd.get('doel');
+      const training_locatie = fd.get('training_locatie');
+      if (!doel) {
+        err.className = 'msg error';
+        err.textContent = 'Kies een hoofddoel.';
+        btn.disabled = false;
+        btn.textContent = 'Verstuur intake →';
+        return;
+      }
+      if (!training_locatie) {
+        err.className = 'msg error';
+        err.textContent = 'Kies waar je traint.';
+        btn.disabled = false;
+        btn.textContent = 'Verstuur intake →';
+        return;
+      }
+
+      const payload = {
+        doel,
+        start_gewicht_kg: parseFloat(fd.get('start_gewicht_kg')) || null,
+        doel_gewicht_kg: fd.get('doel_gewicht_kg') ? parseFloat(fd.get('doel_gewicht_kg')) : null,
+        lengte_cm: parseInt(fd.get('lengte_cm'), 10) || null,
+        leeftijd: parseInt(fd.get('leeftijd'), 10) || null,
+        training_locatie,
+        trainingsdagen_per_week: parseInt(fd.get('trainingsdagen_per_week'), 10) || null,
+        ervaring_niveau: fd.get('ervaring_niveau') || null,
+        allergieen: (fd.get('allergieen') || '').trim() || null,
+      };
+
+      try {
+        const r = await fetch('/api/klant/intake', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer ' + session.access_token,
+          },
+          body: JSON.stringify(payload),
+        });
+        if (!r.ok) {
+          const j = await r.json().catch(() => ({}));
+          throw new Error(j.error || 'Er ging iets mis');
+        }
+        window.location.href = '/klant/start';
+      } catch (ex) {
+        err.className = 'msg error';
+        err.textContent = 'Er ging iets mis: ' + ex.message;
+        btn.disabled = false;
+        btn.textContent = 'Verstuur intake →';
+      }
+    });
+  </script>
+</body>
+</html>

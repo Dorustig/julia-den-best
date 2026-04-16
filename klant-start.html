@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Welkom · Julia Besten</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif; color: #1F2937; min-height: 100vh;
+      background: linear-gradient(135deg, #FFF1F7 0%, #FFE4EF 50%, #FFEDE4 100%);
+      display: flex; align-items: center; justify-content: center; padding: 24px;
+    }
+    .card {
+      background: #fff; border-radius: 24px; padding: 40px 32px;
+      max-width: 520px; width: 100%;
+      box-shadow: 0 20px 60px rgba(233, 30, 140, 0.12);
+    }
+    .brand { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; color: #E91E8C; text-align: center; margin-bottom: 6px; }
+    .tag { text-align: center; color: #6B7280; font-size: 13px; margin-bottom: 32px; }
+    h1 { font-size: 22px; font-weight: 600; margin-bottom: 8px; text-align: center; }
+    p { color: #4B5563; font-size: 14px; line-height: 1.6; text-align: center; }
+    .loader { display: flex; justify-content: center; padding: 40px 0; }
+    .spinner { width: 36px; height: 36px; border: 3px solid #FCE7F3; border-top-color: #E91E8C; border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .btn { display: block; width: 100%; text-align: center; margin-top: 20px; padding: 14px 20px; background: #E91E8C; color: #fff; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; text-decoration: none; font-family: inherit; }
+    .btn:hover { background: #D01680; }
+    .msg { padding: 14px; border-radius: 10px; font-size: 14px; margin: 16px 0; line-height: 1.5; }
+    .msg.error { background: #FEE2E2; color: #991B1B; }
+    .welcome { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; color: #E91E8C; text-align: center; margin-bottom: 16px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="brand">Julia Besten</div>
+    <div class="tag">1-op-1 coaching voor vrouwen</div>
+    <div id="content" class="loader"><div class="spinner"></div></div>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+    const cfg = await (await fetch('/api/config')).json();
+    const supabase = createClient(cfg.supabase_url, cfg.supabase_anon_key);
+    const content = document.getElementById('content');
+
+    function render(html) { content.className = ''; content.innerHTML = html; }
+
+    // 1. Check session — Supabase SDK reads access_token from URL hash on magic-link landing
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (!session) {
+      render(`
+        <h1>Je bent niet ingelogd</h1>
+        <p>Log eerst in met je email om door te gaan.</p>
+        <a href="/klant/login" class="btn">Naar inloggen</a>
+      `);
+    } else {
+      // 2. Fetch klant profile from our backend
+      const r = await fetch('/api/klant/me', {
+        headers: { Authorization: 'Bearer ' + session.access_token },
+      });
+      if (r.status === 404) {
+        render(`
+          <h1>Welkom</h1>
+          <div class="msg error">Er is nog geen klant-profiel voor deze email. Als je net betaald hebt, probeer het over een minuutje opnieuw. Anders: neem contact op met Julia.</div>
+          <a href="mailto:julia@juliabesten.nl" class="btn">Stuur Julia een mailtje</a>
+        `);
+      } else if (!r.ok) {
+        render(`<h1>Er ging iets mis</h1><p>Probeer het opnieuw, of log uit en weer in.</p><a href="/klant/login" class="btn">Opnieuw inloggen</a>`);
+      } else {
+        const { klant } = await r.json();
+        if (klant.status === 'onboarding' || !klant.doel || !klant.start_gewicht_kg) {
+          // Intake nog niet ingevuld
+          window.location.href = '/klant/intake';
+          return;
+        }
+        // Intake klaar — placeholder dashboard (Fase 2 maakt dit af)
+        const weken = Math.max(1, Math.ceil(
+          (Date.now() - new Date(klant.start_datum).getTime()) / (7 * 24 * 60 * 60 * 1000)
+        ));
+        const weekNum = Math.min(weken, 16);
+        render(`
+          <div class="welcome">Welkom, ${klant.naam}! ✨</div>
+          <p style="margin-bottom: 20px;">Je bent in <strong>week ${weekNum} van 16</strong>.<br>Het volledige klant-panel (video's, check-ins, progressie) komt er zo snel mogelijk aan — je krijgt een mailtje zodra dat live staat.</p>
+          <p style="font-size:13px;color:#9CA3AF;">Voor nu: neem contact op met Julia via WhatsApp of email voor je dagelijkse updates.</p>
+          <button class="btn" onclick="logout()">Uitloggen</button>
+        `);
+      }
+    }
+
+    window.logout = async () => {
+      await supabase.auth.signOut();
+      window.location.href = '/klant/login';
+    };
+  </script>
+</body>
+</html>
