@@ -79,6 +79,47 @@
     .msg.error { background: #FEE2E2; color: #991B1B; }
     .msg.info { background: #DBEAFE; color: #1E40AF; }
 
+    /* Markdown rendering (training + voeding) */
+    .md-render { font-size: 14px; line-height: 1.6; color: #1F2937; }
+    .md-render h1, .md-render h2, .md-render h3 {
+      font-family: 'Playfair Display', serif;
+      margin-top: 14px; margin-bottom: 6px; line-height: 1.25;
+    }
+    .md-render h1 { font-size: 20px; font-weight: 700; }
+    .md-render h2 { font-size: 17px; font-weight: 700; color: #E91E8C; }
+    .md-render h3 { font-size: 15px; font-weight: 600; }
+    .md-render p { margin: 6px 0; }
+    .md-render ul { padding-left: 18px; margin: 6px 0; }
+    .md-render li { margin: 3px 0; }
+    .md-render strong { font-weight: 600; color: #1F2937; }
+    .md-render em { font-style: italic; color: #6B7280; }
+    .md-render code {
+      background: #F3F4F6; padding: 1px 6px; border-radius: 4px;
+      font-family: 'SF Mono', Menlo, monospace; font-size: 12.5px;
+    }
+    .md-render hr { border: none; border-top: 1px solid #F3F4F6; margin: 14px 0; }
+
+    /* Macro's pill */
+    .macro-pills { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+    .macro-pill {
+      background: #FFF1F7; color: #BE185D; padding: 7px 12px; border-radius: 20px;
+      font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 4px;
+    }
+    .macro-pill .val { color: #E91E8C; font-family: 'Playfair Display', serif; font-size: 15px; }
+
+    /* Weken accordion (training) */
+    .weken-list { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 10px; }
+    .weken-list .wk-btn {
+      text-align: center; padding: 10px 6px; border-radius: 10px;
+      background: #F9FAFB; color: #9CA3AF; font-size: 13px; font-weight: 600;
+      border: 1px solid #F3F4F6; cursor: pointer; font-family: inherit;
+      transition: all 0.15s;
+    }
+    .weken-list .wk-btn:hover { background: #FFF1F7; color: #E91E8C; }
+    .weken-list .wk-btn.has-content { background: #FDF2F8; color: #BE185D; border-color: #FBCFE8; }
+    .weken-list .wk-btn.current { background: #E91E8C; color: #fff; border-color: #E91E8C; }
+    .empty-plan { text-align: center; color: #9CA3AF; padding: 20px 0; font-size: 14px; }
+
     /* Foto thumbnails op de check-in historiek */
     .foto-thumbs { display: flex; gap: 6px; margin-top: 8px; }
     .foto-thumb {
@@ -206,9 +247,12 @@
         return;
       }
 
-      const [r, cr] = await Promise.all([
-        fetch('/api/klant/me', { headers: { Authorization: 'Bearer ' + session.access_token } }),
-        fetch('/api/klant/checkins', { headers: { Authorization: 'Bearer ' + session.access_token } }),
+      const authHdr = { Authorization: 'Bearer ' + session.access_token };
+      const [r, cr, tr, vr] = await Promise.all([
+        fetch('/api/klant/me', { headers: authHdr }),
+        fetch('/api/klant/checkins', { headers: authHdr }),
+        fetch('/api/klant/training-schemas', { headers: authHdr }),
+        fetch('/api/klant/voeding-plan', { headers: authHdr }),
       ]);
 
       if (r.status === 404) {
@@ -225,6 +269,9 @@
 
       const { klant } = await r.json();
       const checkins = (cr && cr.ok ? (await cr.json()).check_ins : []) || [];
+      const trainingSchemas = (tr && tr.ok ? (await tr.json()).schemas : []) || [];
+      const voedingPlan = (vr && vr.ok ? (await vr.json()).plan : null);
+      window.__trainingSchemas = trainingSchemas;
 
       // Niet klaar met intake? Doorsturen.
       if (klant.status === 'onboarding' || !klant.doel || !klant.start_gewicht_kg) {
@@ -314,6 +361,9 @@
         <a href="/klant/checkin" class="cta-btn" style="margin-bottom:12px;">${thisWeekCheckIn ? '✨ Check-in updaten' : '📸 Doe je wekelijkse check-in'}</a>
         <a href="mailto:julia@juliabesten.nl" class="cta-btn secondary" style="margin-bottom:24px;">💬 Bericht naar Julia</a>
 
+        ${renderTrainingCard(trainingSchemas, weekNum)}
+        ${renderVoedingCard(voedingPlan)}
+
         ${checkins.length > 0 ? `
         <div class="section-title">Check-in historiek</div>
         <div class="card" style="padding:8px 0;margin-bottom:20px;">
@@ -386,6 +436,137 @@
           willDown,
         });
       }
+    }
+
+    // ===== Simpele markdown renderer =====
+    // Ondersteunt: # ## ### headers, - * lijsten, **bold**, *italic*, `code`, blank lines → paragraphs
+    function renderMarkdown(md) {
+      if (!md) return '';
+      const escape = (s) => s.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+      const lines = String(md).replace(/\r\n/g, '\n').split('\n');
+      const out = [];
+      let inList = false;
+      const flushList = () => { if (inList) { out.push('</ul>'); inList = false; } };
+      for (let raw of lines) {
+        const line = raw.trimEnd();
+        if (!line.trim()) { flushList(); continue; }
+        // Headers
+        let m;
+        if ((m = line.match(/^###\s+(.*)$/))) { flushList(); out.push(`<h3>${inline(m[1])}</h3>`); continue; }
+        if ((m = line.match(/^##\s+(.*)$/)))  { flushList(); out.push(`<h2>${inline(m[1])}</h2>`); continue; }
+        if ((m = line.match(/^#\s+(.*)$/)))   { flushList(); out.push(`<h1>${inline(m[1])}</h1>`); continue; }
+        // HR
+        if (/^---+$/.test(line.trim())) { flushList(); out.push('<hr>'); continue; }
+        // Lijst item
+        if ((m = line.match(/^\s*[-*]\s+(.*)$/))) {
+          if (!inList) { out.push('<ul>'); inList = true; }
+          out.push(`<li>${inline(m[1])}</li>`);
+          continue;
+        }
+        // Anders: paragraaf
+        flushList();
+        out.push(`<p>${inline(line)}</p>`);
+      }
+      flushList();
+      function inline(s) {
+        // escape eerst
+        s = escape(s);
+        // **bold**
+        s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+        // *italic*
+        s = s.replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<em>$2</em>');
+        // `code`
+        s = s.replace(/`([^`]+)`/g, '<code>$1</code>');
+        return s;
+      }
+      return out.join('\n');
+    }
+
+    // ===== Training card =====
+    function renderTrainingCard(schemas, currentWeek) {
+      const byWeek = {};
+      (schemas || []).forEach(s => { byWeek[s.week_nr] = s; });
+      const hasAny = Object.keys(byWeek).length > 0;
+      const current = byWeek[currentWeek];
+
+      const weekButtons = Array.from({ length: 16 }, (_, i) => {
+        const wk = i + 1;
+        const has = !!byWeek[wk];
+        const cur = wk === currentWeek;
+        return `<button class="wk-btn ${has ? 'has-content' : ''} ${cur ? 'current' : ''}"
+                  onclick="showTrainingWeek(${wk})">${wk}</button>`;
+      }).join('');
+
+      return `
+        <div class="section-title">🏋️ Jouw training</div>
+        <div class="card" style="margin-bottom:16px;">
+          <div id="trainingDisplay">
+            ${current ? `
+              <div style="font-family:'Playfair Display',serif;font-weight:700;font-size:18px;margin-bottom:8px;">
+                Week ${currentWeek}${current.titel ? ' · ' + escapeHtml(current.titel) : ''}
+              </div>
+              <div class="md-render">${renderMarkdown(current.content_markdown)}</div>
+            ` : hasAny ? `
+              <div class="empty-plan">📌 Deze week staat nog geen schema klaar. Klik op een week hieronder om eentje te bekijken.</div>
+            ` : `
+              <div class="empty-plan">🏋️ Julia zet hier binnenkort je trainingsschema.<br><span style="font-size:12px;color:#9CA3AF;">Je ziet 'm zodra het klaar staat.</span></div>
+            `}
+          </div>
+          ${hasAny ? `
+            <div style="margin-top:14px;">
+              <div style="font-size:12px;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;">Alle weken</div>
+              <div class="weken-list">${weekButtons}</div>
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }
+
+    window.showTrainingWeek = function(wk) {
+      const schemas = window.__trainingSchemas || [];
+      const s = schemas.find(x => x.week_nr === wk);
+      const display = document.getElementById('trainingDisplay');
+      if (!display) return;
+      if (!s) {
+        display.innerHTML = `<div class="empty-plan">📌 Week ${wk} is nog niet ingevuld.</div>`;
+        return;
+      }
+      display.innerHTML = `
+        <div style="font-family:'Playfair Display',serif;font-weight:700;font-size:18px;margin-bottom:8px;">
+          Week ${wk}${s.titel ? ' · ' + escapeHtml(s.titel) : ''}
+        </div>
+        <div class="md-render">${renderMarkdown(s.content_markdown)}</div>
+      `;
+      // Update current highlight
+      document.querySelectorAll('.weken-list .wk-btn').forEach((btn, i) => {
+        btn.classList.toggle('current', i + 1 === wk);
+      });
+    };
+
+    // ===== Voeding card =====
+    function renderVoedingCard(plan) {
+      if (!plan) {
+        return `
+          <div class="section-title">🥗 Jouw voeding</div>
+          <div class="card" style="margin-bottom:16px;">
+            <div class="empty-plan">🥗 Julia stelt binnenkort je voedingsplan op.<br><span style="font-size:12px;color:#9CA3AF;">Je ziet 'm zodra het klaar staat.</span></div>
+          </div>
+        `;
+      }
+      const pills = [
+        plan.calories != null && `<div class="macro-pill"><span class="val">${plan.calories}</span>kcal</div>`,
+        plan.eiwit_g != null && `<div class="macro-pill">Eiwit <span class="val">${plan.eiwit_g}</span>g</div>`,
+        plan.koolhydraten_g != null && `<div class="macro-pill">Koolh. <span class="val">${plan.koolhydraten_g}</span>g</div>`,
+        plan.vetten_g != null && `<div class="macro-pill">Vet <span class="val">${plan.vetten_g}</span>g</div>`,
+      ].filter(Boolean).join('');
+      return `
+        <div class="section-title">🥗 Jouw voeding</div>
+        <div class="card" style="margin-bottom:16px;">
+          ${plan.titel ? `<div style="font-family:'Playfair Display',serif;font-weight:700;font-size:18px;margin-bottom:10px;">${escapeHtml(plan.titel)}</div>` : ''}
+          ${pills ? `<div class="macro-pills">${pills}</div>` : ''}
+          ${plan.content_markdown ? `<div class="md-render">${renderMarkdown(plan.content_markdown)}</div>` : ''}
+        </div>
+      `;
     }
 
     function drawChart(el, { startGewicht, doelGewicht, checkIns, willDown }) {

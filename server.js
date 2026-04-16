@@ -584,6 +584,180 @@ const server = http.createServer(async (req, res) => {
     return jsonRes(res, 200, klanten || []);
   }
 
+  // =============================================================
+  // TRAINING — templates + schema's per klant/week (Fase 2.4)
+  // =============================================================
+
+  // GET /api/admin/training-templates
+  if (pathname === '/api/admin/training-templates' && req.method === 'GET') {
+    if (!requireAuth(req, res)) return;
+    const rows = await supabaseHelper.listTrainingTemplates();
+    return jsonRes(res, 200, { templates: rows || [] });
+  }
+
+  // POST /api/admin/training-templates — create
+  if (pathname === '/api/admin/training-templates' && req.method === 'POST') {
+    if (!requireAuth(req, res)) return;
+    let body;
+    try { body = JSON.parse(await readBody(req)); }
+    catch { return jsonRes(res, 400, { error: 'Invalid JSON' }); }
+    const r = await supabaseHelper.saveTrainingTemplate(body);
+    if (!r.ok) return jsonRes(res, 400, { error: r.error });
+    return jsonRes(res, 200, { ok: true, template: r.template });
+  }
+
+  // PUT/DELETE /api/admin/training-templates/:id
+  {
+    const m = pathname.match(/^\/api\/admin\/training-templates\/([0-9a-f-]+)$/i);
+    if (m) {
+      if (!requireAuth(req, res)) return;
+      const id = m[1];
+      if (req.method === 'PUT') {
+        let body;
+        try { body = JSON.parse(await readBody(req)); }
+        catch { return jsonRes(res, 400, { error: 'Invalid JSON' }); }
+        const r = await supabaseHelper.saveTrainingTemplate({ ...body, id });
+        if (!r.ok) return jsonRes(res, 400, { error: r.error });
+        return jsonRes(res, 200, { ok: true, template: r.template });
+      }
+      if (req.method === 'DELETE') {
+        const r = await supabaseHelper.deleteTrainingTemplate(id);
+        if (!r.ok) return jsonRes(res, 400, { error: r.error });
+        return jsonRes(res, 200, { ok: true });
+      }
+    }
+  }
+
+  // GET /api/admin/klanten/:klantId/training-schemas
+  {
+    const m = pathname.match(/^\/api\/admin\/klanten\/([0-9a-f-]+)\/training-schemas$/i);
+    if (m && req.method === 'GET') {
+      if (!requireAuth(req, res)) return;
+      const rows = await supabaseHelper.listTrainingSchemas(m[1]);
+      return jsonRes(res, 200, { schemas: rows || [] });
+    }
+  }
+
+  // PUT/DELETE /api/admin/klanten/:klantId/training-schemas/:weekNr
+  {
+    const m = pathname.match(/^\/api\/admin\/klanten\/([0-9a-f-]+)\/training-schemas\/(\d+)$/i);
+    if (m) {
+      if (!requireAuth(req, res)) return;
+      const klantId = m[1];
+      const weekNr = parseInt(m[2], 10);
+      if (req.method === 'PUT') {
+        let body;
+        try { body = JSON.parse(await readBody(req)); }
+        catch { return jsonRes(res, 400, { error: 'Invalid JSON' }); }
+        const r = await supabaseHelper.saveTrainingSchema({
+          klantId, weekNr,
+          titel: body.titel,
+          content_markdown: body.content_markdown,
+          template_id: body.template_id || null,
+        });
+        if (!r.ok) return jsonRes(res, 400, { error: r.error });
+        return jsonRes(res, 200, { ok: true, schema: r.schema });
+      }
+      if (req.method === 'DELETE') {
+        const r = await supabaseHelper.deleteTrainingSchema(klantId, weekNr);
+        if (!r.ok) return jsonRes(res, 400, { error: r.error });
+        return jsonRes(res, 200, { ok: true });
+      }
+    }
+  }
+
+  // GET /api/klant/training-schemas — klant leest eigen schemas (JWT)
+  if (pathname === '/api/klant/training-schemas' && req.method === 'GET') {
+    const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+    const user = await supabaseHelper.verifyUserToken(token);
+    if (!user) return jsonRes(res, 401, { error: 'Not logged in' });
+    const klant = await supabaseHelper.getKlantByAuthUserId(user.id);
+    if (!klant) return jsonRes(res, 404, { error: 'No klant profile found' });
+    const rows = await supabaseHelper.listTrainingSchemas(klant.id);
+    return jsonRes(res, 200, { schemas: rows || [] });
+  }
+
+  // =============================================================
+  // VOEDING — templates + plan per klant (Fase 2.4)
+  // =============================================================
+
+  // GET /api/admin/voeding-templates
+  if (pathname === '/api/admin/voeding-templates' && req.method === 'GET') {
+    if (!requireAuth(req, res)) return;
+    const rows = await supabaseHelper.listVoedingTemplates();
+    return jsonRes(res, 200, { templates: rows || [] });
+  }
+
+  // POST /api/admin/voeding-templates — create
+  if (pathname === '/api/admin/voeding-templates' && req.method === 'POST') {
+    if (!requireAuth(req, res)) return;
+    let body;
+    try { body = JSON.parse(await readBody(req)); }
+    catch { return jsonRes(res, 400, { error: 'Invalid JSON' }); }
+    const r = await supabaseHelper.saveVoedingTemplate(body);
+    if (!r.ok) return jsonRes(res, 400, { error: r.error });
+    return jsonRes(res, 200, { ok: true, template: r.template });
+  }
+
+  // PUT/DELETE /api/admin/voeding-templates/:id
+  {
+    const m = pathname.match(/^\/api\/admin\/voeding-templates\/([0-9a-f-]+)$/i);
+    if (m) {
+      if (!requireAuth(req, res)) return;
+      const id = m[1];
+      if (req.method === 'PUT') {
+        let body;
+        try { body = JSON.parse(await readBody(req)); }
+        catch { return jsonRes(res, 400, { error: 'Invalid JSON' }); }
+        const r = await supabaseHelper.saveVoedingTemplate({ ...body, id });
+        if (!r.ok) return jsonRes(res, 400, { error: r.error });
+        return jsonRes(res, 200, { ok: true, template: r.template });
+      }
+      if (req.method === 'DELETE') {
+        const r = await supabaseHelper.deleteVoedingTemplate(id);
+        if (!r.ok) return jsonRes(res, 400, { error: r.error });
+        return jsonRes(res, 200, { ok: true });
+      }
+    }
+  }
+
+  // GET/PUT/DELETE /api/admin/klanten/:klantId/voeding-plan
+  {
+    const m = pathname.match(/^\/api\/admin\/klanten\/([0-9a-f-]+)\/voeding-plan$/i);
+    if (m) {
+      if (!requireAuth(req, res)) return;
+      const klantId = m[1];
+      if (req.method === 'GET') {
+        const plan = await supabaseHelper.getVoedingPlan(klantId);
+        return jsonRes(res, 200, { plan: plan || null });
+      }
+      if (req.method === 'PUT') {
+        let body;
+        try { body = JSON.parse(await readBody(req)); }
+        catch { return jsonRes(res, 400, { error: 'Invalid JSON' }); }
+        const r = await supabaseHelper.saveVoedingPlan({ ...body, klantId });
+        if (!r.ok) return jsonRes(res, 400, { error: r.error });
+        return jsonRes(res, 200, { ok: true, plan: r.plan });
+      }
+      if (req.method === 'DELETE') {
+        const r = await supabaseHelper.deleteVoedingPlan(klantId);
+        if (!r.ok) return jsonRes(res, 400, { error: r.error });
+        return jsonRes(res, 200, { ok: true });
+      }
+    }
+  }
+
+  // GET /api/klant/voeding-plan — klant leest eigen voedingsplan (JWT)
+  if (pathname === '/api/klant/voeding-plan' && req.method === 'GET') {
+    const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+    const user = await supabaseHelper.verifyUserToken(token);
+    if (!user) return jsonRes(res, 401, { error: 'Not logged in' });
+    const klant = await supabaseHelper.getKlantByAuthUserId(user.id);
+    if (!klant) return jsonRes(res, 404, { error: 'No klant profile found' });
+    const plan = await supabaseHelper.getVoedingPlan(klant.id);
+    return jsonRes(res, 200, { plan: plan || null });
+  }
+
   // POST /api/admin/klanten — manually create a klant (for testing or for
   // clients who bought outside Plug&Pay). Creates auth user + klanten row
   // and returns a magic-link URL that can be copied/mailed to the client.

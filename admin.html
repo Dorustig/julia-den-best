@@ -224,6 +224,72 @@
         .chart-totals { display: flex; gap: 20px; margin-top: 12px; font-size: 13px; color: #6B7280; }
         .chart-totals strong { color: #1F2937; font-size: 16px; display: block; }
 
+        /* Training week grid */
+        .week-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px;
+        }
+        .week-cell {
+            border: 1px solid #E5E7EB; border-radius: 10px; padding: 10px 8px;
+            background: #F9FAFB; text-align: center; cursor: pointer;
+            font-size: 13px; color: #6B7280; transition: all 0.15s;
+        }
+        .week-cell:hover { background: #FCE7F3; border-color: #F472B6; color: #E91E8C; }
+        .week-cell.filled { background: #FDF2F8; border-color: #F472B6; color: #BE185D; }
+        .week-cell .wk-nr { font-size: 16px; font-weight: 700; display: block; }
+        .week-cell.filled .wk-nr { color: #BE185D; }
+        .week-cell .wk-dot {
+            display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+            background: #E91E8C; margin-left: 4px; vertical-align: middle;
+        }
+
+        /* Markdown editor */
+        .md-editor textarea {
+            width: 100%; min-height: 240px; padding: 12px;
+            border: 1px solid #E5E7EB; border-radius: 8px;
+            font-family: 'SF Mono', Menlo, monospace; font-size: 13px; line-height: 1.55;
+            resize: vertical;
+        }
+        .md-editor textarea:focus { outline: none; border-color: #E91E8C; }
+
+        /* Template lijst row */
+        .tmpl-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 12px; border: 1px solid #E5E7EB; border-radius: 8px;
+            margin-bottom: 6px; background: #fff;
+        }
+        .tmpl-row:hover { background: #FDF2F8; border-color: #F472B6; }
+        .tmpl-row .tmpl-name { font-weight: 600; font-size: 14px; color: #1F2937; }
+        .tmpl-row .tmpl-meta { font-size: 12px; color: #6B7280; margin-top: 2px; }
+        .tmpl-row .tmpl-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+        /* Macro pills */
+        .macro-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+            margin-bottom: 12px;
+        }
+        .macro-input {
+            padding: 8px; border: 1px solid #E5E7EB; border-radius: 8px;
+            font-size: 14px; width: 100%;
+        }
+        .macro-input:focus { outline: none; border-color: #E91E8C; }
+        .macro-label { font-size: 11px; color: #6B7280; text-transform: uppercase; font-weight: 600; margin-bottom: 4px; letter-spacing: 0.5px; }
+
+        /* Template picker */
+        .tmpl-picker {
+            padding: 8px 10px; border: 1px solid #E5E7EB; border-radius: 8px;
+            background: #FDF2F8; margin-bottom: 12px; display: flex; gap: 8px; align-items: center;
+            flex-wrap: wrap; font-size: 13px;
+        }
+        .tmpl-picker select {
+            flex: 1; min-width: 200px; padding: 6px 8px; border: 1px solid #F472B6;
+            border-radius: 6px; background: #fff; font-size: 13px;
+        }
+
+        @media (max-width: 700px) {
+            .week-grid { grid-template-columns: repeat(3, 1fr); }
+            .macro-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
         /* Foto thumbnails in check-ins modal */
         .ci-foto-thumbs { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
         .ci-foto-thumb {
@@ -475,6 +541,29 @@
                 <div id="klantenLeeg" style="color:#9CA3AF;font-size:13px;padding:16px;text-align:center">Nog geen klanten. Voeg er een toe hierboven.</div>
             </div>
 
+            <!-- Training + Voeding Templates -->
+            <div class="backup-section" style="margin-top:24px">
+                <h2>&#127947;&#127996;&#8205;&#9792;&#65039; Training Templates</h2>
+                <p style="font-size:13px;color:#6B7280;margin-bottom:12px">
+                    Maak templates die je herbruikt per klant per week. Gewoon markdown — gebruik <code>#</code> voor kopjes, <code>-</code> voor lijsten, <code>**vet**</code> voor nadruk.
+                </p>
+                <div style="margin-bottom:12px">
+                    <button class="btn-admin btn-export" onclick="openTrainingTemplateEditor()">&#10133; Nieuwe training template</button>
+                </div>
+                <div id="trainingTemplatesList" style="font-size:13px;color:#9CA3AF">Laden...</div>
+            </div>
+
+            <div class="backup-section" style="margin-top:24px">
+                <h2>&#129382; Voeding Templates</h2>
+                <p style="font-size:13px;color:#6B7280;margin-bottom:12px">
+                    Voedingsplannen met macro's. Handig voor hergebruik (bv. "Cut 1800kcal vrouw", "Onderhoud vrouw 60kg").
+                </p>
+                <div style="margin-bottom:12px">
+                    <button class="btn-admin btn-export" onclick="openVoedingTemplateEditor()">&#10133; Nieuwe voeding template</button>
+                </div>
+                <div id="voedingTemplatesList" style="font-size:13px;color:#9CA3AF">Laden...</div>
+            </div>
+
             <!-- Tracking Pixels Config -->
             <div class="backup-section" style="margin-top:24px">
                 <h2>&#128202; Tracking Pixels (voor advertenties)</h2>
@@ -525,6 +614,21 @@
     <div class="lead-modal" id="checkInsModal">
         <div class="lead-modal-content" id="checkInsModalContent">
         </div>
+    </div>
+
+    <!-- Training Modal (per klant) -->
+    <div class="lead-modal" id="trainingModal">
+        <div class="lead-modal-content" id="trainingModalContent" style="max-width:800px;"></div>
+    </div>
+
+    <!-- Voeding Modal (per klant) -->
+    <div class="lead-modal" id="voedingModal">
+        <div class="lead-modal-content" id="voedingModalContent" style="max-width:800px;"></div>
+    </div>
+
+    <!-- Template Editor Modal (training of voeding) -->
+    <div class="lead-modal" id="templateEditorModal">
+        <div class="lead-modal-content" id="templateEditorContent" style="max-width:800px;"></div>
     </div>
 
     <!-- Lightbox voor foto's -->
@@ -1065,6 +1169,8 @@
                             <td style="font-size:12px;color:#6B7280">${start}</td>
                             <td style="white-space:nowrap">
                                 <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#FCE7F3;color:#E91E8C;margin-right:4px;" onclick="klantBekijkCheckIns('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#128197; Check-ins</button>
+                                <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#FCE7F3;color:#E91E8C;margin-right:4px;" onclick="klantTraining('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#127947; Training</button>
+                                <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#FCE7F3;color:#E91E8C;margin-right:4px;" onclick="klantVoeding('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#129382; Voeding</button>
                                 <button class="btn-admin btn-export" style="padding:4px 10px;font-size:11px" onclick="klantNieuweMagicLink('${escapeHtml(k.email)}')">&#128279; Link</button>
                             </td>
                         </tr>
@@ -1214,6 +1320,456 @@
                 .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
         }
 
+        // =============================================================
+        // TRAINING + VOEDING TEMPLATES (Fase 2.4)
+        // =============================================================
+
+        let _trainingTemplatesCache = [];
+        let _voedingTemplatesCache = [];
+
+        async function loadTrainingTemplates() {
+            const list = document.getElementById('trainingTemplatesList');
+            try {
+                const r = await fetch('/api/admin/training-templates', { credentials: 'include' });
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                const { templates } = await r.json();
+                _trainingTemplatesCache = templates || [];
+                if (!templates || templates.length === 0) {
+                    list.innerHTML = '<p style="color:#9CA3AF;font-size:13px">Nog geen templates. Klik op "+ Nieuwe training template".</p>';
+                    return;
+                }
+                list.innerHTML = templates.map(t => `
+                    <div class="tmpl-row">
+                        <div style="flex:1;min-width:0;">
+                            <div class="tmpl-name">${escapeHtml(t.naam)}</div>
+                            ${t.beschrijving ? `<div class="tmpl-meta">${escapeHtml(t.beschrijving)}</div>` : ''}
+                        </div>
+                        <div class="tmpl-actions">
+                            <button class="btn-small" onclick='openTrainingTemplateEditor(${JSON.stringify(t).replace(/'/g, "&#39;")})'>Bewerk</button>
+                            <button class="btn-small danger" onclick="deleteTrainingTemplate('${t.id}', '${escapeHtml(t.naam)}')">&#10005;</button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (e) {
+                list.innerHTML = '<p style="color:#EF4444;font-size:13px">Kon templates niet laden: ' + escapeHtml(e.message) + '. Heeft de SQL migratie gedraaid?</p>';
+            }
+        }
+
+        async function loadVoedingTemplates() {
+            const list = document.getElementById('voedingTemplatesList');
+            try {
+                const r = await fetch('/api/admin/voeding-templates', { credentials: 'include' });
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                const { templates } = await r.json();
+                _voedingTemplatesCache = templates || [];
+                if (!templates || templates.length === 0) {
+                    list.innerHTML = '<p style="color:#9CA3AF;font-size:13px">Nog geen voeding templates.</p>';
+                    return;
+                }
+                list.innerHTML = templates.map(t => {
+                    const macros = [
+                        t.calories && t.calories + ' kcal',
+                        t.eiwit_g && 'E: ' + t.eiwit_g + 'g',
+                        t.koolhydraten_g && 'K: ' + t.koolhydraten_g + 'g',
+                        t.vetten_g && 'V: ' + t.vetten_g + 'g',
+                    ].filter(Boolean).join(' · ');
+                    return `
+                        <div class="tmpl-row">
+                            <div style="flex:1;min-width:0;">
+                                <div class="tmpl-name">${escapeHtml(t.naam)}</div>
+                                <div class="tmpl-meta">${macros || '—'} ${t.beschrijving ? '· ' + escapeHtml(t.beschrijving) : ''}</div>
+                            </div>
+                            <div class="tmpl-actions">
+                                <button class="btn-small" onclick='openVoedingTemplateEditor(${JSON.stringify(t).replace(/'/g, "&#39;")})'>Bewerk</button>
+                                <button class="btn-small danger" onclick="deleteVoedingTemplate('${t.id}', '${escapeHtml(t.naam)}')">&#10005;</button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (e) {
+                list.innerHTML = '<p style="color:#EF4444;font-size:13px">Kon templates niet laden: ' + escapeHtml(e.message) + '</p>';
+            }
+        }
+
+        function openTrainingTemplateEditor(tmpl) {
+            const t = tmpl || { id: null, naam: '', beschrijving: '', content_markdown: '' };
+            const modal = document.getElementById('templateEditorModal');
+            const content = document.getElementById('templateEditorContent');
+            content.innerHTML = `
+                <div class="lead-modal-header">
+                    <h2>${t.id ? 'Bewerk' : 'Nieuwe'} training template</h2>
+                    <button class="modal-close" onclick="closeTemplateEditor()">&#10005;</button>
+                </div>
+                <div class="lead-field">
+                    <label>Naam *</label>
+                    <input id="tmplNaam" class="filter-input" value="${escapeHtml(t.naam || '')}" placeholder="bv. Full Body A - Beginner" style="width:100%">
+                </div>
+                <div class="lead-field">
+                    <label>Korte beschrijving</label>
+                    <input id="tmplBeschrijving" class="filter-input" value="${escapeHtml(t.beschrijving || '')}" placeholder="bv. 3x/week, focus op grote spiergroepen" style="width:100%">
+                </div>
+                <div class="lead-field md-editor">
+                    <label>Schema (markdown)</label>
+                    <textarea id="tmplContent" placeholder="# Dag 1 — Full Body&#10;&#10;- Squat: 3x8 @ RPE 7&#10;- Hip thrust: 3x10&#10;- Bench press: 3x8&#10;...">${escapeHtml(t.content_markdown || '')}</textarea>
+                </div>
+                <div class="lead-actions" style="justify-content:flex-end">
+                    <button class="btn-admin btn-refresh" onclick="closeTemplateEditor()">Annuleer</button>
+                    <button class="btn-admin btn-export" onclick="saveTrainingTemplate(${t.id ? "'" + t.id + "'" : 'null'})">Opslaan</button>
+                </div>
+            `;
+            modal.classList.add('active');
+        }
+
+        function openVoedingTemplateEditor(tmpl) {
+            const t = tmpl || { id: null, naam: '', beschrijving: '', calories: '', eiwit_g: '', koolhydraten_g: '', vetten_g: '', content_markdown: '' };
+            const modal = document.getElementById('templateEditorModal');
+            const content = document.getElementById('templateEditorContent');
+            content.innerHTML = `
+                <div class="lead-modal-header">
+                    <h2>${t.id ? 'Bewerk' : 'Nieuwe'} voeding template</h2>
+                    <button class="modal-close" onclick="closeTemplateEditor()">&#10005;</button>
+                </div>
+                <div class="lead-field">
+                    <label>Naam *</label>
+                    <input id="vtmplNaam" class="filter-input" value="${escapeHtml(t.naam || '')}" placeholder="bv. Cut 1800kcal vrouw 60kg" style="width:100%">
+                </div>
+                <div class="lead-field">
+                    <label>Korte beschrijving</label>
+                    <input id="vtmplBeschrijving" class="filter-input" value="${escapeHtml(t.beschrijving || '')}" placeholder="bv. Voor 1kg/week afvallen" style="width:100%">
+                </div>
+                <div class="macro-grid">
+                    <div><div class="macro-label">Calories</div><input id="vtmplCalories" class="macro-input" type="number" min="0" value="${t.calories ?? ''}"></div>
+                    <div><div class="macro-label">Eiwit (g)</div><input id="vtmplEiwit" class="macro-input" type="number" min="0" value="${t.eiwit_g ?? ''}"></div>
+                    <div><div class="macro-label">Koolhydraten (g)</div><input id="vtmplKh" class="macro-input" type="number" min="0" value="${t.koolhydraten_g ?? ''}"></div>
+                    <div><div class="macro-label">Vetten (g)</div><input id="vtmplVet" class="macro-input" type="number" min="0" value="${t.vetten_g ?? ''}"></div>
+                </div>
+                <div class="lead-field md-editor">
+                    <label>Voorbeeldmaaltijden / toelichting (markdown)</label>
+                    <textarea id="vtmplContent" placeholder="## Ontbijt&#10;- 3 eieren + 40g haver&#10;&#10;## Lunch&#10;- 150g kip + 80g rijst + groente">${escapeHtml(t.content_markdown || '')}</textarea>
+                </div>
+                <div class="lead-actions" style="justify-content:flex-end">
+                    <button class="btn-admin btn-refresh" onclick="closeTemplateEditor()">Annuleer</button>
+                    <button class="btn-admin btn-export" onclick="saveVoedingTemplate(${t.id ? "'" + t.id + "'" : 'null'})">Opslaan</button>
+                </div>
+            `;
+            modal.classList.add('active');
+        }
+
+        function closeTemplateEditor() {
+            document.getElementById('templateEditorModal').classList.remove('active');
+        }
+
+        async function saveTrainingTemplate(id) {
+            const body = {
+                naam: document.getElementById('tmplNaam').value.trim(),
+                beschrijving: document.getElementById('tmplBeschrijving').value.trim(),
+                content_markdown: document.getElementById('tmplContent').value,
+            };
+            if (!body.naam) { alert('Naam is verplicht'); return; }
+            try {
+                const r = id
+                    ? await fetch('/api/admin/training-templates/' + id, { method: 'PUT', credentials: 'include', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) })
+                    : await fetch('/api/admin/training-templates', { method: 'POST', credentials: 'include', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+                const out = await r.json();
+                if (!r.ok || out.error) throw new Error(out.error || 'HTTP ' + r.status);
+                closeTemplateEditor();
+                loadTrainingTemplates();
+            } catch (e) { alert('Opslaan mislukt: ' + e.message); }
+        }
+
+        async function saveVoedingTemplate(id) {
+            const body = {
+                naam: document.getElementById('vtmplNaam').value.trim(),
+                beschrijving: document.getElementById('vtmplBeschrijving').value.trim(),
+                calories: document.getElementById('vtmplCalories').value,
+                eiwit_g: document.getElementById('vtmplEiwit').value,
+                koolhydraten_g: document.getElementById('vtmplKh').value,
+                vetten_g: document.getElementById('vtmplVet').value,
+                content_markdown: document.getElementById('vtmplContent').value,
+            };
+            if (!body.naam) { alert('Naam is verplicht'); return; }
+            try {
+                const r = id
+                    ? await fetch('/api/admin/voeding-templates/' + id, { method: 'PUT', credentials: 'include', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) })
+                    : await fetch('/api/admin/voeding-templates', { method: 'POST', credentials: 'include', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+                const out = await r.json();
+                if (!r.ok || out.error) throw new Error(out.error || 'HTTP ' + r.status);
+                closeTemplateEditor();
+                loadVoedingTemplates();
+            } catch (e) { alert('Opslaan mislukt: ' + e.message); }
+        }
+
+        async function deleteTrainingTemplate(id, naam) {
+            if (!confirm(`Template "${naam}" verwijderen?`)) return;
+            try {
+                await fetch('/api/admin/training-templates/' + id, { method: 'DELETE', credentials: 'include' });
+                loadTrainingTemplates();
+            } catch (e) { alert('Verwijderen mislukt: ' + e.message); }
+        }
+        async function deleteVoedingTemplate(id, naam) {
+            if (!confirm(`Template "${naam}" verwijderen?`)) return;
+            try {
+                await fetch('/api/admin/voeding-templates/' + id, { method: 'DELETE', credentials: 'include' });
+                loadVoedingTemplates();
+            } catch (e) { alert('Verwijderen mislukt: ' + e.message); }
+        }
+
+        // ============ Training per klant ============
+
+        async function klantTraining(klantId, klantNaam) {
+            const modal = document.getElementById('trainingModal');
+            const content = document.getElementById('trainingModalContent');
+            modal.classList.add('active');
+            content.innerHTML = `
+                <div class="lead-modal-header">
+                    <h2>&#127947; Training — ${escapeHtml(klantNaam)}</h2>
+                    <button class="modal-close" onclick="document.getElementById('trainingModal').classList.remove('active')">&#10005;</button>
+                </div>
+                <div style="padding:24px;text-align:center;color:#9CA3AF;">Laden...</div>
+            `;
+            try {
+                const [r, tr] = await Promise.all([
+                    fetch('/api/admin/klanten/' + klantId + '/training-schemas', { credentials: 'include' }),
+                    fetch('/api/admin/training-templates', { credentials: 'include' }),
+                ]);
+                const { schemas } = await r.json();
+                const tmplData = await tr.json();
+                _trainingTemplatesCache = tmplData.templates || [];
+                const byWeek = {};
+                (schemas || []).forEach(s => { byWeek[s.week_nr] = s; });
+
+                const cells = Array.from({ length: 16 }, (_, i) => {
+                    const wk = i + 1;
+                    const filled = !!byWeek[wk];
+                    const titel = filled && byWeek[wk].titel ? byWeek[wk].titel : '';
+                    return `
+                        <div class="week-cell ${filled ? 'filled' : ''}" onclick="editTrainingWeek('${klantId}', '${escapeHtml(klantNaam)}', ${wk})">
+                            <span class="wk-nr">${wk}${filled ? '<span class="wk-dot"></span>' : ''}</span>
+                            <span>${titel ? escapeHtml(titel) : (filled ? 'Ingevuld' : 'Leeg')}</span>
+                        </div>
+                    `;
+                }).join('');
+
+                content.innerHTML = `
+                    <div class="lead-modal-header">
+                        <h2>&#127947; Training — ${escapeHtml(klantNaam)}</h2>
+                        <button class="modal-close" onclick="document.getElementById('trainingModal').classList.remove('active')">&#10005;</button>
+                    </div>
+                    <p style="font-size:13px;color:#6B7280;margin-bottom:12px;">Klik op een week om het schema te vullen. Roze = ingevuld.</p>
+                    <div class="week-grid">${cells}</div>
+                `;
+            } catch (e) {
+                content.innerHTML = `
+                    <div class="lead-modal-header">
+                        <h2>Training</h2>
+                        <button class="modal-close" onclick="document.getElementById('trainingModal').classList.remove('active')">&#10005;</button>
+                    </div>
+                    <div style="padding:24px;color:#EF4444;">Fout: ${escapeHtml(e.message)}. Is de SQL migratie gedraaid?</div>
+                `;
+            }
+        }
+
+        async function editTrainingWeek(klantId, klantNaam, weekNr) {
+            const content = document.getElementById('trainingModalContent');
+            // Haal het huidige schema op (indien aanwezig)
+            let schema = { titel: '', content_markdown: '' };
+            try {
+                const r = await fetch('/api/admin/klanten/' + klantId + '/training-schemas', { credentials: 'include' });
+                const { schemas } = await r.json();
+                const existing = (schemas || []).find(s => s.week_nr === weekNr);
+                if (existing) schema = existing;
+            } catch {}
+
+            const tmplOptions = _trainingTemplatesCache.length
+                ? `<option value="">-- kies template om te importeren --</option>`
+                  + _trainingTemplatesCache.map(t => `<option value="${t.id}">${escapeHtml(t.naam)}</option>`).join('')
+                : '';
+
+            content.innerHTML = `
+                <div class="lead-modal-header">
+                    <h2>Week ${weekNr} — ${escapeHtml(klantNaam)}</h2>
+                    <button class="modal-close" onclick="document.getElementById('trainingModal').classList.remove('active')">&#10005;</button>
+                </div>
+                ${tmplOptions ? `
+                    <div class="tmpl-picker">
+                        <span>&#128196; Template:</span>
+                        <select id="trainTmplSel">${tmplOptions}</select>
+                        <button class="btn-small primary" onclick="applyTrainingTemplate()">Importeer</button>
+                    </div>
+                ` : '<p style="font-size:12px;color:#9CA3AF;margin-bottom:10px">Tip: maak eerst templates aan voor hergebruik.</p>'}
+                <div class="lead-field">
+                    <label>Titel (optioneel)</label>
+                    <input id="trainTitel" class="filter-input" value="${escapeHtml(schema.titel || '')}" placeholder="bv. Week ${weekNr} - Krachttraining" style="width:100%">
+                </div>
+                <div class="lead-field md-editor">
+                    <label>Schema (markdown)</label>
+                    <textarea id="trainContent" placeholder="# Dag 1&#10;- Squat 3x8&#10;...">${escapeHtml(schema.content_markdown || '')}</textarea>
+                </div>
+                <div class="lead-actions" style="justify-content:space-between">
+                    <div>
+                        <button class="btn-admin btn-refresh" onclick="klantTraining('${klantId}', '${escapeHtml(klantNaam)}')">&#8592; Terug</button>
+                        ${schema.id ? `<button class="btn-admin" style="color:#991B1B;border-color:#FECACA;background:#FEF2F2;margin-left:8px" onclick="deleteTrainingWeek('${klantId}', '${escapeHtml(klantNaam)}', ${weekNr})">&#128465; Leegmaken</button>` : ''}
+                    </div>
+                    <button class="btn-admin btn-export" onclick="saveTrainingWeek('${klantId}', '${escapeHtml(klantNaam)}', ${weekNr})">Opslaan</button>
+                </div>
+            `;
+        }
+
+        function applyTrainingTemplate() {
+            const sel = document.getElementById('trainTmplSel');
+            const id = sel.value;
+            if (!id) return;
+            const t = _trainingTemplatesCache.find(x => x.id === id);
+            if (!t) return;
+            document.getElementById('trainTitel').value = t.naam;
+            document.getElementById('trainContent').value = t.content_markdown || '';
+        }
+
+        async function saveTrainingWeek(klantId, klantNaam, weekNr) {
+            const body = {
+                titel: document.getElementById('trainTitel').value.trim(),
+                content_markdown: document.getElementById('trainContent').value,
+            };
+            try {
+                const r = await fetch('/api/admin/klanten/' + klantId + '/training-schemas/' + weekNr, {
+                    method: 'PUT', credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body),
+                });
+                const out = await r.json();
+                if (!r.ok || out.error) throw new Error(out.error || 'HTTP ' + r.status);
+                // Terug naar week-grid met update
+                klantTraining(klantId, klantNaam);
+            } catch (e) { alert('Opslaan mislukt: ' + e.message); }
+        }
+
+        async function deleteTrainingWeek(klantId, klantNaam, weekNr) {
+            if (!confirm(`Week ${weekNr} leegmaken?`)) return;
+            try {
+                await fetch('/api/admin/klanten/' + klantId + '/training-schemas/' + weekNr, {
+                    method: 'DELETE', credentials: 'include',
+                });
+                klantTraining(klantId, klantNaam);
+            } catch (e) { alert('Verwijderen mislukt: ' + e.message); }
+        }
+
+        // ============ Voeding per klant ============
+
+        async function klantVoeding(klantId, klantNaam) {
+            const modal = document.getElementById('voedingModal');
+            const content = document.getElementById('voedingModalContent');
+            modal.classList.add('active');
+            content.innerHTML = `
+                <div class="lead-modal-header">
+                    <h2>&#129382; Voeding — ${escapeHtml(klantNaam)}</h2>
+                    <button class="modal-close" onclick="document.getElementById('voedingModal').classList.remove('active')">&#10005;</button>
+                </div>
+                <div style="padding:24px;text-align:center;color:#9CA3AF;">Laden...</div>
+            `;
+            try {
+                const [r, tr] = await Promise.all([
+                    fetch('/api/admin/klanten/' + klantId + '/voeding-plan', { credentials: 'include' }),
+                    fetch('/api/admin/voeding-templates', { credentials: 'include' }),
+                ]);
+                const { plan } = await r.json();
+                const tmplData = await tr.json();
+                _voedingTemplatesCache = tmplData.templates || [];
+                const p = plan || { titel: '', calories: '', eiwit_g: '', koolhydraten_g: '', vetten_g: '', content_markdown: '' };
+
+                const tmplOptions = _voedingTemplatesCache.length
+                    ? `<option value="">-- kies template om te importeren --</option>`
+                      + _voedingTemplatesCache.map(t => `<option value="${t.id}">${escapeHtml(t.naam)}</option>`).join('')
+                    : '';
+
+                content.innerHTML = `
+                    <div class="lead-modal-header">
+                        <h2>&#129382; Voeding — ${escapeHtml(klantNaam)}</h2>
+                        <button class="modal-close" onclick="document.getElementById('voedingModal').classList.remove('active')">&#10005;</button>
+                    </div>
+                    ${tmplOptions ? `
+                        <div class="tmpl-picker">
+                            <span>&#128196; Template:</span>
+                            <select id="voedTmplSel">${tmplOptions}</select>
+                            <button class="btn-small primary" onclick="applyVoedingTemplate()">Importeer</button>
+                        </div>
+                    ` : '<p style="font-size:12px;color:#9CA3AF;margin-bottom:10px">Tip: maak eerst voeding templates aan voor hergebruik.</p>'}
+                    <div class="lead-field">
+                        <label>Titel (optioneel)</label>
+                        <input id="voedTitel" class="filter-input" value="${escapeHtml(p.titel || '')}" placeholder="bv. Cut fase 1" style="width:100%">
+                    </div>
+                    <div class="macro-grid">
+                        <div><div class="macro-label">Calories</div><input id="voedCalories" class="macro-input" type="number" min="0" value="${p.calories ?? ''}"></div>
+                        <div><div class="macro-label">Eiwit (g)</div><input id="voedEiwit" class="macro-input" type="number" min="0" value="${p.eiwit_g ?? ''}"></div>
+                        <div><div class="macro-label">Koolhydraten (g)</div><input id="voedKh" class="macro-input" type="number" min="0" value="${p.koolhydraten_g ?? ''}"></div>
+                        <div><div class="macro-label">Vetten (g)</div><input id="voedVet" class="macro-input" type="number" min="0" value="${p.vetten_g ?? ''}"></div>
+                    </div>
+                    <div class="lead-field md-editor">
+                        <label>Voorbeeldmaaltijden / toelichting (markdown)</label>
+                        <textarea id="voedContent" placeholder="## Ontbijt&#10;- 3 eieren + 40g haver&#10;...">${escapeHtml(p.content_markdown || '')}</textarea>
+                    </div>
+                    <div class="lead-actions" style="justify-content:space-between">
+                        <div>
+                            ${p.id ? `<button class="btn-admin" style="color:#991B1B;border-color:#FECACA;background:#FEF2F2" onclick="deleteVoedingPlan('${klantId}', '${escapeHtml(klantNaam)}')">&#128465; Verwijder plan</button>` : ''}
+                        </div>
+                        <button class="btn-admin btn-export" onclick="saveVoedingPlan('${klantId}', '${escapeHtml(klantNaam)}')">Opslaan</button>
+                    </div>
+                `;
+            } catch (e) {
+                content.innerHTML = `
+                    <div class="lead-modal-header">
+                        <h2>Voeding</h2>
+                        <button class="modal-close" onclick="document.getElementById('voedingModal').classList.remove('active')">&#10005;</button>
+                    </div>
+                    <div style="padding:24px;color:#EF4444;">Fout: ${escapeHtml(e.message)}. Is de SQL migratie gedraaid?</div>
+                `;
+            }
+        }
+
+        function applyVoedingTemplate() {
+            const sel = document.getElementById('voedTmplSel');
+            const id = sel.value;
+            if (!id) return;
+            const t = _voedingTemplatesCache.find(x => x.id === id);
+            if (!t) return;
+            document.getElementById('voedTitel').value = t.naam;
+            document.getElementById('voedCalories').value = t.calories ?? '';
+            document.getElementById('voedEiwit').value = t.eiwit_g ?? '';
+            document.getElementById('voedKh').value = t.koolhydraten_g ?? '';
+            document.getElementById('voedVet').value = t.vetten_g ?? '';
+            document.getElementById('voedContent').value = t.content_markdown || '';
+        }
+
+        async function saveVoedingPlan(klantId, klantNaam) {
+            const body = {
+                titel: document.getElementById('voedTitel').value.trim(),
+                calories: document.getElementById('voedCalories').value,
+                eiwit_g: document.getElementById('voedEiwit').value,
+                koolhydraten_g: document.getElementById('voedKh').value,
+                vetten_g: document.getElementById('voedVet').value,
+                content_markdown: document.getElementById('voedContent').value,
+            };
+            try {
+                const r = await fetch('/api/admin/klanten/' + klantId + '/voeding-plan', {
+                    method: 'PUT', credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body),
+                });
+                const out = await r.json();
+                if (!r.ok || out.error) throw new Error(out.error || 'HTTP ' + r.status);
+                klantVoeding(klantId, klantNaam);
+            } catch (e) { alert('Opslaan mislukt: ' + e.message); }
+        }
+
+        async function deleteVoedingPlan(klantId, klantNaam) {
+            if (!confirm(`Voedingsplan van ${klantNaam} verwijderen?`)) return;
+            try {
+                await fetch('/api/admin/klanten/' + klantId + '/voeding-plan', {
+                    method: 'DELETE', credentials: 'include',
+                });
+                klantVoeding(klantId, klantNaam);
+            } catch (e) { alert('Verwijderen mislukt: ' + e.message); }
+        }
+
         // Lightbox voor check-in foto's
         function openLightbox(src) {
             const lb = document.getElementById('lightbox');
@@ -1237,6 +1793,8 @@
         loadBackups();
         loadTrackingConfig();
         loadKlanten();
+        loadTrainingTemplates();
+        loadVoedingTemplates();
     </script>
 </body>
 </html>
