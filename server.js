@@ -71,6 +71,9 @@ if (!fs.existsSync(TRACKING_FILE)) {
 // Un-guessable admin URL slug. The slug hides the admin panel from probes;
 // the login behind it hardens it against anyone who does find the URL.
 const ADMIN_SLUG = process.env.ADMIN_SLUG || 'portal-j8k3m9q2x7p5v4';
+// COACH_SLUG serves the dedicated coach dashboard (coach.html).
+// Separate from admin panel so leads-management stays uncluttered.
+const COACH_SLUG = process.env.COACH_SLUG || 'coach-h7k3m9p4x2v6q8';
 const ADMIN_USER = process.env.ADMIN_USER || 'Dorus';
 const ADMIN_PASS = process.env.ADMIN_PASS || 'Deurenzijncool123';
 
@@ -280,9 +283,10 @@ const server = http.createServer(async (req, res) => {
     return res.end();
   }
 
-  // Redirect the predictable /admin paths to the public landing page —
-  // anyone guessing lands on the regular site, not a 404 that hints at admin.
-  if (pathname === '/admin.html' || pathname === '/admin' || pathname === '/admin/') {
+  // Redirect the predictable /admin and /coach paths to the public landing
+  // page — anyone guessing lands on the regular site, not a 404 hint.
+  if (pathname === '/admin.html' || pathname === '/admin' || pathname === '/admin/' ||
+      pathname === '/coach.html' || pathname === '/coach' || pathname === '/coach/') {
     res.writeHead(302, { Location: '/' });
     return res.end();
   }
@@ -309,7 +313,9 @@ const server = http.createServer(async (req, res) => {
     }
     const token = signToken({ user: ADMIN_USER, role: 'admin', exp: Date.now() + SESSION_TTL_MS });
     setSessionCookie(req, res, token);
-    return jsonRes(res, 200, { success: true, redirect: `/${ADMIN_SLUG}` });
+    // Default post-login destination is the coach dashboard (primary daily workflow).
+    // The leads/admin portal is a secondary page, reachable from the coach sidebar.
+    return jsonRes(res, 200, { success: true, redirect: `/${COACH_SLUG}` });
   }
 
   // POST /api/logout — clear session cookie
@@ -323,6 +329,21 @@ const server = http.createServer(async (req, res) => {
     const session = getSession(req);
     if (!session) return jsonRes(res, 401, { error: 'Not logged in' });
     return jsonRes(res, 200, { user: session.user, role: session.role });
+  }
+
+  // GET /api/admin/portal-url — returns the secret admin/leads-portal URL.
+  // Used by coach.html to link back to the leads portal without hard-coding
+  // the slug in HTML (keeps the secret out of the served bundle).
+  if (pathname === '/api/admin/portal-url' && req.method === 'GET') {
+    if (!getSession(req)) return jsonRes(res, 401, { error: 'Not logged in' });
+    return jsonRes(res, 200, { url: `/${ADMIN_SLUG}` });
+  }
+
+  // GET /api/admin/coach-url — returns the secret coach-dashboard URL.
+  // Used by admin.html to link over to the coaching workspace.
+  if (pathname === '/api/admin/coach-url' && req.method === 'GET') {
+    if (!getSession(req)) return jsonRes(res, 401, { error: 'Not logged in' });
+    return jsonRes(res, 200, { url: `/${COACH_SLUG}` });
   }
 
   // GET /api/config — public config for the browser Supabase SDK.
@@ -1357,12 +1378,18 @@ const server = http.createServer(async (req, res) => {
 
   // ===== STATIC FILE SERVING =====
   // Remap the un-guessable admin slug:
-  //   - if logged in: serve admin.html
+  //   - if logged in: serve admin.html (leads portal)
   //   - if not logged in: serve login.html (login form)
   const isAdminSlug =
     pathname === `/${ADMIN_SLUG}` ||
     pathname === `/${ADMIN_SLUG}/` ||
     pathname === `/${ADMIN_SLUG}.html`;
+
+  // Same trick for the coach-dashboard slug.
+  const isCoachSlug =
+    pathname === `/${COACH_SLUG}` ||
+    pathname === `/${COACH_SLUG}/` ||
+    pathname === `/${COACH_SLUG}.html`;
 
   // Klant routes — pretty URLs that map to real HTML files
   const klantRouteMap = {
@@ -1381,6 +1408,8 @@ const server = http.createServer(async (req, res) => {
   let filePath;
   if (isAdminSlug) {
     filePath = getSession(req) ? '/admin.html' : '/login.html';
+  } else if (isCoachSlug) {
+    filePath = getSession(req) ? '/coach.html' : '/login.html';
   } else if (klantRouteMap[pathname]) {
     filePath = klantRouteMap[pathname];
   } else {

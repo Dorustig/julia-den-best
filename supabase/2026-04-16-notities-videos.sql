@@ -1,7 +1,8 @@
 -- =============================================================
 -- Julia Besten — Fase 2.6: Coach-notities + Video library
 -- Run this in Supabase SQL Editor (once).
--- Idempotent: safe to re-run.
+-- Idempotent: safe to re-run. Werkt ook als (een deel van) de
+-- tabellen al bestaat met een oudere schema.
 -- =============================================================
 
 -- =============================================================
@@ -9,11 +10,12 @@
 -- =============================================================
 create table if not exists public.coach_notities (
   id uuid primary key default uuid_generate_v4(),
-  klant_id uuid not null references public.klanten(id) on delete cascade,
-  content text not null check (length(content) between 1 and 10000),
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
+
+alter table public.coach_notities add column if not exists klant_id uuid references public.klanten(id) on delete cascade;
+alter table public.coach_notities add column if not exists content text;
 
 create index if not exists idx_coach_notities_klant_created
   on public.coach_notities(klant_id, created_at desc);
@@ -36,15 +38,16 @@ create policy "coach_only_notities" on public.coach_notities
 -- =============================================================
 create table if not exists public.videos (
   id uuid primary key default uuid_generate_v4(),
-  titel text not null,
-  beschrijving text,
-  youtube_url text not null,
-  youtube_id text,       -- geëxtraheerde YouTube video id, voor thumbnail
-  categorie text,        -- 'techniek' | 'mindset' | 'voeding' | 'algemeen'
-  volgorde int default 0,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
+
+alter table public.videos add column if not exists titel text;
+alter table public.videos add column if not exists beschrijving text;
+alter table public.videos add column if not exists youtube_url text;
+alter table public.videos add column if not exists youtube_id text;
+alter table public.videos add column if not exists categorie text;
+alter table public.videos add column if not exists volgorde int default 0;
 
 create index if not exists idx_videos_volgorde on public.videos(volgorde asc, created_at desc);
 create index if not exists idx_videos_categorie on public.videos(categorie);

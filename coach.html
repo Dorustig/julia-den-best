@@ -1,0 +1,1691 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Coach Dashboard · Julia Besten</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #F9FAFB; color: #1F2937; }
+
+        /* Sidebar */
+        .app-layout { display: flex; min-height: 100vh; }
+        .sidebar {
+            width: 240px; background: #1F2937; color: #fff; padding: 24px 14px;
+            position: fixed; top: 0; left: 0; bottom: 0; z-index: 10;
+            display: flex; flex-direction: column;
+        }
+        .sidebar-brand {
+            font-family: 'Playfair Display', serif;
+            font-size: 18px; font-weight: 700; color: #F472B6;
+            margin-bottom: 6px; padding: 0 8px;
+        }
+        .sidebar-sub { font-size: 11px; color: #6B7280; padding: 0 8px; margin-bottom: 28px; letter-spacing: 0.4px; text-transform: uppercase; }
+        .sidebar-nav { list-style: none; flex: 1; }
+        .sidebar-nav a {
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 10px; padding: 10px 12px; color: #9CA3AF; text-decoration: none;
+            font-size: 14px; border-radius: 8px; transition: all 0.2s;
+            margin-bottom: 4px; cursor: pointer;
+        }
+        .sidebar-nav a:hover { background: #374151; color: #fff; }
+        .sidebar-nav a.active { background: #374151; color: #F472B6; }
+        .sidebar-nav a .nav-label { display: flex; align-items: center; gap: 10px; }
+        .sidebar-foot { border-top: 1px solid #374151; padding-top: 14px; margin-top: 14px; }
+        .sidebar-foot a, .sidebar-foot button {
+            display: block; width: 100%; text-align: left; padding: 9px 12px;
+            color: #9CA3AF; font-size: 13px; background: none; border: none;
+            border-radius: 8px; cursor: pointer; font-family: inherit;
+            text-decoration: none; margin-bottom: 2px;
+        }
+        .sidebar-foot a:hover, .sidebar-foot button:hover { background: #374151; color: #fff; }
+
+        .nav-badge {
+            display: inline-block; background: #E91E8C; color: #fff; border-radius: 10px;
+            padding: 1px 7px; font-size: 10px; font-weight: 700;
+            min-width: 18px; text-align: center;
+        }
+        .nav-badge.hidden { display: none; }
+
+        /* Main */
+        .main { flex: 1; margin-left: 240px; padding: 28px 36px 60px; min-width: 0; }
+        .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; gap: 14px; }
+        .topbar h1 { font-size: 24px; font-weight: 700; }
+        .topbar-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+        .btn-admin {
+            padding: 9px 18px; border-radius: 8px; font-size: 13px; font-weight: 600;
+            cursor: pointer; border: none; transition: all 0.15s; font-family: inherit;
+        }
+        .btn-export { background: #E91E8C; color: #fff; }
+        .btn-export:hover { background: #D6188A; }
+        .btn-refresh { background: #F3F4F6; color: #374151; border: 1px solid #E5E7EB; }
+        .btn-refresh:hover { background: #E5E7EB; }
+        .btn-small {
+            padding: 5px 10px; font-size: 12px; border-radius: 6px;
+            border: 1px solid #E5E7EB; background: #F9FAFB; cursor: pointer; color: #374151;
+            font-family: inherit;
+        }
+        .btn-small:hover { background: #E5E7EB; }
+        .btn-small.danger { color: #991B1B; }
+        .btn-small.primary { background: #E91E8C; color: #fff; border-color: #E91E8C; }
+
+        /* Sections */
+        .section { display: none; }
+        .section.active { display: block; }
+
+        .card-block {
+            background: #fff; border-radius: 12px; border: 1px solid #E5E7EB;
+            padding: 22px; margin-bottom: 18px;
+        }
+        .card-block h2 { font-size: 16px; margin-bottom: 10px; }
+        .card-block p.hint { font-size: 13px; color: #6B7280; margin-bottom: 14px; }
+
+        /* Stats grid */
+        .stats-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px; margin-bottom: 18px;
+        }
+        .stat-card {
+            background: #fff; border-radius: 12px; padding: 18px 16px;
+            border: 1px solid #E5E7EB; text-align: center;
+        }
+        .stat-card-label {
+            font-size: 11px; color: #6B7280; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;
+        }
+        .stat-card-value { font-size: 26px; font-weight: 700; font-family: 'Playfair Display', serif; color: #1F2937; }
+        .stat-card-value.pink { color: #E91E8C; }
+        .stat-card-value.green { color: #10B981; }
+        .stat-card-value.amber { color: #F59E0B; }
+        .stat-card-value.indigo { color: #6366F1; }
+        .stat-card-value.gray { color: #9CA3AF; }
+
+        /* Filters + inputs */
+        .filter-input, .filter-select, select.filter-input {
+            padding: 9px 14px; border: 1px solid #E5E7EB; border-radius: 8px;
+            font-size: 14px; font-family: 'Inter', sans-serif; background: #fff;
+        }
+        .filter-input:focus, .filter-select:focus { outline: none; border-color: #E91E8C; }
+
+        /* Table */
+        .table-wrapper {
+            background: #fff; border-radius: 12px; border: 1px solid #E5E7EB;
+            overflow-x: auto;
+        }
+        table { width: 100%; border-collapse: collapse; }
+        thead { background: #F9FAFB; }
+        th {
+            text-align: left; padding: 12px 16px; font-size: 12px; font-weight: 600;
+            color: #6B7280; text-transform: uppercase; letter-spacing: 0.5px;
+            border-bottom: 1px solid #E5E7EB;
+        }
+        td {
+            padding: 14px 16px; font-size: 14px; border-bottom: 1px solid #F3F4F6;
+            max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        tr:hover td { background: #FDF2F8; }
+
+        /* Berichten lijst */
+        .bericht-row {
+            display: flex; align-items: center; gap: 14px; padding: 14px 16px;
+            border-bottom: 1px solid #F3F4F6; cursor: pointer;
+        }
+        .bericht-row:hover { background: #FDF2F8; }
+        .bericht-avatar {
+            width: 40px; height: 40px; border-radius: 50%; background: #FCE7F3;
+            display: flex; align-items: center; justify-content: center;
+            color: #BE185D; font-weight: 700; font-size: 14px; flex-shrink: 0;
+        }
+        .bericht-body { flex: 1; min-width: 0; }
+        .bericht-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+        .bericht-naam { font-weight: 600; font-size: 14px; color: #1F2937; }
+        .bericht-tijd { font-size: 11px; color: #9CA3AF; flex-shrink: 0; }
+        .bericht-preview { font-size: 13px; color: #6B7280; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 2px; }
+        .bericht-preview.unread { color: #1F2937; font-weight: 500; }
+
+        /* Modals */
+        .lead-modal {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(4px); display: none; align-items: center;
+            justify-content: center; z-index: 100; padding: 20px;
+        }
+        .lead-modal.active { display: flex; }
+        .lead-modal-content {
+            background: #fff; border-radius: 16px; padding: 28px;
+            max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto;
+        }
+        .lead-modal-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 20px;
+        }
+        .lead-modal-header h2 { font-size: 20px; }
+        .modal-close {
+            width: 32px; height: 32px; border-radius: 8px; border: 1px solid #E5E7EB;
+            background: #fff; cursor: pointer; font-size: 18px; display: flex;
+            align-items: center; justify-content: center;
+        }
+        .lead-field { margin-bottom: 14px; }
+        .lead-field label { display: block; font-size: 12px; color: #6B7280; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+        .lead-field textarea {
+            width: 100%; padding: 10px; border: 1px solid #E5E7EB; border-radius: 8px;
+            font-family: 'Inter', sans-serif; font-size: 14px; resize: vertical; min-height: 60px;
+        }
+        .lead-actions { display: flex; gap: 8px; margin-top: 20px; flex-wrap: wrap; }
+
+        /* Chat modal */
+        .chat-wrap { display: flex; flex-direction: column; height: 70vh; max-height: 600px; }
+        .chat-messages {
+            flex: 1; overflow-y: auto; padding: 12px; background: #F9FAFB;
+            border-radius: 12px; display: flex; flex-direction: column; gap: 8px;
+        }
+        .chat-bubble {
+            max-width: 75%; padding: 10px 14px; border-radius: 16px; font-size: 14px;
+            line-height: 1.4; word-wrap: break-word; white-space: pre-wrap;
+        }
+        .chat-bubble.klant { background: #fff; border: 1px solid #E5E7EB; align-self: flex-start; border-bottom-left-radius: 4px; }
+        .chat-bubble.coach { background: #E91E8C; color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
+        .chat-meta { font-size: 11px; opacity: 0.6; margin-top: 4px; }
+        .chat-input-row {
+            display: flex; gap: 8px; margin-top: 12px; padding-top: 12px;
+            border-top: 1px solid #E5E7EB;
+        }
+        .chat-input-row textarea {
+            flex: 1; padding: 10px 12px; border: 1px solid #E5E7EB; border-radius: 10px;
+            font-family: 'Inter', sans-serif; font-size: 14px; resize: none; min-height: 44px; max-height: 120px;
+        }
+        .chat-empty { color: #9CA3AF; text-align: center; padding: 40px 20px; font-size: 14px; }
+        .unread-badge {
+            display: inline-block; background: #E91E8C; color: #fff; border-radius: 10px;
+            padding: 1px 6px; font-size: 10px; font-weight: 700; margin-left: 4px;
+            min-width: 16px; text-align: center;
+        }
+
+        /* Training week grid */
+        .week-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
+        .week-cell {
+            border: 1px solid #E5E7EB; border-radius: 10px; padding: 10px 8px;
+            background: #F9FAFB; text-align: center; cursor: pointer;
+            font-size: 13px; color: #6B7280; transition: all 0.15s;
+        }
+        .week-cell:hover { background: #FCE7F3; border-color: #F472B6; color: #E91E8C; }
+        .week-cell.filled { background: #FDF2F8; border-color: #F472B6; color: #BE185D; }
+        .week-cell .wk-nr { font-size: 16px; font-weight: 700; display: block; }
+        .week-cell.filled .wk-nr { color: #BE185D; }
+        .week-cell .wk-dot {
+            display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+            background: #E91E8C; margin-left: 4px; vertical-align: middle;
+        }
+
+        /* Markdown editor */
+        .md-editor textarea {
+            width: 100%; min-height: 240px; padding: 12px;
+            border: 1px solid #E5E7EB; border-radius: 8px;
+            font-family: 'SF Mono', Menlo, monospace; font-size: 13px; line-height: 1.55;
+            resize: vertical;
+        }
+        .md-editor textarea:focus { outline: none; border-color: #E91E8C; }
+
+        /* Template row */
+        .tmpl-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 12px; border: 1px solid #E5E7EB; border-radius: 8px;
+            margin-bottom: 6px; background: #fff; gap: 8px;
+        }
+        .tmpl-row:hover { background: #FDF2F8; border-color: #F472B6; }
+        .tmpl-row .tmpl-name { font-weight: 600; font-size: 14px; color: #1F2937; }
+        .tmpl-row .tmpl-meta { font-size: 12px; color: #6B7280; margin-top: 2px; }
+        .tmpl-row .tmpl-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+        /* Macro pills */
+        .macro-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+            margin-bottom: 12px;
+        }
+        .macro-input {
+            padding: 8px; border: 1px solid #E5E7EB; border-radius: 8px;
+            font-size: 14px; width: 100%;
+        }
+        .macro-input:focus { outline: none; border-color: #E91E8C; }
+        .macro-label {
+            font-size: 11px; color: #6B7280; text-transform: uppercase; font-weight: 600;
+            margin-bottom: 4px; letter-spacing: 0.5px;
+        }
+
+        /* Template picker */
+        .tmpl-picker {
+            padding: 8px 10px; border: 1px solid #E5E7EB; border-radius: 8px;
+            background: #FDF2F8; margin-bottom: 12px; display: flex; gap: 8px; align-items: center;
+            flex-wrap: wrap; font-size: 13px;
+        }
+        .tmpl-picker select {
+            flex: 1; min-width: 200px; padding: 6px 8px; border: 1px solid #F472B6;
+            border-radius: 6px; background: #fff; font-size: 13px;
+        }
+
+        /* Foto thumbnails in check-ins modal */
+        .ci-foto-thumbs { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+        .ci-foto-thumb {
+            position: relative; width: 68px; height: 68px; border-radius: 8px;
+            background-size: cover; background-position: center; background-color: #F3F4F6;
+            cursor: pointer; overflow: hidden; border: 1px solid #E5E7EB;
+            transition: transform 0.15s ease;
+        }
+        .ci-foto-thumb:hover { transform: scale(1.04); border-color: #E91E8C; }
+        .ci-foto-thumb .tag {
+            position: absolute; bottom: 3px; left: 3px;
+            background: rgba(0,0,0,0.55); color: #fff;
+            font-size: 9px; letter-spacing: 0.4px; text-transform: uppercase;
+            padding: 2px 5px; border-radius: 4px; font-weight: 600;
+        }
+
+        /* Lightbox */
+        .lightbox {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.88); z-index: 1000;
+            display: none; align-items: center; justify-content: center; padding: 20px;
+        }
+        .lightbox.active { display: flex; }
+        .lightbox img { max-width: 100%; max-height: 90vh; border-radius: 10px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        .lightbox-close {
+            position: absolute; top: 16px; right: 16px; width: 40px; height: 40px;
+            border-radius: 50%; background: rgba(255,255,255,0.1); border: none; color: #fff;
+            font-size: 22px; cursor: pointer;
+        }
+
+        /* Mobile nav toggle */
+        .menu-toggle {
+            display: none; position: fixed; top: 16px; left: 16px; z-index: 20;
+            width: 42px; height: 42px; border-radius: 10px; background: #1F2937;
+            color: #fff; border: none; font-size: 20px; cursor: pointer;
+        }
+
+        @media (max-width: 900px) {
+            .sidebar { transform: translateX(-100%); transition: transform 0.25s ease; width: 260px; }
+            .sidebar.open { transform: translateX(0); }
+            .main { margin-left: 0; padding: 64px 16px 40px; }
+            .menu-toggle { display: flex; align-items: center; justify-content: center; }
+            .topbar { flex-direction: column; align-items: stretch; gap: 10px; }
+            .topbar h1 { font-size: 20px; }
+            .week-grid { grid-template-columns: repeat(3, 1fr); }
+            .macro-grid { grid-template-columns: repeat(2, 1fr); }
+            .table-wrapper td { font-size: 13px; padding: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <button class="menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Menu">&#9776;</button>
+
+    <div class="app-layout">
+        <!-- ================== SIDEBAR ================== -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">Julia Besten</div>
+            <div class="sidebar-sub">Coach Dashboard</div>
+            <ul class="sidebar-nav">
+                <li><a data-section="overzicht" onclick="navigate('overzicht')"><span class="nav-label">&#128202; Overzicht</span></a></li>
+                <li><a data-section="klanten" onclick="navigate('klanten')"><span class="nav-label">&#128101; Klanten</span><span class="nav-badge hidden" id="navKlantenCount"></span></a></li>
+                <li><a data-section="berichten" onclick="navigate('berichten')"><span class="nav-label">&#128172; Berichten</span><span class="nav-badge hidden" id="navUnreadTotal"></span></a></li>
+                <li><a data-section="training" onclick="navigate('training')"><span class="nav-label">&#127947; Training</span></a></li>
+                <li><a data-section="voeding" onclick="navigate('voeding')"><span class="nav-label">&#129382; Voeding</span></a></li>
+                <li><a data-section="videos" onclick="navigate('videos')"><span class="nav-label">&#127916; Video's</span></a></li>
+            </ul>
+            <div class="sidebar-foot">
+                <a href="#" onclick="goToLeadsPortal(event)">&#128100; Leads Portal &rarr;</a>
+                <a href="/" target="_blank">&#127760; Landingspagina</a>
+                <button onclick="logout()">&#128682; Uitloggen</button>
+            </div>
+        </aside>
+
+        <!-- ================== MAIN ================== -->
+        <main class="main">
+            <!-- ========== SECTIE: OVERZICHT ========== -->
+            <section id="sect-overzicht" class="section">
+                <div class="topbar">
+                    <h1>&#128202; Overzicht</h1>
+                    <div class="topbar-actions">
+                        <button class="btn-admin btn-refresh" onclick="loadProgrammaStats();loadKlanten();">&#8635; Ververs</button>
+                    </div>
+                </div>
+                <div id="programmaStatsWrap" style="font-size:13px;color:#9CA3AF">Laden...</div>
+            </section>
+
+            <!-- ========== SECTIE: KLANTEN ========== -->
+            <section id="sect-klanten" class="section">
+                <div class="topbar">
+                    <h1>&#128101; Klanten</h1>
+                    <div class="topbar-actions">
+                        <button class="btn-admin btn-refresh" onclick="loadKlanten()">&#8635; Ververs</button>
+                    </div>
+                </div>
+
+                <!-- Klant toevoegen -->
+                <div class="card-block">
+                    <h2>&#10133; Klant toevoegen</h2>
+                    <p class="hint">Nieuwe klanten komen normaal binnen via Plug&amp;Pay. Maar voor tests of vriendinnen kun je er hier handmatig eentje toevoegen.</p>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+                        <input type="email" id="klantNieuwEmail" class="filter-input" placeholder="email@klant.nl" style="width:100%">
+                        <input type="text" id="klantNieuwNaam" class="filter-input" placeholder="Volledige naam" style="width:100%">
+                    </div>
+                    <input type="tel" id="klantNieuwTelefoon" class="filter-input" placeholder="Telefoon (optioneel)" style="width:100%;margin-bottom:10px">
+                    <label style="display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:13px;color:#374151;cursor:pointer;">
+                        <input type="checkbox" id="klantNieuwSendMail" checked>
+                        &#128231; Stuur welkomstmail met inloglink
+                    </label>
+                    <button class="btn-admin btn-export" id="klantToevoegenBtn" onclick="klantToevoegen()">Klant aanmaken + magic link</button>
+                    <div id="klantNieuwResult" style="margin-top:10px;font-size:13px"></div>
+                </div>
+
+                <!-- Klanten tabel -->
+                <div id="klantenLijst" style="display:none">
+                    <div style="font-weight:600;font-size:14px;margin-bottom:10px">Bestaande klanten (<span id="klantenCount">0</span>)</div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Naam</th>
+                                    <th>Email</th>
+                                    <th>Status</th>
+                                    <th>Week</th>
+                                    <th>Doel</th>
+                                    <th>Start</th>
+                                    <th>Actie</th>
+                                </tr>
+                            </thead>
+                            <tbody id="klantenTbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div id="klantenLeeg" style="color:#9CA3AF;font-size:13px;padding:16px;text-align:center">Nog geen klanten.</div>
+            </section>
+
+            <!-- ========== SECTIE: BERICHTEN ========== -->
+            <section id="sect-berichten" class="section">
+                <div class="topbar">
+                    <h1>&#128172; Berichten</h1>
+                    <div class="topbar-actions">
+                        <button class="btn-admin btn-refresh" onclick="loadBerichten()">&#8635; Ververs</button>
+                    </div>
+                </div>
+                <div class="card-block" style="padding:0;overflow:hidden;">
+                    <div id="berichtenList" style="font-size:14px;color:#9CA3AF;padding:24px;text-align:center">Laden...</div>
+                </div>
+            </section>
+
+            <!-- ========== SECTIE: TRAINING ========== -->
+            <section id="sect-training" class="section">
+                <div class="topbar">
+                    <h1>&#127947; Training templates</h1>
+                    <div class="topbar-actions">
+                        <button class="btn-admin btn-export" onclick="openTrainingTemplateEditor()">&#10133; Nieuwe template</button>
+                    </div>
+                </div>
+                <div class="card-block">
+                    <p class="hint">Herbruikbare trainingsschema's die je snel naar een klant kopieert per week. Gewoon markdown — <code>#</code> voor kopjes, <code>-</code> voor lijsten, <code>**vet**</code> voor nadruk.</p>
+                    <div id="trainingTemplatesList" style="font-size:13px;color:#9CA3AF">Laden...</div>
+                </div>
+            </section>
+
+            <!-- ========== SECTIE: VOEDING ========== -->
+            <section id="sect-voeding" class="section">
+                <div class="topbar">
+                    <h1>&#129382; Voeding templates</h1>
+                    <div class="topbar-actions">
+                        <button class="btn-admin btn-export" onclick="openVoedingTemplateEditor()">&#10133; Nieuwe template</button>
+                    </div>
+                </div>
+                <div class="card-block">
+                    <p class="hint">Voedingsplannen met macro's. Bv. "Cut 1800kcal vrouw", "Onderhoud vrouw 60kg". Hergebruik per klant.</p>
+                    <div id="voedingTemplatesList" style="font-size:13px;color:#9CA3AF">Laden...</div>
+                </div>
+            </section>
+
+            <!-- ========== SECTIE: VIDEOS ========== -->
+            <section id="sect-videos" class="section">
+                <div class="topbar">
+                    <h1>&#127916; Video library</h1>
+                    <div class="topbar-actions">
+                        <button class="btn-admin btn-export" onclick="openVideoEditor()">&#10133; Nieuwe video</button>
+                    </div>
+                </div>
+                <div class="card-block">
+                    <p class="hint">Voeg YouTube video's toe (plak gewoon een link). Klanten zien ze op hun dashboard, gesorteerd per categorie.</p>
+                    <div id="videoLibList" style="font-size:13px;color:#9CA3AF">Laden...</div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- ================== MODALS ================== -->
+    <div class="lead-modal" id="checkInsModal">
+        <div class="lead-modal-content" id="checkInsModalContent"></div>
+    </div>
+    <div class="lead-modal" id="trainingModal">
+        <div class="lead-modal-content" id="trainingModalContent" style="max-width:800px;"></div>
+    </div>
+    <div class="lead-modal" id="voedingModal">
+        <div class="lead-modal-content" id="voedingModalContent" style="max-width:800px;"></div>
+    </div>
+    <div class="lead-modal" id="templateEditorModal">
+        <div class="lead-modal-content" id="templateEditorContent" style="max-width:800px;"></div>
+    </div>
+    <div class="lead-modal" id="chatModal">
+        <div class="lead-modal-content" id="chatModalContent" style="max-width:640px;"></div>
+    </div>
+    <div class="lead-modal" id="notitiesModal">
+        <div class="lead-modal-content" id="notitiesModalContent" style="max-width:640px;"></div>
+    </div>
+    <div class="lead-modal" id="videoEditorModal">
+        <div class="lead-modal-content" id="videoEditorContent" style="max-width:640px;"></div>
+    </div>
+    <div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
+        <button class="lightbox-close" onclick="closeLightbox(event, true)">&#10005;</button>
+        <img id="lightboxImg" alt="">
+    </div>
+
+    <script>
+        // ========================================================
+        // NAVIGATIE
+        // ========================================================
+        function navigate(section) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
+            const sect = document.getElementById('sect-' + section);
+            if (sect) sect.classList.add('active');
+            const nav = document.querySelector(`.sidebar-nav a[data-section="${section}"]`);
+            if (nav) nav.classList.add('active');
+            window.location.hash = section;
+            // Mobile: sluit sidebar
+            document.querySelector('.sidebar').classList.remove('open');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        async function logout() {
+            try { await fetch('/api/logout', { method: 'POST' }); } catch {}
+            window.location.href = '/';
+        }
+
+        async function goToLeadsPortal(ev) {
+            ev.preventDefault();
+            // Haal het leads-slug op. Server stuurt na login een redirect — we gebruiken die.
+            try {
+                const r = await fetch('/api/admin/portal-url', { credentials: 'include' });
+                if (r.ok) {
+                    const { url } = await r.json();
+                    if (url) { window.location.href = url; return; }
+                }
+            } catch {}
+            alert('Kon Leads Portal URL niet ophalen. Log opnieuw in.');
+        }
+
+        // ========================================================
+        // HELPER
+        // ========================================================
+        function escapeHtml(s) {
+            return String(s == null ? '' : s)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+
+        // ========================================================
+        // LIGHTBOX
+        // ========================================================
+        function openLightbox(src) {
+            const lb = document.getElementById('lightbox');
+            document.getElementById('lightboxImg').src = src;
+            lb.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeLightbox(ev, forced) {
+            if (!forced && ev && ev.target && ev.target.tagName === 'IMG') return;
+            document.getElementById('lightbox').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeLightbox(null, true);
+        });
+
+        // ========================================================
+        // KLANTEN (tabel + toevoegen)
+        // ========================================================
+        window.__unreadCounts = {};
+        window.__klantenCache = [];
+
+        async function klantToevoegen() {
+            const email = document.getElementById('klantNieuwEmail').value.trim();
+            const naam = document.getElementById('klantNieuwNaam').value.trim();
+            const telefoon = document.getElementById('klantNieuwTelefoon').value.trim();
+            const btn = document.getElementById('klantToevoegenBtn');
+            const out = document.getElementById('klantNieuwResult');
+            out.innerHTML = '';
+            if (!email || !email.includes('@')) { out.innerHTML = '<span style="color:#B91C1C">Geldig email vereist.</span>'; return; }
+            if (!naam) { out.innerHTML = '<span style="color:#B91C1C">Naam vereist.</span>'; return; }
+
+            btn.disabled = true;
+            btn.textContent = 'Aanmaken...';
+            try {
+                const r = await fetch('/api/admin/klanten', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        email, naam, telefoon: telefoon || null,
+                        send_email: document.getElementById('klantNieuwSendMail').checked,
+                    }),
+                });
+                const data = await r.json();
+                if (!r.ok || data.error) throw new Error(data.error || 'Aanmaken mislukt');
+
+                let html = '<div style="background:#ECFDF5;border:1px solid #A7F3D0;padding:12px;border-radius:8px;color:#065F46">';
+                html += '<strong>&#10003; Klant aangemaakt!</strong>' + (data.email_sent ? ' <span style="font-size:11px">&#128231; welkomstmail verstuurd</span>' : '') + '<br>';
+                if (data.magic_link) {
+                    html += '<div style="margin-top:8px;font-size:12px">Magic link (1x klikken logt de klant in):</div>';
+                    html += '<div style="margin-top:4px;display:flex;gap:8px;align-items:center">';
+                    html += '<input type="text" readonly value="' + data.magic_link.replace(/"/g, '&quot;') + '" style="flex:1;padding:6px 8px;border:1px solid #A7F3D0;border-radius:6px;font-family:monospace;font-size:11px;background:#fff" onclick="this.select()">';
+                    html += '<button class="btn-admin btn-export" style="padding:6px 10px;font-size:12px" onclick="navigator.clipboard.writeText(\'' + data.magic_link.replace(/'/g, "\\'") + '\');this.textContent=\'&#10003; Gekopieerd\'">Kopieer</button>';
+                    html += '</div>';
+                }
+                html += '</div>';
+                out.innerHTML = html;
+
+                document.getElementById('klantNieuwEmail').value = '';
+                document.getElementById('klantNieuwNaam').value = '';
+                document.getElementById('klantNieuwTelefoon').value = '';
+                loadKlanten();
+            } catch (e) {
+                out.innerHTML = '<span style="color:#B91C1C">Fout: ' + e.message + '</span>';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Klant aanmaken + magic link';
+            }
+        }
+
+        async function loadChatUnread() {
+            try {
+                const r = await fetch('/api/admin/chat/unread', { credentials: 'include' });
+                if (!r.ok) return;
+                const data = await r.json();
+                window.__unreadCounts = data.counts || {};
+                const total = Object.values(window.__unreadCounts).reduce((a, b) => a + b, 0);
+                const badge = document.getElementById('navUnreadTotal');
+                if (total > 0) { badge.textContent = total; badge.classList.remove('hidden'); }
+                else badge.classList.add('hidden');
+            } catch {}
+        }
+
+        async function loadKlanten() {
+            try {
+                await loadChatUnread();
+                const r = await fetch('/api/klanten', { credentials: 'include' });
+                if (!r.ok) return;
+                const list = await r.json();
+                window.__klantenCache = list || [];
+                const tbody = document.getElementById('klantenTbody');
+                const wrap = document.getElementById('klantenLijst');
+                const leeg = document.getElementById('klantenLeeg');
+                const count = document.getElementById('klantenCount');
+                const navCount = document.getElementById('navKlantenCount');
+
+                if (!list || list.length === 0) {
+                    wrap.style.display = 'none';
+                    leeg.style.display = 'block';
+                    navCount.classList.add('hidden');
+                    return;
+                }
+                leeg.style.display = 'none';
+                wrap.style.display = 'block';
+                count.textContent = list.length;
+                navCount.textContent = list.length;
+                navCount.classList.remove('hidden');
+
+                tbody.innerHTML = list.map(k => {
+                    const week = k.start_datum ? Math.max(1, Math.min(16, Math.ceil((Date.now() - new Date(k.start_datum)) / (7*24*60*60*1000)))) : '—';
+                    const statusColors = {
+                        onboarding: '#F59E0B', actief: '#10B981', afgerond: '#6366F1',
+                        gepauzeerd: '#9CA3AF', gestopt: '#EF4444',
+                    };
+                    const kleur = statusColors[k.status] || '#6B7280';
+                    const start = k.start_datum ? new Date(k.start_datum).toLocaleDateString('nl-NL') : '—';
+                    const doel = (k.doel || '—').replace(/_/g, ' ');
+                    const unread = window.__unreadCounts[k.id] || 0;
+                    return `
+                        <tr>
+                            <td><strong>${escapeHtml(k.naam || '—')}</strong></td>
+                            <td style="font-size:12px;color:#6B7280">${escapeHtml(k.email)}</td>
+                            <td><span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;background:${kleur}22;color:${kleur}">${k.status}</span></td>
+                            <td>${week}/16</td>
+                            <td style="font-size:12px">${escapeHtml(doel)}</td>
+                            <td style="font-size:12px;color:#6B7280">${start}</td>
+                            <td style="white-space:nowrap">
+                                <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#FCE7F3;color:#E91E8C;margin-right:3px;" onclick="klantChat('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#128172;${unread > 0 ? '<span class="unread-badge">' + unread + '</span>' : ''}</button>
+                                <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#FCE7F3;color:#E91E8C;margin-right:3px;" onclick="klantBekijkCheckIns('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#128197;</button>
+                                <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#FCE7F3;color:#E91E8C;margin-right:3px;" onclick="klantTraining('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#127947;</button>
+                                <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#FCE7F3;color:#E91E8C;margin-right:3px;" onclick="klantVoeding('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#129382;</button>
+                                <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#FEF3C7;color:#92400E;margin-right:3px;" onclick="klantNotities('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#128221;</button>
+                                <button class="btn-admin btn-export" style="padding:4px 10px;font-size:11px" onclick="klantNieuweMagicLink('${escapeHtml(k.email)}')">&#128279;</button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (e) { console.warn('loadKlanten error:', e); }
+        }
+
+        async function klantNieuweMagicLink(email) {
+            const btn = event.target;
+            const oldText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = '...';
+            try {
+                const klantRow = window.__klantenCache.find(k => k.email === email);
+                if (!klantRow) throw new Error('Klant niet gevonden');
+                const r = await fetch('/api/admin/klanten', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ email, naam: klantRow.naam }),
+                });
+                const data = await r.json();
+                if (!r.ok || !data.magic_link) throw new Error(data.error || 'Geen link');
+                await navigator.clipboard.writeText(data.magic_link);
+                btn.textContent = '\u2713';
+                setTimeout(() => { btn.textContent = oldText; btn.disabled = false; }, 2500);
+            } catch (e) {
+                alert('Fout: ' + e.message);
+                btn.textContent = oldText; btn.disabled = false;
+            }
+        }
+
+        // ========================================================
+        // BERICHTEN (Berichten-overzicht sectie)
+        // ========================================================
+        async function loadBerichten() {
+            const wrap = document.getElementById('berichtenList');
+            if (!wrap) return;
+            try {
+                await Promise.all([loadChatUnread(), (async () => {
+                    if (!window.__klantenCache.length) {
+                        const r = await fetch('/api/klanten', { credentials: 'include' });
+                        if (r.ok) window.__klantenCache = await r.json();
+                    }
+                })()]);
+
+                const klanten = window.__klantenCache || [];
+                if (!klanten.length) {
+                    wrap.innerHTML = '<div style="padding:40px 24px;text-align:center;color:#9CA3AF">Nog geen klanten.</div>';
+                    return;
+                }
+
+                // Sorteer: unread boven, dan alfabetisch
+                const sorted = klanten.slice().sort((a, b) => {
+                    const ua = window.__unreadCounts[a.id] || 0;
+                    const ub = window.__unreadCounts[b.id] || 0;
+                    if (ua !== ub) return ub - ua;
+                    return (a.naam || a.email).localeCompare(b.naam || b.email);
+                });
+
+                wrap.innerHTML = sorted.map(k => {
+                    const naam = k.naam || k.email;
+                    const initial = (naam || '?')[0].toUpperCase();
+                    const unread = window.__unreadCounts[k.id] || 0;
+                    return `
+                        <div class="bericht-row" onclick="klantChat('${k.id}', '${escapeHtml(naam)}')">
+                            <div class="bericht-avatar">${escapeHtml(initial)}</div>
+                            <div class="bericht-body">
+                                <div class="bericht-head">
+                                    <span class="bericht-naam">${escapeHtml(naam)}</span>
+                                    ${unread > 0 ? `<span class="unread-badge">${unread}</span>` : ''}
+                                </div>
+                                <div class="bericht-preview ${unread > 0 ? 'unread' : ''}">
+                                    ${unread > 0 ? unread + ' nieuw bericht' + (unread > 1 ? 'en' : '') : 'Klik om te chatten'}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (e) {
+                wrap.innerHTML = '<div style="padding:24px;color:#EF4444">Fout: ' + escapeHtml(e.message) + '</div>';
+            }
+        }
+
+        // ========================================================
+        // CHECK-INS MODAL (per klant)
+        // ========================================================
+        async function klantBekijkCheckIns(klantId, klantNaam) {
+            const modal = document.getElementById('checkInsModal');
+            const content = document.getElementById('checkInsModalContent');
+            modal.classList.add('active');
+            content.innerHTML = `
+                <div class="lead-modal-header">
+                    <h2>&#128197; Check-ins — ${escapeHtml(klantNaam)}</h2>
+                    <button class="modal-close" onclick="document.getElementById('checkInsModal').classList.remove('active')">&#10005;</button>
+                </div>
+                <div style="padding:24px;text-align:center;color:#9CA3AF;">Laden...</div>
+            `;
+            try {
+                const r = await fetch('/api/admin/klanten/' + encodeURIComponent(klantId) + '/checkins', { credentials:'include' });
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                const { check_ins } = await r.json();
+
+                if (!check_ins || check_ins.length === 0) {
+                    content.innerHTML = `
+                        <div class="lead-modal-header">
+                            <h2>&#128197; Check-ins — ${escapeHtml(klantNaam)}</h2>
+                            <button class="modal-close" onclick="document.getElementById('checkInsModal').classList.remove('active')">&#10005;</button>
+                        </div>
+                        <div style="padding:40px 24px;text-align:center;color:#6B7280;">
+                            <div style="font-size:48px;margin-bottom:12px;">&#128196;</div>
+                            <p>Deze klant heeft nog geen check-ins ingevuld.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const sorted = check_ins.slice().sort((a, b) => b.datum.localeCompare(a.datum));
+                const startGewicht = sorted.length ? parseFloat(sorted[sorted.length - 1].gewicht_kg) : null;
+                const order = { front: 0, side: 1, back: 2 };
+                const rows = sorted.map(c => {
+                    const d = new Date(c.datum).toLocaleDateString('nl-NL', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+                    const gewicht = parseFloat(c.gewicht_kg);
+                    const deltaStart = startGewicht != null ? (gewicht - startGewicht).toFixed(1) : null;
+                    const deltaText = deltaStart != null && deltaStart !== '0.0'
+                        ? `<span style="font-size:12px;color:${parseFloat(deltaStart) < 0 ? '#10B981' : '#EF4444'};margin-left:8px;">${parseFloat(deltaStart) > 0 ? '+' : ''}${deltaStart} kg</span>`
+                        : '';
+                    const maten = [c.taille_cm && 'taille ' + c.taille_cm, c.heupen_cm && 'heupen ' + c.heupen_cm, c.bil_cm && 'bil ' + c.bil_cm].filter(Boolean).join(' · ');
+                    const metriek = [
+                        c.mood && '&#128578; ' + c.mood + '/10',
+                        c.energie && '&#9889; ' + c.energie + '/10',
+                        c.honger && '&#127869;&#65039; ' + c.honger + '/10',
+                        c.stappen && '&#128099; ' + c.stappen.toLocaleString('nl-NL'),
+                        c.water_liter && '&#128167; ' + c.water_liter + 'L',
+                        c.slaap_uren && '&#128164; ' + c.slaap_uren + 'u',
+                    ].filter(Boolean).join(' &middot; ');
+                    const fotos = Array.isArray(c.fotos) ? c.fotos.filter(f => f && f.signed_url) : [];
+                    fotos.sort((a, b) => (order[a.positie] ?? 9) - (order[b.positie] ?? 9));
+                    const fotosHtml = fotos.length ? `
+                        <div class="ci-foto-thumbs">
+                            ${fotos.map(f => `
+                                <div class="ci-foto-thumb" style="background-image:url('${f.signed_url}');" onclick="openLightbox('${f.signed_url}')" title="${f.positie}">
+                                    <span class="tag">${escapeHtml(f.positie)}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : '';
+                    return `
+                        <div style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:16px;margin-bottom:12px;">
+                            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;">
+                                <div style="font-weight:600;font-size:14px;color:#1F2937;">${d}</div>
+                                <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#E91E8C;">
+                                    ${gewicht.toFixed(1)}<span style="font-size:12px;color:#9CA3AF;font-family:'Inter',sans-serif;"> kg</span>${deltaText}
+                                </div>
+                            </div>
+                            ${maten ? `<div style="font-size:12px;color:#6B7280;margin-bottom:6px;">&#128207; ${maten}</div>` : ''}
+                            ${metriek ? `<div style="font-size:12px;color:#6B7280;margin-bottom:6px;">${metriek}</div>` : ''}
+                            ${c.notities ? `<div style="background:#F9FAFB;border-radius:8px;padding:10px 12px;font-size:13px;color:#374151;margin-top:8px;white-space:pre-wrap;">${escapeHtml(c.notities)}</div>` : ''}
+                            ${fotosHtml}
+                        </div>
+                    `;
+                }).join('');
+
+                content.innerHTML = `
+                    <div class="lead-modal-header">
+                        <h2>&#128197; Check-ins — ${escapeHtml(klantNaam)} <span style="color:#9CA3AF;font-weight:400;font-size:14px;">(${check_ins.length})</span></h2>
+                        <button class="modal-close" onclick="document.getElementById('checkInsModal').classList.remove('active')">&#10005;</button>
+                    </div>
+                    <div style="padding:0 4px;">${rows}</div>
+                `;
+            } catch (e) {
+                content.innerHTML = `
+                    <div class="lead-modal-header">
+                        <h2>Check-ins</h2>
+                        <button class="modal-close" onclick="document.getElementById('checkInsModal').classList.remove('active')">&#10005;</button>
+                    </div>
+                    <div style="padding:24px;color:#EF4444;">Fout: ${escapeHtml(e.message)}</div>
+                `;
+            }
+        }
+
+        // ========================================================
+        // TRAINING TEMPLATES
+        // ========================================================
+        let _trainingTemplatesCache = [];
+        let _voedingTemplatesCache = [];
+
+        async function loadTrainingTemplates() {
+            const list = document.getElementById('trainingTemplatesList');
+            try {
+                const r = await fetch('/api/admin/training-templates', { credentials: 'include' });
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                const { templates } = await r.json();
+                _trainingTemplatesCache = templates || [];
+                if (!templates || templates.length === 0) {
+                    list.innerHTML = '<p style="color:#9CA3AF;font-size:13px">Nog geen templates. Klik op "+ Nieuwe template".</p>';
+                    return;
+                }
+                list.innerHTML = templates.map(t => `
+                    <div class="tmpl-row">
+                        <div style="flex:1;min-width:0;">
+                            <div class="tmpl-name">${escapeHtml(t.naam)}</div>
+                            ${t.beschrijving ? `<div class="tmpl-meta">${escapeHtml(t.beschrijving)}</div>` : ''}
+                        </div>
+                        <div class="tmpl-actions">
+                            <button class="btn-small" onclick='openTrainingTemplateEditor(${JSON.stringify(t).replace(/'/g, "&#39;")})'>Bewerk</button>
+                            <button class="btn-small danger" onclick="deleteTrainingTemplate('${t.id}', '${escapeHtml(t.naam)}')">&#10005;</button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (e) {
+                list.innerHTML = '<p style="color:#EF4444;font-size:13px">Kon templates niet laden: ' + escapeHtml(e.message) + '</p>';
+            }
+        }
+
+        async function loadVoedingTemplates() {
+            const list = document.getElementById('voedingTemplatesList');
+            try {
+                const r = await fetch('/api/admin/voeding-templates', { credentials: 'include' });
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                const { templates } = await r.json();
+                _voedingTemplatesCache = templates || [];
+                if (!templates || templates.length === 0) {
+                    list.innerHTML = '<p style="color:#9CA3AF;font-size:13px">Nog geen voeding templates.</p>';
+                    return;
+                }
+                list.innerHTML = templates.map(t => {
+                    const macros = [
+                        t.calories && t.calories + ' kcal',
+                        t.eiwit_g && 'E: ' + t.eiwit_g + 'g',
+                        t.koolhydraten_g && 'K: ' + t.koolhydraten_g + 'g',
+                        t.vetten_g && 'V: ' + t.vetten_g + 'g',
+                    ].filter(Boolean).join(' · ');
+                    return `
+                        <div class="tmpl-row">
+                            <div style="flex:1;min-width:0;">
+                                <div class="tmpl-name">${escapeHtml(t.naam)}</div>
+                                <div class="tmpl-meta">${macros || '—'} ${t.beschrijving ? '· ' + escapeHtml(t.beschrijving) : ''}</div>
+                            </div>
+                            <div class="tmpl-actions">
+                                <button class="btn-small" onclick='openVoedingTemplateEditor(${JSON.stringify(t).replace(/'/g, "&#39;")})'>Bewerk</button>
+                                <button class="btn-small danger" onclick="deleteVoedingTemplate('${t.id}', '${escapeHtml(t.naam)}')">&#10005;</button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (e) {
+                list.innerHTML = '<p style="color:#EF4444;font-size:13px">Kon templates niet laden: ' + escapeHtml(e.message) + '</p>';
+            }
+        }
+
+        function openTrainingTemplateEditor(tmpl) {
+            const t = tmpl || { id: null, naam: '', beschrijving: '', content_markdown: '' };
+            const modal = document.getElementById('templateEditorModal');
+            document.getElementById('templateEditorContent').innerHTML = `
+                <div class="lead-modal-header">
+                    <h2>${t.id ? 'Bewerk' : 'Nieuwe'} training template</h2>
+                    <button class="modal-close" onclick="closeTemplateEditor()">&#10005;</button>
+                </div>
+                <div class="lead-field">
+                    <label>Naam *</label>
+                    <input id="tmplNaam" class="filter-input" value="${escapeHtml(t.naam || '')}" placeholder="bv. Full Body A - Beginner" style="width:100%">
+                </div>
+                <div class="lead-field">
+                    <label>Korte beschrijving</label>
+                    <input id="tmplBeschrijving" class="filter-input" value="${escapeHtml(t.beschrijving || '')}" placeholder="bv. 3x/week, focus op grote spiergroepen" style="width:100%">
+                </div>
+                <div class="lead-field md-editor">
+                    <label>Schema (markdown)</label>
+                    <textarea id="tmplContent" placeholder="# Dag 1 - Full Body&#10;- Squat: 3x8&#10;...">${escapeHtml(t.content_markdown || '')}</textarea>
+                </div>
+                <div class="lead-actions" style="justify-content:flex-end">
+                    <button class="btn-admin btn-refresh" onclick="closeTemplateEditor()">Annuleer</button>
+                    <button class="btn-admin btn-export" onclick="saveTrainingTemplate(${t.id ? "'" + t.id + "'" : 'null'})">Opslaan</button>
+                </div>
+            `;
+            modal.classList.add('active');
+        }
+
+        function openVoedingTemplateEditor(tmpl) {
+            const t = tmpl || { id: null, naam: '', beschrijving: '', calories: '', eiwit_g: '', koolhydraten_g: '', vetten_g: '', content_markdown: '' };
+            const modal = document.getElementById('templateEditorModal');
+            document.getElementById('templateEditorContent').innerHTML = `
+                <div class="lead-modal-header">
+                    <h2>${t.id ? 'Bewerk' : 'Nieuwe'} voeding template</h2>
+                    <button class="modal-close" onclick="closeTemplateEditor()">&#10005;</button>
+                </div>
+                <div class="lead-field">
+                    <label>Naam *</label>
+                    <input id="vtmplNaam" class="filter-input" value="${escapeHtml(t.naam || '')}" placeholder="bv. Cut 1800kcal vrouw 60kg" style="width:100%">
+                </div>
+                <div class="lead-field">
+                    <label>Korte beschrijving</label>
+                    <input id="vtmplBeschrijving" class="filter-input" value="${escapeHtml(t.beschrijving || '')}" placeholder="bv. Voor 1kg/week afvallen" style="width:100%">
+                </div>
+                <div class="macro-grid">
+                    <div><div class="macro-label">Calories</div><input id="vtmplCalories" class="macro-input" type="number" min="0" value="${t.calories ?? ''}"></div>
+                    <div><div class="macro-label">Eiwit (g)</div><input id="vtmplEiwit" class="macro-input" type="number" min="0" value="${t.eiwit_g ?? ''}"></div>
+                    <div><div class="macro-label">Koolhydraten (g)</div><input id="vtmplKh" class="macro-input" type="number" min="0" value="${t.koolhydraten_g ?? ''}"></div>
+                    <div><div class="macro-label">Vetten (g)</div><input id="vtmplVet" class="macro-input" type="number" min="0" value="${t.vetten_g ?? ''}"></div>
+                </div>
+                <div class="lead-field md-editor">
+                    <label>Voorbeeldmaaltijden / toelichting (markdown)</label>
+                    <textarea id="vtmplContent" placeholder="## Ontbijt&#10;- 3 eieren + 40g haver&#10;...">${escapeHtml(t.content_markdown || '')}</textarea>
+                </div>
+                <div class="lead-actions" style="justify-content:flex-end">
+                    <button class="btn-admin btn-refresh" onclick="closeTemplateEditor()">Annuleer</button>
+                    <button class="btn-admin btn-export" onclick="saveVoedingTemplate(${t.id ? "'" + t.id + "'" : 'null'})">Opslaan</button>
+                </div>
+            `;
+            modal.classList.add('active');
+        }
+
+        function closeTemplateEditor() { document.getElementById('templateEditorModal').classList.remove('active'); }
+
+        async function saveTrainingTemplate(id) {
+            const body = {
+                naam: document.getElementById('tmplNaam').value.trim(),
+                beschrijving: document.getElementById('tmplBeschrijving').value.trim(),
+                content_markdown: document.getElementById('tmplContent').value,
+            };
+            if (!body.naam) { alert('Naam is verplicht'); return; }
+            try {
+                const r = id
+                    ? await fetch('/api/admin/training-templates/' + id, { method: 'PUT', credentials: 'include', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) })
+                    : await fetch('/api/admin/training-templates', { method: 'POST', credentials: 'include', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+                const out = await r.json();
+                if (!r.ok || out.error) throw new Error(out.error || 'HTTP ' + r.status);
+                closeTemplateEditor();
+                loadTrainingTemplates();
+            } catch (e) { alert('Opslaan mislukt: ' + e.message); }
+        }
+
+        async function saveVoedingTemplate(id) {
+            const body = {
+                naam: document.getElementById('vtmplNaam').value.trim(),
+                beschrijving: document.getElementById('vtmplBeschrijving').value.trim(),
+                calories: document.getElementById('vtmplCalories').value,
+                eiwit_g: document.getElementById('vtmplEiwit').value,
+                koolhydraten_g: document.getElementById('vtmplKh').value,
+                vetten_g: document.getElementById('vtmplVet').value,
+                content_markdown: document.getElementById('vtmplContent').value,
+            };
+            if (!body.naam) { alert('Naam is verplicht'); return; }
+            try {
+                const r = id
+                    ? await fetch('/api/admin/voeding-templates/' + id, { method: 'PUT', credentials: 'include', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) })
+                    : await fetch('/api/admin/voeding-templates', { method: 'POST', credentials: 'include', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+                const out = await r.json();
+                if (!r.ok || out.error) throw new Error(out.error || 'HTTP ' + r.status);
+                closeTemplateEditor();
+                loadVoedingTemplates();
+            } catch (e) { alert('Opslaan mislukt: ' + e.message); }
+        }
+
+        async function deleteTrainingTemplate(id, naam) {
+            if (!confirm(`Template "${naam}" verwijderen?`)) return;
+            try {
+                await fetch('/api/admin/training-templates/' + id, { method: 'DELETE', credentials: 'include' });
+                loadTrainingTemplates();
+            } catch (e) { alert('Verwijderen mislukt: ' + e.message); }
+        }
+        async function deleteVoedingTemplate(id, naam) {
+            if (!confirm(`Template "${naam}" verwijderen?`)) return;
+            try {
+                await fetch('/api/admin/voeding-templates/' + id, { method: 'DELETE', credentials: 'include' });
+                loadVoedingTemplates();
+            } catch (e) { alert('Verwijderen mislukt: ' + e.message); }
+        }
+
+        // ========================================================
+        // TRAINING / VOEDING PER KLANT
+        // ========================================================
+        async function klantTraining(klantId, klantNaam) {
+            const modal = document.getElementById('trainingModal');
+            const content = document.getElementById('trainingModalContent');
+            modal.classList.add('active');
+            content.innerHTML = `
+                <div class="lead-modal-header">
+                    <h2>&#127947; Training — ${escapeHtml(klantNaam)}</h2>
+                    <button class="modal-close" onclick="document.getElementById('trainingModal').classList.remove('active')">&#10005;</button>
+                </div>
+                <div style="padding:24px;text-align:center;color:#9CA3AF;">Laden...</div>
+            `;
+            try {
+                const [r, tr] = await Promise.all([
+                    fetch('/api/admin/klanten/' + klantId + '/training-schemas', { credentials: 'include' }),
+                    fetch('/api/admin/training-templates', { credentials: 'include' }),
+                ]);
+                const { schemas } = await r.json();
+                const tmplData = await tr.json();
+                _trainingTemplatesCache = tmplData.templates || [];
+                const byWeek = {};
+                (schemas || []).forEach(s => { byWeek[s.week_nr] = s; });
+                const cells = Array.from({ length: 16 }, (_, i) => {
+                    const wk = i + 1;
+                    const filled = !!byWeek[wk];
+                    const titel = filled && byWeek[wk].titel ? byWeek[wk].titel : '';
+                    return `
+                        <div class="week-cell ${filled ? 'filled' : ''}" onclick="editTrainingWeek('${klantId}', '${escapeHtml(klantNaam)}', ${wk})">
+                            <span class="wk-nr">${wk}${filled ? '<span class="wk-dot"></span>' : ''}</span>
+                            <span>${titel ? escapeHtml(titel) : (filled ? 'Ingevuld' : 'Leeg')}</span>
+                        </div>
+                    `;
+                }).join('');
+                content.innerHTML = `
+                    <div class="lead-modal-header">
+                        <h2>&#127947; Training — ${escapeHtml(klantNaam)}</h2>
+                        <button class="modal-close" onclick="document.getElementById('trainingModal').classList.remove('active')">&#10005;</button>
+                    </div>
+                    <p style="font-size:13px;color:#6B7280;margin-bottom:12px;">Klik op een week om het schema te vullen.</p>
+                    <div class="week-grid">${cells}</div>
+                `;
+            } catch (e) {
+                content.innerHTML = `
+                    <div class="lead-modal-header"><h2>Training</h2><button class="modal-close" onclick="document.getElementById('trainingModal').classList.remove('active')">&#10005;</button></div>
+                    <div style="padding:24px;color:#EF4444;">Fout: ${escapeHtml(e.message)}</div>
+                `;
+            }
+        }
+
+        async function editTrainingWeek(klantId, klantNaam, weekNr) {
+            const content = document.getElementById('trainingModalContent');
+            let schema = { titel: '', content_markdown: '' };
+            try {
+                const r = await fetch('/api/admin/klanten/' + klantId + '/training-schemas', { credentials: 'include' });
+                const { schemas } = await r.json();
+                const existing = (schemas || []).find(s => s.week_nr === weekNr);
+                if (existing) schema = existing;
+            } catch {}
+
+            const tmplOptions = _trainingTemplatesCache.length
+                ? `<option value="">-- kies template om te importeren --</option>` +
+                  _trainingTemplatesCache.map(t => `<option value="${t.id}">${escapeHtml(t.naam)}</option>`).join('')
+                : '';
+
+            content.innerHTML = `
+                <div class="lead-modal-header">
+                    <h2>Week ${weekNr} — ${escapeHtml(klantNaam)}</h2>
+                    <button class="modal-close" onclick="document.getElementById('trainingModal').classList.remove('active')">&#10005;</button>
+                </div>
+                ${tmplOptions ? `
+                    <div class="tmpl-picker">
+                        <span>&#128196; Template:</span>
+                        <select id="trainTmplSel">${tmplOptions}</select>
+                        <button class="btn-small primary" onclick="applyTrainingTemplate()">Importeer</button>
+                    </div>
+                ` : '<p style="font-size:12px;color:#9CA3AF;margin-bottom:10px">Tip: maak eerst templates aan.</p>'}
+                <div class="lead-field">
+                    <label>Titel (optioneel)</label>
+                    <input id="trainTitel" class="filter-input" value="${escapeHtml(schema.titel || '')}" placeholder="bv. Week ${weekNr} - Krachttraining" style="width:100%">
+                </div>
+                <div class="lead-field md-editor">
+                    <label>Schema (markdown)</label>
+                    <textarea id="trainContent" placeholder="# Dag 1&#10;- Squat 3x8&#10;...">${escapeHtml(schema.content_markdown || '')}</textarea>
+                </div>
+                <label style="display:flex;align-items:center;gap:8px;margin:8px 0 12px;font-size:13px;color:#374151;cursor:pointer;">
+                    <input type="checkbox" id="trainNotify">
+                    &#128231; Stuur klant een email bij opslaan
+                </label>
+                <div class="lead-actions" style="justify-content:space-between">
+                    <div>
+                        <button class="btn-admin btn-refresh" onclick="klantTraining('${klantId}', '${escapeHtml(klantNaam)}')">&#8592; Terug</button>
+                        ${schema.id ? `<button class="btn-admin" style="color:#991B1B;border-color:#FECACA;background:#FEF2F2;margin-left:8px" onclick="deleteTrainingWeek('${klantId}', '${escapeHtml(klantNaam)}', ${weekNr})">&#128465; Leegmaken</button>` : ''}
+                    </div>
+                    <button class="btn-admin btn-export" onclick="saveTrainingWeek('${klantId}', '${escapeHtml(klantNaam)}', ${weekNr})">Opslaan</button>
+                </div>
+            `;
+        }
+
+        function applyTrainingTemplate() {
+            const sel = document.getElementById('trainTmplSel');
+            const t = _trainingTemplatesCache.find(x => x.id === sel.value);
+            if (!t) return;
+            document.getElementById('trainTitel').value = t.naam;
+            document.getElementById('trainContent').value = t.content_markdown || '';
+        }
+
+        async function saveTrainingWeek(klantId, klantNaam, weekNr) {
+            const body = {
+                titel: document.getElementById('trainTitel').value.trim(),
+                content_markdown: document.getElementById('trainContent').value,
+                notify: document.getElementById('trainNotify').checked,
+            };
+            try {
+                const r = await fetch('/api/admin/klanten/' + klantId + '/training-schemas/' + weekNr, {
+                    method: 'PUT', credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body),
+                });
+                const out = await r.json();
+                if (!r.ok || out.error) throw new Error(out.error || 'HTTP ' + r.status);
+                klantTraining(klantId, klantNaam);
+            } catch (e) { alert('Opslaan mislukt: ' + e.message); }
+        }
+        async function deleteTrainingWeek(klantId, klantNaam, weekNr) {
+            if (!confirm(`Week ${weekNr} leegmaken?`)) return;
+            try {
+                await fetch('/api/admin/klanten/' + klantId + '/training-schemas/' + weekNr, { method: 'DELETE', credentials: 'include' });
+                klantTraining(klantId, klantNaam);
+            } catch (e) { alert('Verwijderen mislukt: ' + e.message); }
+        }
+
+        async function klantVoeding(klantId, klantNaam) {
+            const modal = document.getElementById('voedingModal');
+            const content = document.getElementById('voedingModalContent');
+            modal.classList.add('active');
+            content.innerHTML = `
+                <div class="lead-modal-header">
+                    <h2>&#129382; Voeding — ${escapeHtml(klantNaam)}</h2>
+                    <button class="modal-close" onclick="document.getElementById('voedingModal').classList.remove('active')">&#10005;</button>
+                </div>
+                <div style="padding:24px;text-align:center;color:#9CA3AF;">Laden...</div>
+            `;
+            try {
+                const [r, tr] = await Promise.all([
+                    fetch('/api/admin/klanten/' + klantId + '/voeding-plan', { credentials: 'include' }),
+                    fetch('/api/admin/voeding-templates', { credentials: 'include' }),
+                ]);
+                const { plan } = await r.json();
+                const tmplData = await tr.json();
+                _voedingTemplatesCache = tmplData.templates || [];
+                const p = plan || { titel: '', calories: '', eiwit_g: '', koolhydraten_g: '', vetten_g: '', content_markdown: '' };
+                const tmplOptions = _voedingTemplatesCache.length
+                    ? `<option value="">-- kies template --</option>` +
+                      _voedingTemplatesCache.map(t => `<option value="${t.id}">${escapeHtml(t.naam)}</option>`).join('')
+                    : '';
+                content.innerHTML = `
+                    <div class="lead-modal-header">
+                        <h2>&#129382; Voeding — ${escapeHtml(klantNaam)}</h2>
+                        <button class="modal-close" onclick="document.getElementById('voedingModal').classList.remove('active')">&#10005;</button>
+                    </div>
+                    ${tmplOptions ? `
+                        <div class="tmpl-picker">
+                            <span>&#128196; Template:</span>
+                            <select id="voedTmplSel">${tmplOptions}</select>
+                            <button class="btn-small primary" onclick="applyVoedingTemplate()">Importeer</button>
+                        </div>
+                    ` : ''}
+                    <div class="lead-field">
+                        <label>Titel (optioneel)</label>
+                        <input id="voedTitel" class="filter-input" value="${escapeHtml(p.titel || '')}" placeholder="bv. Cut fase 1" style="width:100%">
+                    </div>
+                    <div class="macro-grid">
+                        <div><div class="macro-label">Calories</div><input id="voedCalories" class="macro-input" type="number" min="0" value="${p.calories ?? ''}"></div>
+                        <div><div class="macro-label">Eiwit (g)</div><input id="voedEiwit" class="macro-input" type="number" min="0" value="${p.eiwit_g ?? ''}"></div>
+                        <div><div class="macro-label">Koolhydraten (g)</div><input id="voedKh" class="macro-input" type="number" min="0" value="${p.koolhydraten_g ?? ''}"></div>
+                        <div><div class="macro-label">Vetten (g)</div><input id="voedVet" class="macro-input" type="number" min="0" value="${p.vetten_g ?? ''}"></div>
+                    </div>
+                    <div class="lead-field md-editor">
+                        <label>Voorbeeldmaaltijden / toelichting (markdown)</label>
+                        <textarea id="voedContent" placeholder="## Ontbijt...">${escapeHtml(p.content_markdown || '')}</textarea>
+                    </div>
+                    <label style="display:flex;align-items:center;gap:8px;margin:4px 0 12px;font-size:13px;color:#374151;cursor:pointer;">
+                        <input type="checkbox" id="voedNotify">
+                        &#128231; Stuur klant een email bij opslaan
+                    </label>
+                    <div class="lead-actions" style="justify-content:space-between">
+                        <div>
+                            ${p.id ? `<button class="btn-admin" style="color:#991B1B;border-color:#FECACA;background:#FEF2F2" onclick="deleteVoedingPlan('${klantId}', '${escapeHtml(klantNaam)}')">&#128465; Verwijder</button>` : ''}
+                        </div>
+                        <button class="btn-admin btn-export" onclick="saveVoedingPlan('${klantId}', '${escapeHtml(klantNaam)}')">Opslaan</button>
+                    </div>
+                `;
+            } catch (e) {
+                content.innerHTML = `
+                    <div class="lead-modal-header"><h2>Voeding</h2><button class="modal-close" onclick="document.getElementById('voedingModal').classList.remove('active')">&#10005;</button></div>
+                    <div style="padding:24px;color:#EF4444;">Fout: ${escapeHtml(e.message)}</div>
+                `;
+            }
+        }
+
+        function applyVoedingTemplate() {
+            const sel = document.getElementById('voedTmplSel');
+            const t = _voedingTemplatesCache.find(x => x.id === sel.value);
+            if (!t) return;
+            document.getElementById('voedTitel').value = t.naam;
+            document.getElementById('voedCalories').value = t.calories ?? '';
+            document.getElementById('voedEiwit').value = t.eiwit_g ?? '';
+            document.getElementById('voedKh').value = t.koolhydraten_g ?? '';
+            document.getElementById('voedVet').value = t.vetten_g ?? '';
+            document.getElementById('voedContent').value = t.content_markdown || '';
+        }
+
+        async function saveVoedingPlan(klantId, klantNaam) {
+            const body = {
+                titel: document.getElementById('voedTitel').value.trim(),
+                calories: document.getElementById('voedCalories').value,
+                eiwit_g: document.getElementById('voedEiwit').value,
+                koolhydraten_g: document.getElementById('voedKh').value,
+                vetten_g: document.getElementById('voedVet').value,
+                content_markdown: document.getElementById('voedContent').value,
+                notify: document.getElementById('voedNotify').checked,
+            };
+            try {
+                const r = await fetch('/api/admin/klanten/' + klantId + '/voeding-plan', {
+                    method: 'PUT', credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body),
+                });
+                const out = await r.json();
+                if (!r.ok || out.error) throw new Error(out.error || 'HTTP ' + r.status);
+                klantVoeding(klantId, klantNaam);
+            } catch (e) { alert('Opslaan mislukt: ' + e.message); }
+        }
+
+        async function deleteVoedingPlan(klantId, klantNaam) {
+            if (!confirm(`Voedingsplan van ${klantNaam} verwijderen?`)) return;
+            try {
+                await fetch('/api/admin/klanten/' + klantId + '/voeding-plan', { method: 'DELETE', credentials: 'include' });
+                klantVoeding(klantId, klantNaam);
+            } catch (e) { alert('Verwijderen mislukt: ' + e.message); }
+        }
+
+        // ========================================================
+        // CHAT MODAL (per klant)
+        // ========================================================
+        window.__activeChatKlantId = null;
+        window.__chatPollTimer = null;
+
+        function formatChatTime(iso) {
+            const d = new Date(iso);
+            const sameDay = d.toDateString() === new Date().toDateString();
+            if (sameDay) return d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
+            return d.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' }) +
+                   ' ' + d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function renderChatMessages(messages) {
+            const box = document.getElementById('chatMessages');
+            if (!box) return;
+            if (!messages || !messages.length) {
+                box.innerHTML = '<div class="chat-empty">Nog geen berichten. Stuur het eerste bericht &#128071;</div>';
+                return;
+            }
+            box.innerHTML = messages.map(m => `
+                <div class="chat-bubble ${m.van}">
+                    ${escapeHtml(m.content)}
+                    <div class="chat-meta">${formatChatTime(m.created_at)}${m.van === 'coach' ? (m.read_at ? ' &#10003;&#10003;' : ' &#10003;') : ''}</div>
+                </div>
+            `).join('');
+            box.scrollTop = box.scrollHeight;
+        }
+
+        async function klantChat(klantId, klantNaam) {
+            window.__activeChatKlantId = klantId;
+            const modal = document.getElementById('chatModal');
+            document.getElementById('chatModalContent').innerHTML = `
+                <div class="lead-modal-header">
+                    <h2>&#128172; Chat — ${escapeHtml(klantNaam)}</h2>
+                    <button class="modal-close" onclick="closeChat()">&#10005;</button>
+                </div>
+                <div class="chat-wrap">
+                    <div class="chat-messages" id="chatMessages"><div class="chat-empty">Laden...</div></div>
+                    <div class="chat-input-row">
+                        <textarea id="chatInput" placeholder="Bericht aan ${escapeHtml(klantNaam)}..." rows="2"
+                                  onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault();sendCoachMessage('${klantId}');}"></textarea>
+                        <button class="btn-admin btn-export" onclick="sendCoachMessage('${klantId}')" style="padding:10px 18px;">Verstuur</button>
+                    </div>
+                </div>
+            `;
+            modal.classList.add('active');
+            await loadChatMessages(klantId);
+            try {
+                await fetch('/api/admin/klanten/' + klantId + '/chat/read', { method: 'POST', credentials: 'include' });
+                await loadChatUnread();
+                loadKlanten();
+                if (document.getElementById('sect-berichten').classList.contains('active')) loadBerichten();
+            } catch {}
+            if (window.__chatPollTimer) clearInterval(window.__chatPollTimer);
+            window.__chatPollTimer = setInterval(() => {
+                if (window.__activeChatKlantId === klantId) loadChatMessages(klantId);
+            }, 5000);
+        }
+
+        function closeChat() {
+            document.getElementById('chatModal').classList.remove('active');
+            window.__activeChatKlantId = null;
+            if (window.__chatPollTimer) { clearInterval(window.__chatPollTimer); window.__chatPollTimer = null; }
+        }
+
+        async function loadChatMessages(klantId) {
+            try {
+                const r = await fetch('/api/admin/klanten/' + klantId + '/chat', { credentials: 'include' });
+                if (!r.ok) return;
+                const data = await r.json();
+                renderChatMessages(data.messages || []);
+            } catch (e) { console.warn('loadChatMessages:', e); }
+        }
+
+        async function sendCoachMessage(klantId) {
+            const input = document.getElementById('chatInput');
+            const txt = (input.value || '').trim();
+            if (!txt) return;
+            input.disabled = true;
+            try {
+                const r = await fetch('/api/admin/klanten/' + klantId + '/chat', {
+                    method: 'POST', credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ content: txt }),
+                });
+                const out = await r.json();
+                if (!r.ok || out.error) throw new Error(out.error || 'HTTP ' + r.status);
+                input.value = '';
+                await loadChatMessages(klantId);
+            } catch (e) { alert('Verzenden mislukt: ' + e.message); }
+            finally { input.disabled = false; input.focus(); }
+        }
+
+        // ========================================================
+        // NOTITIES (privé per klant)
+        // ========================================================
+        async function klantNotities(klantId, klantNaam) {
+            const modal = document.getElementById('notitiesModal');
+            const content = document.getElementById('notitiesModalContent');
+            modal.classList.add('active');
+            content.innerHTML = `
+                <div class="lead-modal-header">
+                    <h2>&#128221; Notities — ${escapeHtml(klantNaam)}</h2>
+                    <button class="modal-close" onclick="document.getElementById('notitiesModal').classList.remove('active')">&#10005;</button>
+                </div>
+                <div style="padding:24px;text-align:center;color:#9CA3AF;">Laden...</div>
+            `;
+            try {
+                const r = await fetch('/api/admin/klanten/' + klantId + '/notities', { credentials: 'include' });
+                const { notities } = await r.json();
+                window.__activeNotitiesKlant = { id: klantId, naam: klantNaam };
+                renderNotities(notities || []);
+            } catch (e) {
+                content.innerHTML = `
+                    <div class="lead-modal-header"><h2>Notities</h2><button class="modal-close" onclick="document.getElementById('notitiesModal').classList.remove('active')">&#10005;</button></div>
+                    <div style="padding:24px;color:#EF4444;">Fout: ${escapeHtml(e.message)}.</div>
+                `;
+            }
+        }
+
+        function renderNotities(notities) {
+            const { id: klantId, naam } = window.__activeNotitiesKlant || {};
+            const content = document.getElementById('notitiesModalContent');
+            const fmt = (iso) => new Date(iso).toLocaleString('nl-NL', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' });
+            const lijst = notities.length ? notities.map(n => `
+                <div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;padding:12px 14px;margin-bottom:10px;">
+                    <div style="font-size:11px;color:#92400E;margin-bottom:6px;display:flex;justify-content:space-between;">
+                        <span>${fmt(n.created_at)}${n.updated_at !== n.created_at ? ' · bijgewerkt ' + fmt(n.updated_at) : ''}</span>
+                        <span>
+                            <button class="btn-small" onclick="editNotitie('${n.id}', ${JSON.stringify(n.content).replace(/"/g,'&quot;')})">Bewerk</button>
+                            <button class="btn-small danger" onclick="deleteNotitie('${n.id}')">Verwijder</button>
+                        </span>
+                    </div>
+                    <div style="font-size:14px;color:#1F2937;white-space:pre-wrap;">${escapeHtml(n.content)}</div>
+                </div>
+            `).join('') : '<div style="text-align:center;color:#9CA3AF;font-size:13px;padding:16px 0;">Nog geen notities.</div>';
+
+            content.innerHTML = `
+                <div class="lead-modal-header">
+                    <h2>&#128221; Notities — ${escapeHtml(naam)}</h2>
+                    <button class="modal-close" onclick="document.getElementById('notitiesModal').classList.remove('active')">&#10005;</button>
+                </div>
+                <p style="font-size:12px;color:#92400E;background:#FEF3C7;padding:8px 12px;border-radius:8px;margin-bottom:14px;">
+                    &#128274; Privé — alleen jij ziet deze notities, ${escapeHtml((naam||'').split(' ')[0])} nooit.
+                </p>
+                <div class="lead-field">
+                    <label>Nieuwe notitie</label>
+                    <textarea id="notitieNieuw" placeholder="Bv. Klant voelt zich schuldig over eten — we werken aan mindset." style="min-height:90px;"></textarea>
+                </div>
+                <div class="lead-actions" style="justify-content:flex-end;margin-bottom:18px;">
+                    <button class="btn-admin btn-export" onclick="saveNewNotitie('${klantId}')">Opslaan</button>
+                </div>
+                <div style="font-size:12px;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:8px;">Bestaande notities (${notities.length})</div>
+                ${lijst}
+            `;
+        }
+
+        async function saveNewNotitie(klantId) {
+            const ta = document.getElementById('notitieNieuw');
+            const content = (ta.value || '').trim();
+            if (!content) return;
+            try {
+                const r = await fetch('/api/admin/klanten/' + klantId + '/notities', {
+                    method: 'POST', credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ content }),
+                });
+                if (!r.ok) { const j = await r.json().catch(()=>({})); throw new Error(j.error || 'HTTP ' + r.status); }
+                klantNotities(klantId, window.__activeNotitiesKlant.naam);
+            } catch (e) { alert('Opslaan mislukt: ' + e.message); }
+        }
+
+        function editNotitie(id, content) {
+            const ta = document.getElementById('notitieNieuw');
+            if (!ta) return;
+            ta.value = typeof content === 'string' ? content : '';
+            ta.focus();
+            const btn = document.querySelector('#notitiesModalContent .lead-actions button');
+            if (btn) {
+                btn.textContent = 'Bijwerken';
+                btn.onclick = async () => {
+                    try {
+                        const r = await fetch('/api/admin/notities/' + id, {
+                            method: 'PUT', credentials: 'include',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ content: ta.value.trim() }),
+                        });
+                        if (!r.ok) { const j = await r.json().catch(()=>({})); throw new Error(j.error || 'HTTP ' + r.status); }
+                        const { id: kid, naam } = window.__activeNotitiesKlant;
+                        klantNotities(kid, naam);
+                    } catch (e) { alert('Bijwerken mislukt: ' + e.message); }
+                };
+            }
+        }
+
+        async function deleteNotitie(id) {
+            if (!confirm('Notitie verwijderen?')) return;
+            try {
+                const r = await fetch('/api/admin/notities/' + id, { method: 'DELETE', credentials: 'include' });
+                if (!r.ok) { const j = await r.json().catch(()=>({})); throw new Error(j.error || 'HTTP ' + r.status); }
+                const { id: kid, naam } = window.__activeNotitiesKlant;
+                klantNotities(kid, naam);
+            } catch (e) { alert('Verwijderen mislukt: ' + e.message); }
+        }
+
+        // ========================================================
+        // VIDEO LIBRARY (beheer)
+        // ========================================================
+        async function loadVideoLib() {
+            const wrap = document.getElementById('videoLibList');
+            if (!wrap) return;
+            try {
+                const r = await fetch('/api/admin/videos', { credentials: 'include' });
+                if (!r.ok) { wrap.textContent = 'Videos laden mislukt.'; return; }
+                const { videos } = await r.json();
+                if (!videos || !videos.length) {
+                    wrap.innerHTML = '<div style="color:#9CA3AF;padding:8px 0;">Nog geen video\'s.</div>';
+                    return;
+                }
+                const catColors = { techniek:'#DBEAFE', mindset:'#FCE7F3', voeding:'#D1FAE5', algemeen:'#F3F4F6' };
+                wrap.innerHTML = `
+                    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;">
+                      ${videos.map(v => {
+                        const cat = v.categorie || 'algemeen';
+                        const bg = catColors[cat] || '#F3F4F6';
+                        return `
+                          <div style="background:#fff;border:1px solid #E5E7EB;border-radius:10px;overflow:hidden;">
+                            <div style="aspect-ratio:16/9;background:#000;background-image:url('https://i.ytimg.com/vi/${v.youtube_id}/hqdefault.jpg');background-size:cover;background-position:center;"></div>
+                            <div style="padding:10px 12px;">
+                              <div style="font-weight:600;font-size:13px;line-height:1.3;margin-bottom:4px;">${escapeHtml(v.titel || '')}</div>
+                              <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
+                                <span style="font-size:10px;padding:2px 8px;border-radius:10px;background:${bg};color:#374151;text-transform:uppercase;letter-spacing:0.5px;">${escapeHtml(cat)}</span>
+                                <span>
+                                  <button class="btn-small" onclick='openVideoEditor(${JSON.stringify(v).replace(/"/g,"&quot;")})'>Bewerk</button>
+                                  <button class="btn-small danger" onclick="deleteVideo('${v.id}')">&#10005;</button>
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        `;
+                      }).join('')}
+                    </div>
+                `;
+            } catch (e) { wrap.textContent = 'Fout: ' + e.message; }
+        }
+
+        function openVideoEditor(existing) {
+            const modal = document.getElementById('videoEditorModal');
+            const v = existing || { titel:'', beschrijving:'', youtube_url:'', categorie:'algemeen', volgorde:0 };
+            document.getElementById('videoEditorContent').innerHTML = `
+                <div class="lead-modal-header">
+                    <h2>&#127916; ${v.id ? 'Video bewerken' : 'Nieuwe video'}</h2>
+                    <button class="modal-close" onclick="document.getElementById('videoEditorModal').classList.remove('active')">&#10005;</button>
+                </div>
+                <div class="lead-field">
+                    <label>Titel</label>
+                    <input id="vidTitel" class="filter-input" value="${escapeHtml(v.titel || '')}" placeholder="bv. Hoe je een squat goed uitvoert" style="width:100%">
+                </div>
+                <div class="lead-field">
+                    <label>YouTube URL</label>
+                    <input id="vidUrl" class="filter-input" value="${escapeHtml(v.youtube_url || '')}" placeholder="https://youtube.com/watch?v=..." style="width:100%">
+                </div>
+                <div class="lead-field">
+                    <label>Categorie</label>
+                    <select id="vidCat" class="filter-input" style="width:100%">
+                        <option value="techniek" ${v.categorie==='techniek'?'selected':''}>Techniek</option>
+                        <option value="mindset" ${v.categorie==='mindset'?'selected':''}>Mindset</option>
+                        <option value="voeding" ${v.categorie==='voeding'?'selected':''}>Voeding</option>
+                        <option value="algemeen" ${v.categorie==='algemeen'?'selected':''}>Algemeen</option>
+                    </select>
+                </div>
+                <div class="lead-field">
+                    <label>Volgorde (lager = hoger in lijst)</label>
+                    <input id="vidVolgorde" class="filter-input" type="number" value="${v.volgorde ?? 0}" style="width:100%">
+                </div>
+                <div class="lead-field">
+                    <label>Beschrijving (optioneel)</label>
+                    <textarea id="vidDesc" placeholder="Korte uitleg..." style="min-height:80px;">${escapeHtml(v.beschrijving || '')}</textarea>
+                </div>
+                <div class="lead-actions" style="justify-content:flex-end">
+                    <button class="btn-admin btn-export" onclick="saveVideo('${v.id || ''}')">${v.id ? 'Bijwerken' : 'Toevoegen'}</button>
+                </div>
+            `;
+            modal.classList.add('active');
+        }
+
+        async function saveVideo(id) {
+            const body = {
+                titel: document.getElementById('vidTitel').value.trim(),
+                youtube_url: document.getElementById('vidUrl').value.trim(),
+                categorie: document.getElementById('vidCat').value,
+                volgorde: parseInt(document.getElementById('vidVolgorde').value || '0', 10),
+                beschrijving: document.getElementById('vidDesc').value.trim(),
+            };
+            if (!body.titel || !body.youtube_url) { alert('Titel en YouTube URL zijn verplicht.'); return; }
+            try {
+                const url = id ? '/api/admin/videos/' + id : '/api/admin/videos';
+                const r = await fetch(url, {
+                    method: id ? 'PUT' : 'POST', credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body),
+                });
+                if (!r.ok) { const j = await r.json().catch(()=>({})); throw new Error(j.error || 'HTTP ' + r.status); }
+                document.getElementById('videoEditorModal').classList.remove('active');
+                loadVideoLib();
+            } catch (e) { alert('Opslaan mislukt: ' + e.message); }
+        }
+
+        async function deleteVideo(id) {
+            if (!confirm('Video verwijderen?')) return;
+            try {
+                const r = await fetch('/api/admin/videos/' + id, { method: 'DELETE', credentials: 'include' });
+                if (!r.ok) { const j = await r.json().catch(()=>({})); throw new Error(j.error || 'HTTP ' + r.status); }
+                loadVideoLib();
+            } catch (e) { alert('Verwijderen mislukt: ' + e.message); }
+        }
+
+        // ========================================================
+        // PROGRAMMA STATS (Overzicht sectie)
+        // ========================================================
+        async function loadProgrammaStats() {
+            const wrap = document.getElementById('programmaStatsWrap');
+            if (!wrap) return;
+            try {
+                const r = await fetch('/api/admin/stats/overview', { credentials: 'include' });
+                if (!r.ok) { wrap.textContent = 'Stats laden mislukt.'; return; }
+                const s = await r.json();
+                const sc = s.statusCounts || {};
+                const stat = (label, val, cls) => `
+                    <div class="stat-card">
+                        <div class="stat-card-label">${label}</div>
+                        <div class="stat-card-value ${cls||''}">${val}</div>
+                    </div>`;
+                const top = (s.topProgress || []).slice(0, 5);
+                const topHtml = top.length ? `
+                    <div class="card-block">
+                        <h2>&#127942; Top 5 progressie</h2>
+                        ${top.map(t => `
+                            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #F3F4F6;font-size:14px;">
+                                <span>${escapeHtml(t.naam || '—')}</span>
+                                <span style="font-weight:600;color:${t.delta < 0 ? '#065F46' : (t.delta > 0 ? '#991B1B' : '#6B7280')};">
+                                    ${t.delta > 0 ? '+' : ''}${(t.delta || 0).toFixed(1)} kg
+                                </span>
+                            </div>
+                        `).join('')}
+                    </div>` : '';
+                const achterHtml = (s.klantenAchterlopen && s.klantenAchterlopen.length) ? `
+                    <div class="card-block" style="background:#FEF2F2;border-color:#FECACA;">
+                        <h2 style="color:#991B1B;">&#9888;&#65039; Geen check-in > 10 dagen (${s.klantenAchterlopen.length})</h2>
+                        ${s.klantenAchterlopen.map(k => `
+                            <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:14px;color:#7F1D1D;border-bottom:1px solid #FECACA;">
+                                <span>${escapeHtml(k.naam || k.email)}</span>
+                                <span style="font-size:13px;">${k.daysSince == null ? 'nooit' : k.daysSince + ' dagen'}</span>
+                            </div>
+                        `).join('')}
+                    </div>` : '';
+                wrap.innerHTML = `
+                    <div class="stats-grid">
+                        ${stat('Actief', sc.actief || 0, 'green')}
+                        ${stat('Onboarding', sc.onboarding || 0, 'amber')}
+                        ${stat('Afgerond', sc.afgerond || 0, 'indigo')}
+                        ${stat('Gepauzeerd', (sc.gepauzeerd||0) + (sc.gestopt||0), 'gray')}
+                        ${stat('Nieuw (30d)', s.nieuw30d || 0, 'pink')}
+                        ${stat('Gem. &Delta; kg', (s.gemiddeldDelta != null ? (s.gemiddeldDelta > 0 ? '+' : '') + s.gemiddeldDelta.toFixed(1) : '—'), s.gemiddeldDelta < 0 ? 'green' : '')}
+                    </div>
+                    ${achterHtml}
+                    ${topHtml}
+                `;
+            } catch (e) { wrap.textContent = 'Fout: ' + e.message; }
+        }
+
+        // ========================================================
+        // INIT
+        // ========================================================
+        function initialSection() {
+            const h = (window.location.hash || '').slice(1);
+            const valid = ['overzicht','klanten','berichten','training','voeding','videos'];
+            return valid.includes(h) ? h : 'overzicht';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            navigate(initialSection());
+            loadKlanten();
+            loadTrainingTemplates();
+            loadVoedingTemplates();
+            loadVideoLib();
+            loadProgrammaStats();
+            loadBerichten();
+        });
+
+        // Poll unread counts 1x per 30s
+        setInterval(() => {
+            if (!window.__activeChatKlantId) {
+                loadChatUnread().then(() => {
+                    loadKlanten();
+                    if (document.getElementById('sect-berichten').classList.contains('active')) loadBerichten();
+                });
+            }
+        }, 30000);
+
+        // Hash-change: navigeren als user via hash wisselt
+        window.addEventListener('hashchange', () => {
+            const h = (window.location.hash || '').slice(1);
+            const valid = ['overzicht','klanten','berichten','training','voeding','videos'];
+            if (valid.includes(h)) navigate(h);
+        });
+    </script>
+</body>
+</html>
