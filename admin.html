@@ -542,6 +542,10 @@
                         <input type="text" id="klantNieuwNaam" class="filter-input" placeholder="Volledige naam" style="width:100%">
                     </div>
                     <input type="tel" id="klantNieuwTelefoon" class="filter-input" placeholder="Telefoon (optioneel)" style="width:100%;margin-bottom:10px">
+                    <label style="display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:13px;color:#374151;cursor:pointer;">
+                        <input type="checkbox" id="klantNieuwSendMail" checked>
+                        &#128231; Stuur welkomstmail met inloglink
+                    </label>
                     <button class="btn-admin btn-export" id="klantToevoegenBtn" onclick="klantToevoegen()">Klant aanmaken + magic link</button>
                     <div id="klantNieuwResult" style="margin-top:10px;font-size:13px"></div>
                 </div>
@@ -1129,13 +1133,16 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     credentials: 'include',
-                    body: JSON.stringify({ email, naam, telefoon: telefoon || null }),
+                    body: JSON.stringify({
+                        email, naam, telefoon: telefoon || null,
+                        send_email: document.getElementById('klantNieuwSendMail').checked,
+                    }),
                 });
                 const data = await r.json();
                 if (!r.ok || data.error) throw new Error(data.error || 'Aanmaken mislukt');
 
                 let html = '<div style="background:#ECFDF5;border:1px solid #A7F3D0;padding:12px;border-radius:8px;color:#065F46">';
-                html += '<strong>&#10003; Klant aangemaakt!</strong><br>';
+                html += '<strong>&#10003; Klant aangemaakt!</strong>' + (data.email_sent ? ' <span style="font-size:11px">&#128231; welkomstmail verstuurd</span>' : '') + '<br>';
                 if (data.magic_link) {
                     html += '<div style="margin-top:8px;font-size:12px">Magic link (1x klikken logt de klant in):</div>';
                     html += '<div style="margin-top:4px;display:flex;gap:8px;align-items:center">';
@@ -1652,6 +1659,10 @@
                     <label>Schema (markdown)</label>
                     <textarea id="trainContent" placeholder="# Dag 1&#10;- Squat 3x8&#10;...">${escapeHtml(schema.content_markdown || '')}</textarea>
                 </div>
+                <label style="display:flex;align-items:center;gap:8px;margin:8px 0 12px;font-size:13px;color:#374151;cursor:pointer;">
+                    <input type="checkbox" id="trainNotify">
+                    &#128231; Stuur klant een email bij opslaan
+                </label>
                 <div class="lead-actions" style="justify-content:space-between">
                     <div>
                         <button class="btn-admin btn-refresh" onclick="klantTraining('${klantId}', '${escapeHtml(klantNaam)}')">&#8592; Terug</button>
@@ -1676,6 +1687,7 @@
             const body = {
                 titel: document.getElementById('trainTitel').value.trim(),
                 content_markdown: document.getElementById('trainContent').value,
+                notify: document.getElementById('trainNotify').checked,
             };
             try {
                 const r = await fetch('/api/admin/klanten/' + klantId + '/training-schemas/' + weekNr, {
@@ -1754,6 +1766,10 @@
                         <label>Voorbeeldmaaltijden / toelichting (markdown)</label>
                         <textarea id="voedContent" placeholder="## Ontbijt&#10;- 3 eieren + 40g haver&#10;...">${escapeHtml(p.content_markdown || '')}</textarea>
                     </div>
+                    <label style="display:flex;align-items:center;gap:8px;margin:4px 0 12px;font-size:13px;color:#374151;cursor:pointer;">
+                        <input type="checkbox" id="voedNotify">
+                        &#128231; Stuur klant een email bij opslaan
+                    </label>
                     <div class="lead-actions" style="justify-content:space-between">
                         <div>
                             ${p.id ? `<button class="btn-admin" style="color:#991B1B;border-color:#FECACA;background:#FEF2F2" onclick="deleteVoedingPlan('${klantId}', '${escapeHtml(klantNaam)}')">&#128465; Verwijder plan</button>` : ''}
@@ -1794,6 +1810,7 @@
                 koolhydraten_g: document.getElementById('voedKh').value,
                 vetten_g: document.getElementById('voedVet').value,
                 content_markdown: document.getElementById('voedContent').value,
+                notify: document.getElementById('voedNotify').checked,
             };
             try {
                 const r = await fetch('/api/admin/klanten/' + klantId + '/voeding-plan', {

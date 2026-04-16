@@ -10,6 +10,7 @@ const crypto = require('crypto');
 try { require('dotenv').config({ path: path.join(__dirname, '.env') }); } catch {}
 
 const supabaseHelper = require('./lib/supabase');
+const emailHelper = require('./lib/email');
 
 const PORT = process.env.PORT || 3001;
 const ROOT = __dirname;
@@ -437,6 +438,13 @@ const server = http.createServer(async (req, res) => {
 
     console.log('[Plug&Pay webhook] klant aangemaakt:', email, 'id:', klantRes.klant.id);
 
+    // Welkomstmail — fire and forget (logt bij fail, blokkeert webhook respons niet)
+    if (linkRes.ok && emailHelper.isEnabled()) {
+      emailHelper.sendWelcomeEmail({
+        to: email, naam, magicLink: linkRes.action_link,
+      }).catch(e => console.warn('[Plug&Pay webhook] welkomstmail failed:', e.message));
+    }
+
     return jsonRes(res, 200, {
       ok: true,
       klant_id: klantRes.klant.id,
@@ -656,6 +664,20 @@ const server = http.createServer(async (req, res) => {
           template_id: body.template_id || null,
         });
         if (!r.ok) return jsonRes(res, 400, { error: r.error });
+
+        // Notify klant if 'notify' flag is true (admin kiest zelf)
+        if (body.notify && emailHelper.isEnabled()) {
+          supabaseHelper.supabase
+            .from('klanten').select('email,naam').eq('id', klantId).single()
+            .then(({ data }) => {
+              if (data?.email) {
+                emailHelper.sendKlantNewTrainingEmail({
+                  to: data.email, klantNaam: data.naam, weekNr, titel: body.titel,
+                }).catch(e => console.warn('[training mail] failed:', e.message));
+              }
+            }).catch(() => {});
+        }
+
         return jsonRes(res, 200, { ok: true, schema: r.schema });
       }
       if (req.method === 'DELETE') {
@@ -737,6 +759,21 @@ const server = http.createServer(async (req, res) => {
         catch { return jsonRes(res, 400, { error: 'Invalid JSON' }); }
         const r = await supabaseHelper.saveVoedingPlan({ ...body, klantId });
         if (!r.ok) return jsonRes(res, 400, { error: r.error });
+
+        // Notify klant if 'notify' flag is true
+        if (body.notify && emailHelper.isEnabled()) {
+          supabaseHelper.supabase
+            .from('klanten').select('email,naam').eq('id', klantId).single()
+            .then(({ data }) => {
+              if (data?.email) {
+                emailHelper.sendKlantNewVoedingEmail({
+                  to: data.email, klantNaam: data.naam,
+                  titel: body.titel, calories: r.plan.calories,
+                }).catch(e => console.warn('[voeding mail] failed:', e.message));
+              }
+            }).catch(() => {});
+        }
+
         return jsonRes(res, 200, { ok: true, plan: r.plan });
       }
       if (req.method === 'DELETE') {
@@ -777,6 +814,14 @@ const server = http.createServer(async (req, res) => {
       klantId: klant.id, van: 'klant', content: body.content,
     });
     if (!r.ok) return jsonRes(res, 400, { error: r.error });
+
+    // Notify coach by email — fire and forget
+    if (emailHelper.isEnabled()) {
+      emailHelper.sendCoachNewMessageEmail({
+        klantNaam: klant.naam, klantEmail: klant.email, messagePreview: r.message.content,
+      }).catch(e => console.warn('[chat->coach mail] failed:', e.message));
+    }
+
     return jsonRes(res, 200, { ok: true, message: r.message });
   }
 
@@ -813,6 +858,20 @@ const server = http.createServer(async (req, res) => {
         klantId: m[1], van: 'coach', content: body.content,
       });
       if (!r.ok) return jsonRes(res, 400, { error: r.error });
+
+      // Notify klant by email — fetch klant for email + naam
+      if (emailHelper.isEnabled()) {
+        supabaseHelper.supabase
+          .from('klanten').select('email,naam').eq('id', m[1]).single()
+          .then(({ data }) => {
+            if (data?.email) {
+              emailHelper.sendKlantNewMessageEmail({
+                to: data.email, klantNaam: data.naam, messagePreview: r.message.content,
+              }).catch(e => console.warn('[chat->klant mail] failed:', e.message));
+            }
+          }).catch(e => console.warn('[chat->klant lookup] failed:', e.message));
+      }
+
       return jsonRes(res, 200, { ok: true, message: r.message });
     }
   }
@@ -878,12 +937,22 @@ const server = http.createServer(async (req, res) => {
     const siteOrigin = process.env.SITE_ORIGIN || `https://${CANONICAL_HOST}`;
     const magic = await supabaseHelper.generateMagicLink(email, siteOrigin + '/klant/start');
 
+    // Welkomstmail — alleen als 'send_email' true is in body (admin kiest zelf)
+    let email_sent = false;
+    if (body.send_email && magic.ok && emailHelper.isEnabled()) {
+      const mailRes = await emailHelper.sendWelcomeEmail({
+        to: email, naam, magicLink: magic.action_link,
+      });
+      email_sent = mailRes.ok;
+    }
+
     return jsonRes(res, 200, {
       ok: true,
       klant: klantRes.klant,
       auth_user_created: auth.created,
       magic_link: magic.ok ? magic.action_link : null,
       magic_link_error: magic.ok ? null : magic.error,
+      email_sent,
     });
   }
 
