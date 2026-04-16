@@ -136,6 +136,38 @@
       padding: 1px 4px; border-radius: 4px; font-weight: 600;
     }
 
+    /* Chat (Fase 2.5) */
+    .chat-messages {
+      max-height: 340px; overflow-y: auto; padding: 4px 2px 12px;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .chat-bubble {
+      max-width: 85%; padding: 10px 14px; border-radius: 16px; font-size: 14px;
+      line-height: 1.4; word-wrap: break-word; white-space: pre-wrap;
+    }
+    .chat-bubble.klant { background: #FDF2F8; color: #831843; align-self: flex-end; border-bottom-right-radius: 4px; }
+    .chat-bubble.coach { background: #F3F4F6; color: #374151; align-self: flex-start; border-bottom-left-radius: 4px; }
+    .chat-meta { font-size: 11px; opacity: 0.55; margin-top: 4px; }
+    .chat-input-row {
+      display: flex; gap: 8px; margin-top: 10px; padding-top: 12px;
+      border-top: 1px solid #F3F4F6;
+    }
+    .chat-input-row textarea {
+      flex: 1; padding: 10px 12px; border: 1px solid #E5E7EB; border-radius: 12px;
+      font-family: inherit; font-size: 14px; resize: none; min-height: 44px; max-height: 120px;
+    }
+    .chat-send-btn {
+      padding: 0 18px; background: #E91E8C; color: #fff; border: none; border-radius: 12px;
+      font-weight: 600; cursor: pointer; font-family: inherit; font-size: 14px;
+    }
+    .chat-send-btn:disabled { opacity: 0.5; cursor: default; }
+    .chat-empty { text-align: center; color: #9CA3AF; padding: 20px 10px; font-size: 14px; }
+    .chat-unread-dot {
+      display: inline-block; background: #E91E8C; color: #fff; border-radius: 10px;
+      padding: 1px 7px; font-size: 11px; font-weight: 700; margin-left: 6px;
+      min-width: 18px; text-align: center;
+    }
+
     /* Lightbox */
     .lightbox {
       position: fixed; inset: 0; background: rgba(0,0,0,0.88); z-index: 1000;
@@ -248,11 +280,12 @@
       }
 
       const authHdr = { Authorization: 'Bearer ' + session.access_token };
-      const [r, cr, tr, vr] = await Promise.all([
+      const [r, cr, tr, vr, chr] = await Promise.all([
         fetch('/api/klant/me', { headers: authHdr }),
         fetch('/api/klant/checkins', { headers: authHdr }),
         fetch('/api/klant/training-schemas', { headers: authHdr }),
         fetch('/api/klant/voeding-plan', { headers: authHdr }),
+        fetch('/api/klant/chat', { headers: authHdr }),
       ]);
 
       if (r.status === 404) {
@@ -271,7 +304,11 @@
       const checkins = (cr && cr.ok ? (await cr.json()).check_ins : []) || [];
       const trainingSchemas = (tr && tr.ok ? (await tr.json()).schemas : []) || [];
       const voedingPlan = (vr && vr.ok ? (await vr.json()).plan : null);
+      const chatData = (chr && chr.ok ? await chr.json() : { messages: [], unread: 0 });
       window.__trainingSchemas = trainingSchemas;
+      window.__chatMessages = chatData.messages || [];
+      window.__chatUnread = chatData.unread || 0;
+      window.__authHdr = authHdr;
 
       // Niet klaar met intake? Doorsturen.
       if (klant.status === 'onboarding' || !klant.doel || !klant.start_gewicht_kg) {
@@ -358,8 +395,9 @@
           ` : `<div id="chart"></div>`}
         </div>
 
-        <a href="/klant/checkin" class="cta-btn" style="margin-bottom:12px;">${thisWeekCheckIn ? '✨ Check-in updaten' : '📸 Doe je wekelijkse check-in'}</a>
-        <a href="mailto:julia@juliabesten.nl" class="cta-btn secondary" style="margin-bottom:24px;">💬 Bericht naar Julia</a>
+        <a href="/klant/checkin" class="cta-btn" style="margin-bottom:20px;">${thisWeekCheckIn ? '✨ Check-in updaten' : '📸 Doe je wekelijkse check-in'}</a>
+
+        ${renderChatCard(chatData.messages || [], chatData.unread || 0)}
 
         ${renderTrainingCard(trainingSchemas, weekNum)}
         ${renderVoedingCard(voedingPlan)}
@@ -436,6 +474,9 @@
           willDown,
         });
       }
+
+      // Chat: scroll naar onder + markeer coach-berichten als gelezen
+      initChatAfterRender();
     }
 
     // ===== Simpele markdown renderer =====
@@ -481,6 +522,101 @@
       }
       return out.join('\n');
     }
+
+    // ===== Chat card (Fase 2.5) =====
+    function fmtChatTime(iso) {
+      const d = new Date(iso);
+      const now = new Date();
+      const sameDay = d.toDateString() === now.toDateString();
+      if (sameDay) return d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
+      return d.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' }) +
+             ' ' + d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function renderChatMessagesHTML(messages) {
+      if (!messages || !messages.length) {
+        return '<div class="chat-empty">Nog geen berichten. Stuur Julia een berichtje &#128071;</div>';
+      }
+      return messages.map(m => `
+        <div class="chat-bubble ${m.van}">
+          ${escapeHtml(m.content)}
+          <div class="chat-meta">${fmtChatTime(m.created_at)}</div>
+        </div>
+      `).join('');
+    }
+
+    function renderChatCard(messages, unread) {
+      const badge = unread > 0 ? `<span class="chat-unread-dot">${unread}</span>` : '';
+      return `
+        <div class="section-title">💬 Berichten met Julia${badge}</div>
+        <div class="card" style="margin-bottom:20px;">
+          <div class="chat-messages" id="chatMessages">${renderChatMessagesHTML(messages)}</div>
+          <div class="chat-input-row">
+            <textarea id="chatInput" placeholder="Bericht naar Julia..." rows="2"
+                      onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault();sendKlantMessage();}"></textarea>
+            <button class="chat-send-btn" id="chatSendBtn" onclick="sendKlantMessage()">Verstuur</button>
+          </div>
+        </div>
+      `;
+    }
+
+    // Na render: scroll chat naar onder + markeer coach-berichten als gelezen
+    function initChatAfterRender() {
+      const box = document.getElementById('chatMessages');
+      if (box) box.scrollTop = box.scrollHeight;
+      if (window.__chatUnread > 0) {
+        fetch('/api/klant/chat/read', {
+          method: 'POST', headers: window.__authHdr,
+        }).catch(() => {});
+      }
+    }
+
+    window.sendKlantMessage = async function() {
+      const input = document.getElementById('chatInput');
+      const btn = document.getElementById('chatSendBtn');
+      const txt = (input.value || '').trim();
+      if (!txt) return;
+      input.disabled = true; btn.disabled = true;
+      try {
+        const r = await fetch('/api/klant/chat', {
+          method: 'POST',
+          headers: { ...window.__authHdr, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content: txt }),
+        });
+        if (!r.ok) {
+          const err = await r.json().catch(() => ({}));
+          throw new Error(err.error || 'HTTP ' + r.status);
+        }
+        input.value = '';
+        await reloadChatMessages();
+      } catch (e) {
+        alert('Verzenden mislukt: ' + e.message);
+      } finally {
+        input.disabled = false; btn.disabled = false;
+        input.focus();
+      }
+    };
+
+    async function reloadChatMessages() {
+      try {
+        const r = await fetch('/api/klant/chat', { headers: window.__authHdr });
+        if (!r.ok) return;
+        const data = await r.json();
+        window.__chatMessages = data.messages || [];
+        window.__chatUnread = data.unread || 0;
+        const box = document.getElementById('chatMessages');
+        if (box) {
+          box.innerHTML = renderChatMessagesHTML(window.__chatMessages);
+          box.scrollTop = box.scrollHeight;
+        }
+      } catch {}
+    }
+
+    // Polling voor nieuwe coach-berichten — elke 10s
+    if (window.__chatPollInterval) clearInterval(window.__chatPollInterval);
+    window.__chatPollInterval = setInterval(() => {
+      if (document.getElementById('chatMessages')) reloadChatMessages();
+    }, 10000);
 
     // ===== Training card =====
     function renderTrainingCard(schemas, currentWeek) {

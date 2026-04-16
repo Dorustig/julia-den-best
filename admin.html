@@ -149,6 +149,34 @@
         .btn-status { background: #F3F4F6; color: #374151; border: 1px solid #E5E7EB; }
         .btn-status:hover { background: #E5E7EB; }
 
+        /* Chat modal (Fase 2.5) */
+        .chat-wrap { display: flex; flex-direction: column; height: 70vh; max-height: 600px; }
+        .chat-messages {
+            flex: 1; overflow-y: auto; padding: 12px; background: #F9FAFB;
+            border-radius: 12px; display: flex; flex-direction: column; gap: 8px;
+        }
+        .chat-bubble {
+            max-width: 75%; padding: 10px 14px; border-radius: 16px; font-size: 14px;
+            line-height: 1.4; word-wrap: break-word; white-space: pre-wrap;
+        }
+        .chat-bubble.klant { background: #fff; border: 1px solid #E5E7EB; align-self: flex-start; border-bottom-left-radius: 4px; }
+        .chat-bubble.coach { background: #E91E8C; color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
+        .chat-meta { font-size: 11px; opacity: 0.6; margin-top: 4px; }
+        .chat-input-row {
+            display: flex; gap: 8px; margin-top: 12px; padding-top: 12px;
+            border-top: 1px solid #E5E7EB;
+        }
+        .chat-input-row textarea {
+            flex: 1; padding: 10px 12px; border: 1px solid #E5E7EB; border-radius: 10px;
+            font-family: 'Inter', sans-serif; font-size: 14px; resize: none; min-height: 44px; max-height: 120px;
+        }
+        .chat-empty { color: #9CA3AF; text-align: center; padding: 40px 20px; font-size: 14px; }
+        .unread-badge {
+            display: inline-block; background: #E91E8C; color: #fff; border-radius: 10px;
+            padding: 1px 6px; font-size: 10px; font-weight: 700; margin-left: 4px;
+            min-width: 16px; text-align: center;
+        }
+
         /* Backup section */
         .backup-section {
             background: #fff; border-radius: 12px; border: 1px solid #E5E7EB;
@@ -629,6 +657,11 @@
     <!-- Template Editor Modal (training of voeding) -->
     <div class="lead-modal" id="templateEditorModal">
         <div class="lead-modal-content" id="templateEditorContent" style="max-width:800px;"></div>
+    </div>
+
+    <!-- Chat Modal (per klant) -->
+    <div class="lead-modal" id="chatModal">
+        <div class="lead-modal-content" id="chatModalContent" style="max-width:640px;"></div>
     </div>
 
     <!-- Lightbox voor foto's -->
@@ -1128,8 +1161,21 @@
             }
         }
 
+        // Unread chat counts per klant_id (voor de badges op de knoppen)
+        window.__unreadCounts = {};
+
+        async function loadChatUnread() {
+            try {
+                const r = await fetch('/api/admin/chat/unread', { credentials: 'include' });
+                if (!r.ok) return;
+                const data = await r.json();
+                window.__unreadCounts = data.counts || {};
+            } catch {}
+        }
+
         async function loadKlanten() {
             try {
+                await loadChatUnread();
                 const r = await fetch('/api/klanten', { credentials: 'include' });
                 if (!r.ok) return;
                 const list = await r.json();
@@ -1168,6 +1214,7 @@
                             <td style="font-size:12px">${escapeHtml(doel)}</td>
                             <td style="font-size:12px;color:#6B7280">${start}</td>
                             <td style="white-space:nowrap">
+                                <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#FCE7F3;color:#E91E8C;margin-right:4px;" onclick="klantChat('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#128172; Chat${(window.__unreadCounts[k.id] || 0) > 0 ? '<span class=\"unread-badge\">' + window.__unreadCounts[k.id] + '</span>' : ''}</button>
                                 <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#FCE7F3;color:#E91E8C;margin-right:4px;" onclick="klantBekijkCheckIns('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#128197; Check-ins</button>
                                 <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#FCE7F3;color:#E91E8C;margin-right:4px;" onclick="klantTraining('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#127947; Training</button>
                                 <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#FCE7F3;color:#E91E8C;margin-right:4px;" onclick="klantVoeding('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#129382; Voeding</button>
@@ -1769,6 +1816,125 @@
                 klantVoeding(klantId, klantNaam);
             } catch (e) { alert('Verwijderen mislukt: ' + e.message); }
         }
+
+        // =========================================================
+        // CHAT (Fase 2.5) — coach ↔ klant
+        // =========================================================
+        window.__activeChatKlantId = null;
+        window.__chatPollTimer = null;
+
+        function formatChatTime(iso) {
+            const d = new Date(iso);
+            const now = new Date();
+            const sameDay = d.toDateString() === now.toDateString();
+            if (sameDay) return d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
+            return d.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' }) +
+                   ' ' + d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function renderChatMessages(messages) {
+            const box = document.getElementById('chatMessages');
+            if (!box) return;
+            if (!messages || !messages.length) {
+                box.innerHTML = '<div class="chat-empty">Nog geen berichten. Stuur het eerste bericht &#128071;</div>';
+                return;
+            }
+            box.innerHTML = messages.map(m => `
+                <div class="chat-bubble ${m.van}">
+                    ${escapeHtml(m.content)}
+                    <div class="chat-meta">${formatChatTime(m.created_at)}${m.van === 'coach' ? (m.read_at ? ' &#10003;&#10003;' : ' &#10003;') : ''}</div>
+                </div>
+            `).join('');
+            // Scroll naar onder
+            box.scrollTop = box.scrollHeight;
+        }
+
+        async function klantChat(klantId, klantNaam) {
+            window.__activeChatKlantId = klantId;
+            const modal = document.getElementById('chatModal');
+            const content = document.getElementById('chatModalContent');
+            content.innerHTML = `
+                <div class="lead-modal-header">
+                    <h2>&#128172; Chat — ${escapeHtml(klantNaam)}</h2>
+                    <button class="modal-close" onclick="closeChat()">&#10005;</button>
+                </div>
+                <div class="chat-wrap">
+                    <div class="chat-messages" id="chatMessages">
+                        <div class="chat-empty">Laden...</div>
+                    </div>
+                    <div class="chat-input-row">
+                        <textarea id="chatInput" placeholder="Bericht aan ${escapeHtml(klantNaam)}..." rows="2"
+                                  onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault();sendCoachMessage('${klantId}');}"></textarea>
+                        <button class="btn-admin btn-export" onclick="sendCoachMessage('${klantId}')" style="padding:10px 18px;">Verstuur</button>
+                    </div>
+                </div>
+            `;
+            modal.classList.add('active');
+            await loadChatMessages(klantId);
+            // Markeer klant-berichten als gelezen
+            try {
+                await fetch('/api/admin/klanten/' + klantId + '/chat/read', {
+                    method: 'POST', credentials: 'include',
+                });
+                // Refresh badges in klant lijst
+                await loadChatUnread();
+                loadKlanten();
+            } catch {}
+            // Start polling — 5s interval zodat nieuwe klant-berichten vanzelf binnenkomen
+            if (window.__chatPollTimer) clearInterval(window.__chatPollTimer);
+            window.__chatPollTimer = setInterval(() => {
+                if (window.__activeChatKlantId === klantId) loadChatMessages(klantId);
+            }, 5000);
+        }
+
+        function closeChat() {
+            document.getElementById('chatModal').classList.remove('active');
+            window.__activeChatKlantId = null;
+            if (window.__chatPollTimer) { clearInterval(window.__chatPollTimer); window.__chatPollTimer = null; }
+        }
+
+        async function loadChatMessages(klantId) {
+            try {
+                const r = await fetch('/api/admin/klanten/' + klantId + '/chat', { credentials: 'include' });
+                if (!r.ok) return;
+                const data = await r.json();
+                renderChatMessages(data.messages || []);
+            } catch (e) { console.warn('loadChatMessages:', e); }
+        }
+
+        async function sendCoachMessage(klantId) {
+            const input = document.getElementById('chatInput');
+            const txt = (input.value || '').trim();
+            if (!txt) return;
+            input.disabled = true;
+            try {
+                const r = await fetch('/api/admin/klanten/' + klantId + '/chat', {
+                    method: 'POST', credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ content: txt }),
+                });
+                const out = await r.json();
+                if (!r.ok || out.error) throw new Error(out.error || 'HTTP ' + r.status);
+                input.value = '';
+                await loadChatMessages(klantId);
+            } catch (e) {
+                alert('Verzenden mislukt: ' + e.message);
+            } finally {
+                input.disabled = false;
+                input.focus();
+            }
+        }
+
+        // Poll de unread-counts 1x per 30s zodat badges up-to-date blijven
+        setInterval(() => {
+            if (!window.__activeChatKlantId) {
+                loadChatUnread().then(() => {
+                    // Update alleen de badges zonder de hele lijst te herladen
+                    // (simpel: gewoon loadKlanten — is goedkoop)
+                    loadKlanten();
+                });
+            }
+        }, 30000);
 
         // Lightbox voor check-in foto's
         function openLightbox(src) {

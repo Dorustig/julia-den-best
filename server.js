@@ -747,6 +747,93 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
+  // =============================================================
+  // CHAT — klant ↔ coach (Fase 2.5)
+  // =============================================================
+
+  // GET /api/klant/chat — klant leest eigen chat (JWT)
+  if (pathname === '/api/klant/chat' && req.method === 'GET') {
+    const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+    const user = await supabaseHelper.verifyUserToken(token);
+    if (!user) return jsonRes(res, 401, { error: 'Not logged in' });
+    const klant = await supabaseHelper.getKlantByAuthUserId(user.id);
+    if (!klant) return jsonRes(res, 404, { error: 'No klant profile found' });
+    const messages = await supabaseHelper.listChatMessages(klant.id);
+    const unread = await supabaseHelper.countUnreadForKlant(klant.id);
+    return jsonRes(res, 200, { messages: messages || [], unread });
+  }
+
+  // POST /api/klant/chat — klant stuurt bericht (JWT)
+  if (pathname === '/api/klant/chat' && req.method === 'POST') {
+    const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+    const user = await supabaseHelper.verifyUserToken(token);
+    if (!user) return jsonRes(res, 401, { error: 'Not logged in' });
+    const klant = await supabaseHelper.getKlantByAuthUserId(user.id);
+    if (!klant) return jsonRes(res, 404, { error: 'No klant profile found' });
+    let body;
+    try { body = JSON.parse(await readBody(req)); }
+    catch { return jsonRes(res, 400, { error: 'Invalid JSON' }); }
+    const r = await supabaseHelper.sendChatMessage({
+      klantId: klant.id, van: 'klant', content: body.content,
+    });
+    if (!r.ok) return jsonRes(res, 400, { error: r.error });
+    return jsonRes(res, 200, { ok: true, message: r.message });
+  }
+
+  // POST /api/klant/chat/read — klant markeert coach berichten als gelezen
+  if (pathname === '/api/klant/chat/read' && req.method === 'POST') {
+    const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+    const user = await supabaseHelper.verifyUserToken(token);
+    if (!user) return jsonRes(res, 401, { error: 'Not logged in' });
+    const klant = await supabaseHelper.getKlantByAuthUserId(user.id);
+    if (!klant) return jsonRes(res, 404, { error: 'No klant profile found' });
+    await supabaseHelper.markChatRead(klant.id, 'coach');
+    return jsonRes(res, 200, { ok: true });
+  }
+
+  // GET /api/admin/klanten/:klantId/chat — coach leest chat van klant
+  {
+    const m = pathname.match(/^\/api\/admin\/klanten\/([0-9a-f-]+)\/chat$/i);
+    if (m && req.method === 'GET') {
+      if (!requireAuth(req, res)) return;
+      const messages = await supabaseHelper.listChatMessages(m[1]);
+      return jsonRes(res, 200, { messages: messages || [] });
+    }
+  }
+
+  // POST /api/admin/klanten/:klantId/chat — coach stuurt bericht
+  {
+    const m = pathname.match(/^\/api\/admin\/klanten\/([0-9a-f-]+)\/chat$/i);
+    if (m && req.method === 'POST') {
+      if (!requireAuth(req, res)) return;
+      let body;
+      try { body = JSON.parse(await readBody(req)); }
+      catch { return jsonRes(res, 400, { error: 'Invalid JSON' }); }
+      const r = await supabaseHelper.sendChatMessage({
+        klantId: m[1], van: 'coach', content: body.content,
+      });
+      if (!r.ok) return jsonRes(res, 400, { error: r.error });
+      return jsonRes(res, 200, { ok: true, message: r.message });
+    }
+  }
+
+  // POST /api/admin/klanten/:klantId/chat/read — coach markeert klant berichten als gelezen
+  {
+    const m = pathname.match(/^\/api\/admin\/klanten\/([0-9a-f-]+)\/chat\/read$/i);
+    if (m && req.method === 'POST') {
+      if (!requireAuth(req, res)) return;
+      await supabaseHelper.markChatRead(m[1], 'klant');
+      return jsonRes(res, 200, { ok: true });
+    }
+  }
+
+  // GET /api/admin/chat/unread — { klantId: count } map voor sidebar badges
+  if (pathname === '/api/admin/chat/unread' && req.method === 'GET') {
+    if (!requireAuth(req, res)) return;
+    const counts = await supabaseHelper.countUnreadForCoach();
+    return jsonRes(res, 200, { counts });
+  }
+
   // GET /api/klant/voeding-plan — klant leest eigen voedingsplan (JWT)
   if (pathname === '/api/klant/voeding-plan' && req.method === 'GET') {
     const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
