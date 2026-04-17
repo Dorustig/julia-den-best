@@ -528,6 +528,35 @@ const server = http.createServer(async (req, res) => {
       if (g !== null && (isNaN(g) || g < 30 || g > 200)) return jsonRes(res, 400, { error: 'Ongeldig doelgewicht (30-200 kg)' });
       patch.doel_gewicht_kg = g;
     }
+    // Intake-velden — klant mag deze zelf bijwerken
+    if (body.lengte_cm !== undefined) {
+      const l = body.lengte_cm === null || body.lengte_cm === '' ? null : parseInt(body.lengte_cm, 10);
+      if (l !== null && (isNaN(l) || l < 120 || l > 230)) return jsonRes(res, 400, { error: 'Ongeldige lengte (120-230 cm)' });
+      patch.lengte_cm = l;
+    }
+    if (body.leeftijd !== undefined) {
+      const a = body.leeftijd === null || body.leeftijd === '' ? null : parseInt(body.leeftijd, 10);
+      if (a !== null && (isNaN(a) || a < 13 || a > 99)) return jsonRes(res, 400, { error: 'Ongeldige leeftijd' });
+      patch.leeftijd = a;
+    }
+    if (body.training_locatie !== undefined) {
+      const ok = ['thuis', 'gym', 'beide', null].includes(body.training_locatie);
+      if (!ok) return jsonRes(res, 400, { error: 'Ongeldige training_locatie' });
+      patch.training_locatie = body.training_locatie;
+    }
+    if (body.trainingsdagen_per_week !== undefined) {
+      const d = body.trainingsdagen_per_week === null || body.trainingsdagen_per_week === '' ? null : parseInt(body.trainingsdagen_per_week, 10);
+      if (d !== null && (isNaN(d) || d < 1 || d > 7)) return jsonRes(res, 400, { error: 'Trainingsdagen 1-7' });
+      patch.trainingsdagen_per_week = d;
+    }
+    if (body.ervaring_niveau !== undefined) {
+      const ok = ['beginner', 'gemiddeld', 'gevorderd', null].includes(body.ervaring_niveau);
+      if (!ok) return jsonRes(res, 400, { error: 'Ongeldig ervaring_niveau' });
+      patch.ervaring_niveau = body.ervaring_niveau;
+    }
+    if (body.allergieen !== undefined) {
+      patch.allergieen = body.allergieen ? String(body.allergieen).trim().slice(0, 2000) : null;
+    }
     if (Object.keys(patch).length === 0) return jsonRes(res, 400, { error: 'Geen velden om bij te werken' });
 
     const upd = await supabaseHelper.updateKlantFields(klant.id, patch);

@@ -1,0 +1,31 @@
+{
+  "name": "Julia Besten — Coaching",
+  "short_name": "Julia Besten",
+  "description": "Je 16-weken coaching dashboard bij Julia Besten.",
+  "start_url": "/klant/start",
+  "scope": "/klant/",
+  "display": "standalone",
+  "background_color": "#FDF2F8",
+  "theme_color": "#E91E8C",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/img/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/img/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/img/julia-team.jpg",
+      "sizes": "400x400",
+      "type": "image/jpeg",
+      "purpose": "any"
+    }
+  ]
+}

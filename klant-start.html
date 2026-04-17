@@ -5,6 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
   <title>Dashboard · Julia Besten</title>
+  <meta name="theme-color" content="#E91E8C">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="apple-touch-icon" href="/img/icon-192.svg">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Julia Besten">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
@@ -83,6 +89,54 @@
 
     .btn-compare { background: none; border: 1.5px solid #F9A8D4; color: #E91E8C; padding: 6px 14px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; }
     .btn-compare:hover { background: #FCE7F3; }
+
+    /* PWA install banner */
+    .install-banner {
+      position: sticky; top: 8px; z-index: 50;
+      background: #1F2937; color: #fff; border-radius: 14px;
+      padding: 10px 14px; margin-bottom: 14px;
+      display: flex; align-items: center; gap: 10px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+    .install-banner .icon { font-size: 22px; line-height: 1; }
+    .install-banner .text { flex: 1; font-size: 13px; line-height: 1.35; }
+    .install-banner .text strong { font-size: 14px; }
+    .install-banner button { background: #E91E8C; color: #fff; border: none; padding: 8px 14px; border-radius: 10px; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+    .install-banner button:hover { background: #D01680; }
+    .install-banner .dismiss { background: transparent; color: #9CA3AF; font-size: 18px; padding: 4px 8px; }
+    .install-banner .dismiss:hover { color: #fff; background: rgba(255,255,255,0.1); }
+
+    /* Badges sectie */
+    .badges-card { background: #fff; border-radius: 20px; padding: 18px 20px; margin-bottom: 16px; box-shadow: 0 10px 40px rgba(233, 30, 140, 0.08); }
+    .badges-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 14px; }
+    .badges-head .title { font-size: 15px; font-weight: 600; color: #1F2937; }
+    .badges-head .count { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: #E91E8C; }
+    .badges-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 12px; }
+    .badge {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      padding: 10px 6px; border-radius: 14px; text-align: center;
+      transition: transform 0.2s, box-shadow 0.2s;
+      cursor: pointer;
+    }
+    .badge.unlocked { background: linear-gradient(135deg, #FDF2F8 0%, #FCE7F3 100%); box-shadow: 0 4px 14px rgba(233, 30, 140, 0.15); }
+    .badge.locked { background: #F9FAFB; opacity: 0.55; }
+    .badge:hover { transform: translateY(-2px); }
+    .badge .emoji { font-size: 28px; line-height: 1; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.08)); }
+    .badge.locked .emoji { filter: grayscale(0.8); }
+    .badge .name { font-size: 10.5px; font-weight: 600; color: #1F2937; line-height: 1.2; }
+    .badge.locked .name { color: #9CA3AF; }
+
+    .badge-detail-modal .modal { max-width: 420px; }
+    .badge-detail-modal .badge-big { text-align: center; padding: 20px 12px 8px; }
+    .badge-detail-modal .badge-big .emoji-xl { font-size: 72px; line-height: 1; margin-bottom: 10px; }
+    .badge-detail-modal .badge-big h3 { font-family: 'Playfair Display', serif; font-size: 22px; color: #1F2937; margin-bottom: 6px; }
+    .badge-detail-modal .badge-big .hint { font-size: 14px; color: #6B7280; line-height: 1.5; padding: 0 16px; }
+    .badge-detail-modal .badge-status {
+      display: inline-block; padding: 6px 14px; border-radius: 999px; font-size: 12px;
+      font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; margin-top: 10px;
+    }
+    .badge-detail-modal .badge-status.unlocked { background: #D1FAE5; color: #065F46; }
+    .badge-detail-modal .badge-status.locked { background: #F3F4F6; color: #6B7280; }
 
     .card { background: #fff; border-radius: 20px; padding: 24px; box-shadow: 0 10px 40px rgba(233, 30, 140, 0.08); margin-bottom: 16px; }
 
@@ -409,6 +463,7 @@
       </div>
       <div class="modal-tabs">
         <button class="modal-tab active" data-tab="profiel" onclick="selectAccountTab('profiel')">Profiel</button>
+        <button class="modal-tab" data-tab="intake" onclick="selectAccountTab('intake')">Intake</button>
         <button class="modal-tab" data-tab="wachtwoord" onclick="selectAccountTab('wachtwoord')">Wachtwoord</button>
       </div>
 
@@ -426,9 +481,59 @@
           <div class="field">
             <label for="accDoel">Doelgewicht (kg)</label>
             <input type="number" id="accDoel" step="0.1" min="30" max="200" placeholder="bv. 62.5">
-            <div class="hint">Je doel kun je zelf aanpassen. Je startgewicht, leeftijd en overige intake-data lopen via Julia.</div>
+            <div class="hint">Je doel kun je zelf aanpassen. Je startgewicht blijft staan — dat is je nulmeting.</div>
           </div>
           <button type="submit" class="modal-submit" id="profielSubmit">Opslaan</button>
+        </form>
+      </div>
+
+      <div class="modal-body" id="tab-intake" style="display:none">
+        <div class="modal-msg" id="intakeMsg"></div>
+        <form id="intakeForm">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div class="field">
+              <label for="inLengte">Lengte (cm)</label>
+              <input type="number" id="inLengte" min="120" max="230">
+            </div>
+            <div class="field">
+              <label for="inLeeftijd">Leeftijd</label>
+              <input type="number" id="inLeeftijd" min="13" max="99">
+            </div>
+          </div>
+          <div class="field">
+            <label for="inLocatie">Waar train je?</label>
+            <select id="inLocatie" style="width:100%;padding:12px 14px;border:1.5px solid #E5E7EB;border-radius:10px;font-size:15px;font-family:inherit;background:#fff;">
+              <option value="">—</option>
+              <option value="thuis">Thuis</option>
+              <option value="gym">Sportschool</option>
+              <option value="beide">Beide</option>
+            </select>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div class="field">
+              <label for="inDagen">Dagen per week</label>
+              <select id="inDagen" style="width:100%;padding:12px 14px;border:1.5px solid #E5E7EB;border-radius:10px;font-size:15px;font-family:inherit;background:#fff;">
+                <option value="">—</option>
+                <option>1</option><option>2</option><option>3</option><option>4</option>
+                <option>5</option><option>6</option><option>7</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="inErvaring">Ervaring</label>
+              <select id="inErvaring" style="width:100%;padding:12px 14px;border:1.5px solid #E5E7EB;border-radius:10px;font-size:15px;font-family:inherit;background:#fff;">
+                <option value="">—</option>
+                <option value="beginner">Beginner (&lt; 6 mnd)</option>
+                <option value="gemiddeld">Gemiddeld (6 mnd – 2 jaar)</option>
+                <option value="gevorderd">Gevorderd (2+ jaar)</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label for="inAller">Allergieën / blessures / voedingsvoorkeuren</label>
+            <textarea id="inAller" rows="3" style="width:100%;padding:12px 14px;border:1.5px solid #E5E7EB;border-radius:10px;font-size:15px;font-family:inherit;resize:vertical;"></textarea>
+            <div class="hint">Verandert er iets? Schrijf het hier en ververs de dashboard-pagina om te zien.</div>
+          </div>
+          <button type="submit" class="modal-submit" id="intakeSubmit">Opslaan</button>
         </form>
       </div>
 
@@ -456,6 +561,28 @@
     </div>
   </div>
 
+  <!-- PWA install banner — verschijnt als browser beforeinstallprompt afvuurt,
+       of als iOS gedetecteerd wordt (heeft geen prompt API). -->
+  <div class="wrap" id="installBannerWrap" style="display:none;margin:0 auto 0;max-width:640px;padding:0 16px;">
+    <div class="install-banner">
+      <span class="icon">📱</span>
+      <div class="text"><strong>Installeer als app</strong><br><span id="installHint">Zet Julia Besten op je beginscherm voor snelle toegang.</span></div>
+      <button id="installBtn" onclick="doInstall()">Installeer</button>
+      <button class="dismiss" onclick="dismissInstall()" aria-label="Sluiten">&times;</button>
+    </div>
+  </div>
+
+  <!-- Badge detail modal -->
+  <div class="modal-overlay badge-detail-modal" id="badgeModal" onclick="if(event.target===this)closeBadge()">
+    <div class="modal">
+      <div class="modal-head">
+        <h2 style="font-size:18px;">Badge</h2>
+        <button class="modal-close" onclick="closeBadge()" aria-label="Sluiten">&times;</button>
+      </div>
+      <div class="modal-body" id="badgeBody"></div>
+    </div>
+  </div>
+
   <!-- Progress-foto vergelijkings modal -->
   <div class="modal-overlay" id="compareModal" onclick="if(event.target===this)closeCompare()">
     <div class="modal">
@@ -474,6 +601,62 @@
 
   <script type="module">
     import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+    // ===== PWA install + service worker =====
+    // Register SW (production + localhost). Stil falen als 't niet mag.
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
+
+    // Install-prompt event capture — Chrome / Edge / Android
+    let deferredInstallPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredInstallPrompt = e;
+      if (localStorage.getItem('installDismissed') !== '1') {
+        showInstallBanner();
+      }
+    });
+    // Als al geïnstalleerd (bv. na install)
+    window.addEventListener('appinstalled', () => {
+      hideInstallBanner();
+      try { localStorage.setItem('installDismissed', '1'); } catch {}
+    });
+
+    function showInstallBanner(isIOS) {
+      const el = document.getElementById('installBannerWrap');
+      if (!el) return;
+      if (isIOS) {
+        document.getElementById('installHint').textContent =
+          'Tik op Deel (⬆️) onderin Safari, daarna op "Zet op beginscherm".';
+        document.getElementById('installBtn').style.display = 'none';
+      }
+      el.style.display = 'block';
+    }
+    function hideInstallBanner() {
+      const el = document.getElementById('installBannerWrap');
+      if (el) el.style.display = 'none';
+    }
+    window.doInstall = async () => {
+      if (!deferredInstallPrompt) return;
+      deferredInstallPrompt.prompt();
+      try { await deferredInstallPrompt.userChoice; } catch {}
+      deferredInstallPrompt = null;
+      hideInstallBanner();
+    };
+    window.dismissInstall = () => {
+      hideInstallBanner();
+      try { localStorage.setItem('installDismissed', '1'); } catch {}
+    };
+
+    // iOS detecteren (geen beforeinstallprompt) — toon native instructie
+    const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+      || window.navigator.standalone === true;
+    if (isIOSDevice && !isStandalone && localStorage.getItem('installDismissed') !== '1') {
+      // Wacht tot DOM geladen zodat het element bestaat
+      setTimeout(() => showInstallBanner(true), 800);
+    }
 
     const wrap = document.getElementById('wrap');
     function render(html) { wrap.innerHTML = html; }
@@ -595,10 +778,17 @@
         document.getElementById('accNaam').value = k.naam || '';
         document.getElementById('accTel').value = k.telefoon || '';
         document.getElementById('accDoel').value = k.doel_gewicht_kg != null ? k.doel_gewicht_kg : '';
-        document.getElementById('profielMsg').className = 'modal-msg';
-        document.getElementById('profielMsg').textContent = '';
-        document.getElementById('pwMsg').className = 'modal-msg';
-        document.getElementById('pwMsg').textContent = '';
+        // Intake tab — prefill uit klant-data
+        document.getElementById('inLengte').value = k.lengte_cm != null ? k.lengte_cm : '';
+        document.getElementById('inLeeftijd').value = k.leeftijd != null ? k.leeftijd : '';
+        document.getElementById('inLocatie').value = k.training_locatie || '';
+        document.getElementById('inDagen').value = k.trainingsdagen_per_week != null ? k.trainingsdagen_per_week : '';
+        document.getElementById('inErvaring').value = k.ervaring_niveau || '';
+        document.getElementById('inAller').value = k.allergieen || '';
+        ['profielMsg', 'intakeMsg', 'pwMsg'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) { el.className = 'modal-msg'; el.textContent = ''; }
+        });
         document.getElementById('pwForm').reset();
         selectAccountTab('profiel');
         document.getElementById('accountModal').classList.add('active');
@@ -611,6 +801,7 @@
           b.classList.toggle('active', b.dataset.tab === tab);
         });
         document.getElementById('tab-profiel').style.display = tab === 'profiel' ? 'block' : 'none';
+        document.getElementById('tab-intake').style.display = tab === 'intake' ? 'block' : 'none';
         document.getElementById('tab-wachtwoord').style.display = tab === 'wachtwoord' ? 'block' : 'none';
       };
 
@@ -658,6 +849,45 @@
         }
       });
 
+      // Intake opslaan
+      document.getElementById('intakeForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const msg = document.getElementById('intakeMsg');
+        const btn = document.getElementById('intakeSubmit');
+        msg.className = 'modal-msg'; msg.textContent = '';
+        btn.disabled = true; btn.textContent = 'Opslaan...';
+        try {
+          const v = (id) => {
+            const el = document.getElementById(id);
+            const x = (el.value || '').trim();
+            return x === '' ? null : x;
+          };
+          const payload = {
+            lengte_cm: v('inLengte'),
+            leeftijd: v('inLeeftijd'),
+            training_locatie: v('inLocatie'),
+            trainingsdagen_per_week: v('inDagen'),
+            ervaring_niveau: v('inErvaring'),
+            allergieen: v('inAller'),
+          };
+          const r = await fetch('/api/klant/profile', {
+            method: 'PUT',
+            headers: { ...window.__authHdr, 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+          const data = await r.json();
+          if (!r.ok || data.error) throw new Error(data.error || 'Opslaan mislukt');
+          window.__klant = data.klant;
+          msg.className = 'modal-msg success';
+          msg.textContent = '✓ Intake bijgewerkt. Ververs de pagina om de nieuwe data in je dashboard te zien.';
+        } catch (err) {
+          msg.className = 'modal-msg error';
+          msg.textContent = err.message;
+        } finally {
+          btn.disabled = false; btn.textContent = 'Opslaan';
+        }
+      });
+
       // Wachtwoord wijzigen — re-authenticate met huidig + updateUser met nieuw
       document.getElementById('pwForm').addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -693,9 +923,11 @@
         }
       });
 
-      // ESC sluit account of compare modal
+      // ESC sluit elke open modal (top-most eerst)
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
+          const b = document.getElementById('badgeModal');
+          if (b && b.classList.contains('active')) { closeBadge(); return; }
           const a = document.getElementById('accountModal');
           if (a && a.classList.contains('active')) { closeAccount(); return; }
           const c = document.getElementById('compareModal');
@@ -926,6 +1158,8 @@
         </div>
 
         <a href="/klant/checkin" class="cta-btn" style="margin-bottom:20px;">${thisWeekCheckIn ? '✨ Check-in updaten' : '📸 Doe je wekelijkse check-in'}</a>
+
+        ${renderBadgesCard(computeBadges({ klant, checkins, weekNum, trainingSchemas, delta, willDown, hasGoal }))}
 
         ${renderChatCard(chatData.messages || [], chatData.unread || 0)}
 
@@ -1241,6 +1475,73 @@
     function fmtDateShort(iso) {
       return new Date(iso).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' });
     }
+    // =============================================================
+    // BADGES — mijlpalen berekenen uit check-ins + klant data
+    // =============================================================
+    const BADGE_DEFS = [
+      { id: 'welkom', emoji: '🌟', name: 'Welkom', hint: 'Je hebt je intake gedaan en bent klaar voor de reis. Proud of you!', test: ({ klant }) => !!(klant && klant.doel) },
+      { id: 'eerste_checkin', emoji: '✅', name: 'Eerste check-in', hint: 'Je hebt je eerste meting vastgelegd — de basis voor je hele traject.', test: ({ checkins }) => (checkins || []).length >= 1 },
+      { id: 'drie_checkins', emoji: '🔥', name: '3 op rij', hint: 'Drie check-ins binnen — je consistency is echt goud waard.', test: ({ checkins }) => (checkins || []).length >= 3 },
+      { id: 'week4', emoji: '💪', name: 'Week 4', hint: 'Vier weken onderweg — je vormt een gewoonte. Keep going!', test: ({ weekNum }) => weekNum >= 4 },
+      { id: 'halfweg', emoji: '🎯', name: 'Halverwege', hint: 'Week 8 bereikt — je bent HALFWEG. Nog 8 weken tot je doel.', test: ({ weekNum }) => weekNum >= 8 },
+      { id: 'twaalf', emoji: '🚀', name: 'Laatste fase', hint: 'Week 12 — nog 4 weken. Dit is waar finish-lijnen worden gemaakt.', test: ({ weekNum }) => weekNum >= 12 },
+      { id: 'finish', emoji: '🏆', name: 'Finish!', hint: 'Zestien weken gedaan. Je hebt jezelf getransformeerd.', test: ({ weekNum }) => weekNum >= 16 },
+      { id: 'fotos', emoji: '📸', name: 'Fotograaf', hint: 'Minimaal 3 check-ins met voortgangsfoto\'s. Visuele progressie is goud.', test: ({ checkins }) => (checkins || []).filter(c => Array.isArray(c.fotos) && c.fotos.some(f => f && f.signed_url)).length >= 3 },
+      { id: 'stappen', emoji: '👣', name: 'Active stepper', hint: 'Minimaal 3 check-ins met stappen-data — beweging is medicijn.', test: ({ checkins }) => (checkins || []).filter(c => c.stappen && c.stappen > 0).length >= 3 },
+      { id: 'mijlpaal1', emoji: '⚖️', name: 'Eerste kilo', hint: '1 kg richting je doel bereikt. Elke kilo telt.', test: ({ delta, willDown, hasGoal }) => hasGoal && delta != null && ((willDown && delta <= -1) || (!willDown && delta >= 1)) },
+      { id: 'training_volger', emoji: '🏋️', name: 'Training-volger', hint: 'Je hebt al minimaal 4 trainingsweken van Julia doorgewerkt.', test: ({ trainingSchemas }) => (trainingSchemas || []).length >= 4 },
+      { id: 'notities', emoji: '💭', name: 'Reflectief', hint: 'Minimaal 3 check-ins met notities voor Julia — zelfreflectie is key.', test: ({ checkins }) => (checkins || []).filter(c => c.notities && String(c.notities).trim().length > 10).length >= 3 },
+    ];
+
+    function computeBadges(ctx) {
+      return BADGE_DEFS.map(def => ({
+        ...def,
+        unlocked: !!def.test(ctx),
+      }));
+    }
+
+    function renderBadgesCard(badges) {
+      if (!badges || badges.length === 0) return '';
+      const unlocked = badges.filter(b => b.unlocked).length;
+      // Cache voor de modal
+      window.__badges = badges;
+      return `
+        <div class="section-title">🏅 Jouw mijlpalen</div>
+        <div class="badges-card">
+          <div class="badges-head">
+            <div class="title">Behaald</div>
+            <div class="count">${unlocked} <span style="font-size:13px;color:#9CA3AF;font-weight:400;">/ ${badges.length}</span></div>
+          </div>
+          <div class="badges-row">
+            ${badges.map(b => `
+              <div class="badge ${b.unlocked ? 'unlocked' : 'locked'}" onclick="openBadge('${b.id}')">
+                <div class="emoji">${b.emoji}</div>
+                <div class="name">${b.name}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>`;
+    }
+
+    window.openBadge = (id) => {
+      const badge = (window.__badges || []).find(b => b.id === id);
+      if (!badge) return;
+      const body = document.getElementById('badgeBody');
+      body.innerHTML = `
+        <div class="badge-big">
+          <div class="emoji-xl" style="${badge.unlocked ? '' : 'filter:grayscale(1);opacity:0.5;'}">${badge.emoji}</div>
+          <h3>${badge.name}</h3>
+          <div class="hint">${badge.hint}</div>
+          <div class="badge-status ${badge.unlocked ? 'unlocked' : 'locked'}">
+            ${badge.unlocked ? '✓ Behaald' : 'Nog te behalen'}
+          </div>
+        </div>`;
+      document.getElementById('badgeModal').classList.add('active');
+    };
+    window.closeBadge = () => {
+      document.getElementById('badgeModal').classList.remove('active');
+    };
+
     function renderFotoTimelineCard(checkins) {
       const byPos = { front: [], side: [], back: [] };
       (checkins || []).forEach(c => {

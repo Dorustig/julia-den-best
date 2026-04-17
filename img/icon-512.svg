@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F472B6"/>
+      <stop offset="1" stop-color="#E91E8C"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#g)"/>
+  <text x="256" y="342" text-anchor="middle" font-family="Georgia, 'Playfair Display', serif" font-size="320" font-weight="700" fill="#fff">J</text>
+</svg>
