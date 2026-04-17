@@ -464,6 +464,7 @@
       <div class="modal-tabs">
         <button class="modal-tab active" data-tab="profiel" onclick="selectAccountTab('profiel')">Profiel</button>
         <button class="modal-tab" data-tab="intake" onclick="selectAccountTab('intake')">Intake</button>
+        <button class="modal-tab" data-tab="meldingen" onclick="selectAccountTab('meldingen')">Meldingen</button>
         <button class="modal-tab" data-tab="wachtwoord" onclick="selectAccountTab('wachtwoord')">Wachtwoord</button>
       </div>
 
@@ -535,6 +536,20 @@
           </div>
           <button type="submit" class="modal-submit" id="intakeSubmit">Opslaan</button>
         </form>
+      </div>
+
+      <div class="modal-body" id="tab-meldingen" style="display:none">
+        <div class="modal-msg" id="pushMsg"></div>
+        <p style="font-size:14px;color:#374151;line-height:1.55;margin-bottom:16px;">
+          Krijg een melding op je telefoon wanneer Julia je een bericht stuurt, een nieuwe training klaarzet of je voeding bijwerkt.
+        </p>
+        <div id="pushState" style="background:#F9FAFB;padding:14px;border-radius:12px;margin-bottom:14px;">
+          <div id="pushStateText" style="font-size:13px;color:#6B7280;">Status laden…</div>
+        </div>
+        <button class="modal-submit" id="pushToggleBtn" onclick="togglePush()" style="display:none;">Push aanzetten</button>
+        <div style="font-size:12px;color:#9CA3AF;margin-top:12px;line-height:1.5;">
+          Werkt op iPhone alleen als je de app eerst installeert via "Zet op beginscherm". Op Android en laptop werkt het direct in Chrome/Edge/Firefox.
+        </div>
       </div>
 
       <div class="modal-body" id="tab-wachtwoord" style="display:none">
@@ -802,7 +817,112 @@
         });
         document.getElementById('tab-profiel').style.display = tab === 'profiel' ? 'block' : 'none';
         document.getElementById('tab-intake').style.display = tab === 'intake' ? 'block' : 'none';
+        document.getElementById('tab-meldingen').style.display = tab === 'meldingen' ? 'block' : 'none';
         document.getElementById('tab-wachtwoord').style.display = tab === 'wachtwoord' ? 'block' : 'none';
+        if (tab === 'meldingen') refreshPushState();
+      };
+
+      // ===== Push notifications toggle =====
+      // Base64URL → Uint8Array — voor applicationServerKey in pushManager.subscribe
+      function urlBase64ToUint8Array(base64String) {
+        const padding = '='.repeat((4 - base64String.length % 4) % 4);
+        const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+        const raw = atob(base64);
+        const out = new Uint8Array(raw.length);
+        for (let i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
+        return out;
+      }
+
+      async function refreshPushState() {
+        const text = document.getElementById('pushStateText');
+        const btn = document.getElementById('pushToggleBtn');
+        const msg = document.getElementById('pushMsg');
+        msg.className = 'modal-msg'; msg.textContent = '';
+        // Niet ondersteund?
+        if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) {
+          text.textContent = 'Push wordt door deze browser niet ondersteund.';
+          btn.style.display = 'none';
+          return;
+        }
+        if (!cfg.vapid_public_key) {
+          text.textContent = 'Push is op dit moment niet beschikbaar.';
+          btn.style.display = 'none';
+          return;
+        }
+        if (Notification.permission === 'denied') {
+          text.innerHTML = '&#128683; Je hebt notificaties eerder geweigerd. Zet het handmatig aan in je browser-instellingen.';
+          btn.style.display = 'none';
+          return;
+        }
+        const reg = await navigator.serviceWorker.ready.catch(() => null);
+        if (!reg) {
+          text.textContent = 'Service worker nog niet klaar — probeer opnieuw.';
+          btn.style.display = 'none';
+          return;
+        }
+        const sub = await reg.pushManager.getSubscription().catch(() => null);
+        if (sub) {
+          text.innerHTML = '&#128276; Meldingen <strong>aan</strong> op dit device.';
+          btn.style.display = 'block';
+          btn.textContent = 'Push uitzetten';
+          btn.style.background = '#6B7280';
+        } else {
+          text.innerHTML = '&#128277; Meldingen nog uit.';
+          btn.style.display = 'block';
+          btn.textContent = 'Push aanzetten';
+          btn.style.background = '#E91E8C';
+        }
+      }
+
+      window.togglePush = async () => {
+        const btn = document.getElementById('pushToggleBtn');
+        const msg = document.getElementById('pushMsg');
+        msg.className = 'modal-msg'; msg.textContent = '';
+        btn.disabled = true;
+        try {
+          const reg = await navigator.serviceWorker.ready;
+          const existing = await reg.pushManager.getSubscription();
+          if (existing) {
+            // Uit
+            await fetch('/api/klant/push/unsubscribe', {
+              method: 'POST',
+              headers: { ...window.__authHdr, 'Content-Type': 'application/json' },
+              body: JSON.stringify({ endpoint: existing.endpoint }),
+            }).catch(() => {});
+            await existing.unsubscribe();
+            msg.className = 'modal-msg success'; msg.textContent = '✓ Meldingen uit.';
+          } else {
+            // Aan — vraag permission
+            const perm = await Notification.requestPermission();
+            if (perm !== 'granted') {
+              msg.className = 'modal-msg error'; msg.textContent = 'Je hebt meldingen geweigerd.';
+              return;
+            }
+            const sub = await reg.pushManager.subscribe({
+              userVisibleOnly: true,
+              applicationServerKey: urlBase64ToUint8Array(cfg.vapid_public_key),
+            });
+            const subJson = sub.toJSON();
+            const r = await fetch('/api/klant/push/subscribe', {
+              method: 'POST',
+              headers: { ...window.__authHdr, 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                endpoint: subJson.endpoint,
+                keys: subJson.keys,
+              }),
+            });
+            if (!r.ok) {
+              const j = await r.json().catch(() => ({}));
+              throw new Error(j.error || 'Registreren mislukt');
+            }
+            msg.className = 'modal-msg success'; msg.textContent = '✓ Meldingen aan! Je krijgt een push bij nieuwe berichten of training.';
+          }
+        } catch (e) {
+          msg.className = 'modal-msg error'; msg.textContent = e.message || 'Er ging iets mis.';
+        } finally {
+          btn.disabled = false;
+          await refreshPushState();
+        }
       };
 
       // Toon/verberg wachtwoord-velden

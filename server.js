@@ -11,6 +11,7 @@ try { require('dotenv').config({ path: path.join(__dirname, '.env') }); } catch 
 
 const supabaseHelper = require('./lib/supabase');
 const emailHelper = require('./lib/email');
+const pushHelper = require('./lib/push');
 
 const PORT = process.env.PORT || 3001;
 const ROOT = __dirname;
@@ -358,6 +359,7 @@ const server = http.createServer(async (req, res) => {
       supabase_url: process.env.SUPABASE_URL || '',
       supabase_anon_key: process.env.SUPABASE_ANON_KEY || '',
       site_origin: process.env.SITE_ORIGIN || `https://${CANONICAL_HOST}`,
+      vapid_public_key: pushHelper.isEnabled() ? pushHelper.getPublicKey() : null,
     });
   }
 
@@ -763,17 +765,23 @@ const server = http.createServer(async (req, res) => {
         });
         if (!r.ok) return jsonRes(res, 400, { error: r.error });
 
-        // Notify klant if 'notify' flag is true (admin kiest zelf)
-        if (body.notify && emailHelper.isEnabled()) {
+        // Notify klant if 'notify' flag is true (admin kiest zelf): email + push
+        if (body.notify) {
           supabaseHelper.supabase
             .from('klanten').select('email,naam').eq('id', klantId).single()
             .then(({ data }) => {
-              if (data?.email) {
+              if (data?.email && emailHelper.isEnabled()) {
                 emailHelper.sendKlantNewTrainingEmail({
                   to: data.email, klantNaam: data.naam, weekNr, titel: body.titel,
                 }).catch(e => console.warn('[training mail] failed:', e.message));
               }
             }).catch(() => {});
+          pushToKlant(klantId, {
+            title: `🏋️ Training week ${weekNr} staat klaar`,
+            body: body.titel ? String(body.titel).slice(0, 100) : 'Je nieuwe trainingsschema is beschikbaar.',
+            url: '/klant/start#training',
+            tag: 'training-' + klantId,
+          }).catch(e => console.warn('[training push] failed:', e.message));
         }
 
         return jsonRes(res, 200, { ok: true, schema: r.schema });
@@ -858,18 +866,24 @@ const server = http.createServer(async (req, res) => {
         const r = await supabaseHelper.saveVoedingPlan({ ...body, klantId });
         if (!r.ok) return jsonRes(res, 400, { error: r.error });
 
-        // Notify klant if 'notify' flag is true
-        if (body.notify && emailHelper.isEnabled()) {
+        // Notify klant if 'notify' flag is true: email + push
+        if (body.notify) {
           supabaseHelper.supabase
             .from('klanten').select('email,naam').eq('id', klantId).single()
             .then(({ data }) => {
-              if (data?.email) {
+              if (data?.email && emailHelper.isEnabled()) {
                 emailHelper.sendKlantNewVoedingEmail({
                   to: data.email, klantNaam: data.naam,
                   titel: body.titel, calories: r.plan.calories,
                 }).catch(e => console.warn('[voeding mail] failed:', e.message));
               }
             }).catch(() => {});
+          pushToKlant(klantId, {
+            title: '🥗 Voedingsplan bijgewerkt',
+            body: body.titel ? String(body.titel).slice(0, 100) : 'Je nieuwe plan staat klaar.',
+            url: '/klant/start#voeding',
+            tag: 'voeding-' + klantId,
+          }).catch(e => console.warn('[voeding push] failed:', e.message));
         }
 
         return jsonRes(res, 200, { ok: true, plan: r.plan });
@@ -934,6 +948,45 @@ const server = http.createServer(async (req, res) => {
     return jsonRes(res, 200, { ok: true });
   }
 
+  // POST /api/klant/push/subscribe — klant registreert device voor push
+  if (pathname === '/api/klant/push/subscribe' && req.method === 'POST') {
+    const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+    const user = await supabaseHelper.verifyUserToken(token);
+    if (!user) return jsonRes(res, 401, { error: 'Not logged in' });
+    const klant = await supabaseHelper.getKlantByAuthUserId(user.id);
+    if (!klant) return jsonRes(res, 404, { error: 'No klant profile found' });
+    let body;
+    try { body = JSON.parse(await readBody(req)); }
+    catch { return jsonRes(res, 400, { error: 'Invalid JSON' }); }
+    const { endpoint, keys } = body || {};
+    if (!endpoint || !keys || !keys.p256dh || !keys.auth) {
+      return jsonRes(res, 400, { error: 'Ongeldige subscription' });
+    }
+    const result = await supabaseHelper.savePushSubscription({
+      klantId: klant.id,
+      endpoint,
+      p256dh: keys.p256dh,
+      auth: keys.auth,
+      userAgent: (req.headers['user-agent'] || '').slice(0, 200),
+    });
+    if (!result.ok) return jsonRes(res, 500, { error: result.error });
+    return jsonRes(res, 200, { ok: true });
+  }
+
+  // POST /api/klant/push/unsubscribe — klant zet push uit
+  if (pathname === '/api/klant/push/unsubscribe' && req.method === 'POST') {
+    const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+    const user = await supabaseHelper.verifyUserToken(token);
+    if (!user) return jsonRes(res, 401, { error: 'Not logged in' });
+    let body;
+    try { body = JSON.parse(await readBody(req)); }
+    catch { return jsonRes(res, 400, { error: 'Invalid JSON' }); }
+    const { endpoint } = body || {};
+    if (!endpoint) return jsonRes(res, 400, { error: 'Geen endpoint' });
+    await supabaseHelper.deletePushSubscription(endpoint);
+    return jsonRes(res, 200, { ok: true });
+  }
+
   // GET /api/admin/klanten/:klantId/chat — coach leest chat van klant
   {
     const m = pathname.match(/^\/api\/admin\/klanten\/([0-9a-f-]+)\/chat$/i);
@@ -957,18 +1010,24 @@ const server = http.createServer(async (req, res) => {
       });
       if (!r.ok) return jsonRes(res, 400, { error: r.error });
 
-      // Notify klant by email — fetch klant for email + naam
-      if (emailHelper.isEnabled()) {
-        supabaseHelper.supabase
-          .from('klanten').select('email,naam').eq('id', m[1]).single()
-          .then(({ data }) => {
-            if (data?.email) {
-              emailHelper.sendKlantNewMessageEmail({
-                to: data.email, klantNaam: data.naam, messagePreview: r.message.content,
-              }).catch(e => console.warn('[chat->klant mail] failed:', e.message));
-            }
-          }).catch(e => console.warn('[chat->klant lookup] failed:', e.message));
-      }
+      // Notify klant: email + push (fire-and-forget)
+      supabaseHelper.supabase
+        .from('klanten').select('email,naam').eq('id', m[1]).single()
+        .then(({ data }) => {
+          if (data?.email && emailHelper.isEnabled()) {
+            emailHelper.sendKlantNewMessageEmail({
+              to: data.email, klantNaam: data.naam, messagePreview: r.message.content,
+            }).catch(e => console.warn('[chat->klant mail] failed:', e.message));
+          }
+        }).catch(e => console.warn('[chat->klant lookup] failed:', e.message));
+
+      // Push notification naar klant (alle devices)
+      pushToKlant(m[1], {
+        title: '💬 Bericht van Julia',
+        body: (r.message.content || '').slice(0, 120),
+        url: '/klant/start#chat',
+        tag: 'chat-' + m[1],
+      }).catch(e => console.warn('[chat->push] failed:', e.message));
 
       return jsonRes(res, 200, { ok: true, message: r.message });
     }
@@ -1620,6 +1679,26 @@ server.listen(PORT, () => {
   console.log(`[Julia Den Best] Server running on port ${PORT}`);
   console.log(`[Julia Den Best] http://localhost:${PORT}`);
 });
+
+// =============================================================
+// PUSH HELPER — stuur notificatie naar alle devices van 1 klant
+// =============================================================
+async function pushToKlant(klantId, payload) {
+  if (!pushHelper.isEnabled()) return;
+  const subs = await supabaseHelper.listPushSubscriptionsForKlant(klantId);
+  if (!subs || !subs.length) return;
+  for (const s of subs) {
+    const subscription = {
+      endpoint: s.endpoint,
+      keys: { p256dh: s.p256dh, auth: s.auth },
+    };
+    const r = await pushHelper.sendToSubscription(subscription, payload);
+    if (r && r.gone) {
+      // Subscription is dood — verwijderen uit DB om toekomstige failures te vermijden
+      await supabaseHelper.deletePushSubscription(s.endpoint);
+    }
+  }
+}
 
 // =============================================================
 // WEEKLY CHECK-IN REMINDER CRON
