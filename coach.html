@@ -346,15 +346,21 @@
                 <div class="topbar">
                     <h1>&#128202; Overzicht</h1>
                     <div class="topbar-actions">
-                        <button class="btn-admin btn-refresh" onclick="loadProgrammaStats();loadKlanten();">&#8635; Ververs</button>
+                        <button class="btn-admin btn-refresh" onclick="loadVandaag();loadProgrammaStats();loadKlanten();">&#8635; Ververs</button>
                     </div>
+                </div>
+
+                <!-- Vandaag to-do kaart — wat vraagt nu aandacht -->
+                <div id="vandaagWrap" class="card-block" style="margin-bottom:20px">
+                    <h2>&#9728;&#65039; Vandaag — wat vraagt aandacht?</h2>
+                    <div id="vandaagBody" style="font-size:13px;color:#9CA3AF;margin-top:8px">Laden...</div>
                 </div>
 
                 <!-- Klant Portaal info — URL die je naar klanten stuurt -->
                 <div class="card-block" style="background:linear-gradient(135deg,#FFF1F7,#FCE7F3);border:1px solid #F9A8D4;margin-bottom:20px">
                     <h2 style="color:#9D174D">&#128100; Klant Portaal</h2>
                     <p class="hint" style="color:#831843">
-                        Hier loggen je klanten in. Stuur ze deze link (of gebruik de magic-link knop bij de klant in de tabel — die logt ze direct in zonder wachtwoord).
+                        Hier loggen je klanten in. Stuur ze deze link (of gebruik de sleutel-knop bij de klant in de tabel om een nieuw wachtwoord te zetten).
                     </p>
                     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px">
                         <input id="klantPortaalUrl" readonly value="" onclick="this.select()" style="flex:1;min-width:260px;padding:8px 12px;border:1px solid #F9A8D4;border-radius:8px;font-family:monospace;font-size:13px;background:#fff">
@@ -1695,6 +1701,94 @@
         }
 
         // ========================================================
+        // VANDAAG — actie-lijst voor de coach
+        // ========================================================
+        async function loadVandaag() {
+            const body = document.getElementById('vandaagBody');
+            if (!body) return;
+            try {
+                const r = await fetch('/api/admin/stats/vandaag', { credentials: 'include' });
+                if (!r.ok) { body.textContent = 'Vandaag-data laden mislukt.'; return; }
+                const v = await r.json();
+                if (!v || v.totaal === 0) {
+                    body.innerHTML = `
+                        <div style="text-align:center;padding:18px 0;color:#065F46;">
+                            <div style="font-size:32px;margin-bottom:6px;">&#127881;</div>
+                            <div style="font-weight:600;font-size:15px;">Helemaal bij!</div>
+                            <div style="font-size:13px;color:#6B7280;margin-top:4px;">Geen openstaande acties — tijd voor een koffie.</div>
+                        </div>`;
+                    return;
+                }
+                // Bouw 4 sub-lijsten
+                const block = (title, items, emptyMsg, renderItem, color) => {
+                    const count = items.length;
+                    if (count === 0) return '';
+                    return `
+                        <div style="margin-top:14px;border-top:1px solid #F3F4F6;padding-top:12px;">
+                            <div style="font-size:13px;font-weight:600;color:${color};display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                                <span>${title}</span>
+                                <span style="background:${color}22;color:${color};padding:2px 10px;border-radius:10px;font-size:11px;">${count}</span>
+                            </div>
+                            ${items.slice(0, 5).map(renderItem).join('')}
+                            ${items.length > 5 ? `<div style="font-size:11px;color:#9CA3AF;margin-top:6px">+ ${items.length - 5} meer</div>` : ''}
+                        </div>`;
+                };
+                const row = (naam, rechts, onclick, kleur) => `
+                    <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:13px;cursor:pointer;border-radius:6px;padding:7px 8px;margin:0 -8px;" onmouseover="this.style.background='#F9FAFB'" onmouseout="this.style.background=''" onclick="${onclick}">
+                        <span style="color:#1F2937;font-weight:500;">${escapeHtml(naam)}</span>
+                        <span style="font-size:12px;color:${kleur || '#9CA3AF'};">${rechts}</span>
+                    </div>`;
+
+                body.innerHTML = `
+                    ${block(
+                        '&#128221; Nieuwe check-ins om te reviewen',
+                        v.nieuweCheckIns,
+                        '',
+                        c => row(c.naam || c.email,
+                            `week ${c.week_nr} · ${parseFloat(c.gewicht_kg).toFixed(1)} kg`,
+                            `klantBekijkCheckIns('${c.klant_id}', '${escapeHtml((c.naam||c.email).replace(/'/g, "\\'"))}')`,
+                            '#065F46'
+                        ),
+                        '#065F46'
+                    )}
+                    ${block(
+                        '&#128172; Chat onbeantwoord > 24 uur',
+                        v.chatOnbeantwoord,
+                        '',
+                        c => row(c.naam || c.email,
+                            `${c.hours_ago}u terug`,
+                            `klantChat('${c.klant_id}', '${escapeHtml((c.naam||c.email).replace(/'/g, "\\'"))}')`,
+                            '#92400E'
+                        ),
+                        '#92400E'
+                    )}
+                    ${block(
+                        '&#127947; Training nog plannen',
+                        v.trainingTePlannen,
+                        '',
+                        t => row(t.naam || t.email,
+                            `week ${t.missing_weeks.join(', ')}`,
+                            `klantTraining('${t.klant_id}', '${escapeHtml((t.naam||t.email).replace(/'/g, "\\'"))}')`,
+                            '#1E40AF'
+                        ),
+                        '#1E40AF'
+                    )}
+                    ${block(
+                        '&#9888;&#65039; Geen check-in > 10 dagen',
+                        v.geenCheckIn10d,
+                        '',
+                        k => row(k.naam || k.email,
+                            k.days_since == null ? 'nooit' : `${k.days_since} dagen`,
+                            `klantChat('${k.klant_id}', '${escapeHtml((k.naam||k.email).replace(/'/g, "\\'"))}')`,
+                            '#991B1B'
+                        ),
+                        '#991B1B'
+                    )}
+                `;
+            } catch (e) { body.textContent = 'Fout: ' + e.message; }
+        }
+
+        // ========================================================
         // PROGRAMMA STATS (Overzicht sectie)
         // ========================================================
         async function loadProgrammaStats() {
@@ -1760,6 +1854,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             navigate(initialSection());
             initKlantPortaalUrl();
+            loadVandaag();
             loadKlanten();
             loadTrainingTemplates();
             loadVoedingTemplates();
@@ -1767,6 +1862,13 @@
             loadProgrammaStats();
             loadBerichten();
         });
+
+        // Vandaag-kaart ververst elke 60s (check-ins / chat / training kunnen intussen binnenkomen)
+        setInterval(() => {
+            if (document.getElementById('sect-overzicht')?.classList.contains('active')) {
+                loadVandaag();
+            }
+        }, 60000);
 
         // Poll unread counts 1x per 30s
         setInterval(() => {

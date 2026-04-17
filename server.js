@@ -1068,6 +1068,23 @@ const server = http.createServer(async (req, res) => {
     return jsonRes(res, 200, stats || {});
   }
 
+  // GET /api/admin/stats/vandaag — actie-lijst voor de coach
+  // (nieuwe check-ins, onbeantwoorde chats, training te plannen, geen check-in).
+  if (pathname === '/api/admin/stats/vandaag' && req.method === 'GET') {
+    if (!requireAuth(req, res)) return;
+    const stats = await supabaseHelper.getVandaagStats();
+    return jsonRes(res, 200, stats || { nieuweCheckIns: [], chatOnbeantwoord: [], trainingTePlannen: [], geenCheckIn10d: [], totaal: 0 });
+  }
+
+  // POST /api/admin/reminders/run — handmatig de weekly check-in reminders draaien.
+  // Alleen voor admin (Julia/Dorus) — om te testen of eenmalig te pushen.
+  if (pathname === '/api/admin/reminders/run' && req.method === 'POST') {
+    if (!requireAuth(req, res)) return;
+    // Niet synchroon wachten — fire-and-forget zodat de UI niet blokkeert.
+    runWeeklyReminders().catch(e => console.warn('[Reminders] trigger faalde:', e.message));
+    return jsonRes(res, 200, { ok: true, message: 'Reminders gestart op achtergrond. Check server logs.' });
+  }
+
   // GET /api/admin/chat/unread — { klantId: count } map voor sidebar badges
   if (pathname === '/api/admin/chat/unread' && req.method === 'GET') {
     if (!requireAuth(req, res)) return;
@@ -1574,3 +1591,109 @@ server.listen(PORT, () => {
   console.log(`[Julia Den Best] Server running on port ${PORT}`);
   console.log(`[Julia Den Best] http://localhost:${PORT}`);
 });
+
+// =============================================================
+// WEEKLY CHECK-IN REMINDER CRON
+// =============================================================
+// Elke zondag rond 18:00 (Europe/Amsterdam) krijgen actieve klanten die
+// >= 4 dagen geen check-in deden een vriendelijke reminder-mail.
+// Geen echte cron (Railway heeft die niet), dus we pollen elke 5 min en
+// checken of het moment gepasseerd is. Een bestand in DATA_DIR houdt bij
+// wanneer we 'm laatst succesvol draaiden, zodat herstart / 2e instance
+// niet twee keer mailt.
+// =============================================================
+
+const REMINDER_MARKER = path.join(DATA_DIR, 'last-reminder-run.txt');
+const REMINDER_DAY = 0; // 0 = zondag
+const REMINDER_HOUR_LOCAL = 18; // 18:00 Europe/Amsterdam
+
+function readReminderMarker() {
+  try {
+    if (!fs.existsSync(REMINDER_MARKER)) return 0;
+    return parseInt(fs.readFileSync(REMINDER_MARKER, 'utf-8').trim(), 10) || 0;
+  } catch { return 0; }
+}
+
+function writeReminderMarker(ts) {
+  try { fs.writeFileSync(REMINDER_MARKER, String(ts)); } catch {}
+}
+
+function localHourInAmsterdam(date) {
+  // Gebruik Intl om het uur in Amsterdam tijdzone te krijgen (DST-aware).
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Europe/Amsterdam',
+    hour: 'numeric', weekday: 'short', hour12: false,
+  }).formatToParts(date);
+  const hour = parseInt(parts.find(p => p.type === 'hour')?.value || '0', 10);
+  const weekday = parts.find(p => p.type === 'weekday')?.value || '';
+  const dayMap = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+  return { hour, day: dayMap[weekday] ?? -1 };
+}
+
+async function runWeeklyReminders() {
+  if (!emailHelper.isEnabled()) {
+    console.log('[Reminders] email not configured, skip.');
+    return;
+  }
+  if (!supabaseHelper.isEnabled()) {
+    console.log('[Reminders] Supabase not configured, skip.');
+    return;
+  }
+  const klanten = await supabaseHelper.listKlantenMetLaatsteCheckIn();
+  if (!klanten) {
+    console.warn('[Reminders] kon klanten niet ophalen, skip.');
+    return;
+  }
+  const nu = Date.now();
+  const weekMs = 7 * 24 * 60 * 60 * 1000;
+  const dagMs = 24 * 60 * 60 * 1000;
+  let sent = 0;
+  let skipped = 0;
+  for (const k of klanten) {
+    if (!k.email) { skipped++; continue; }
+    const startTs = k.start_datum ? new Date(k.start_datum).getTime() : null;
+    const weekNr = startTs ? Math.min(16, Math.max(1, Math.ceil((nu - startTs) / weekMs))) : 1;
+    const lastTs = k.laatste_checkin_at ? new Date(k.laatste_checkin_at).getTime() : null;
+    const daysSince = lastTs ? Math.floor((nu - lastTs) / dagMs) : null;
+    // Alleen mailen als de klant meer dan 4 dagen geen check-in heeft.
+    // (anders heeft ze deze week al ingecheckt, geen herinnering nodig)
+    if (daysSince != null && daysSince < 4) { skipped++; continue; }
+    try {
+      await emailHelper.sendCheckInReminderEmail({
+        to: k.email, naam: k.naam, weekNr, daysSinceLast: daysSince,
+      });
+      sent++;
+    } catch (e) {
+      console.warn('[Reminders] mail faalde voor', k.email, e.message);
+    }
+  }
+  console.log(`[Reminders] verstuurd: ${sent}, overgeslagen: ${skipped}`);
+}
+
+async function checkReminderCron() {
+  try {
+    const now = new Date();
+    const { hour, day } = localHourInAmsterdam(now);
+    if (day !== REMINDER_DAY || hour < REMINDER_HOUR_LOCAL) return;
+    const lastRun = readReminderMarker();
+    // Al gestuurd binnen de laatste 20 uur? Skip (voorkomt dubbele mail bij restart).
+    if (Date.now() - lastRun < 20 * 60 * 60 * 1000) return;
+    console.log('[Reminders] zondagavond in Amsterdam, start mailronde...');
+    writeReminderMarker(Date.now()); // meteen marker zetten — voorkomt dat 2 instances tegelijk mailen
+    await runWeeklyReminders();
+  } catch (e) {
+    console.warn('[Reminders] cron-check error:', e.message);
+  }
+}
+
+// Start cron-check na een kleine delay (zodat listen() eerst af is)
+setTimeout(() => {
+  checkReminderCron();
+  setInterval(checkReminderCron, 5 * 60 * 1000); // elke 5 min
+}, 30 * 1000);
+
+// Handmatige trigger endpoint — voor testen of als Julia zelf wil pushen.
+// Protected: alleen admin-session of X-Admin-Secret header.
+const REMINDER_TRIGGER_SECRET = process.env.REMINDER_TRIGGER_SECRET || '';
+
+// (Wordt opgepakt door de request handler hieronder via een extra hook.)
