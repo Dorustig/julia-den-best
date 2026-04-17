@@ -624,6 +624,52 @@ const server = http.createServer(async (req, res) => {
     return jsonRes(res, 200, { check_ins: enriched });
   }
 
+  // GET /api/klant/daily-habit?datum=YYYY-MM-DD → rij voor vandaag (of gevraagde datum)
+  if (pathname === '/api/klant/daily-habit' && req.method === 'GET') {
+    const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+    const user = await supabaseHelper.verifyUserToken(token);
+    if (!user) return jsonRes(res, 401, { error: 'Not logged in' });
+    const klant = await supabaseHelper.getKlantByAuthUserId(user.id);
+    if (!klant) return jsonRes(res, 404, { error: 'No klant profile found' });
+    const datum = parsed.query.datum || new Date().toISOString().slice(0, 10);
+    const habit = await supabaseHelper.getDailyHabit(klant.id, datum);
+    return jsonRes(res, 200, { habit });
+  }
+
+  // POST /api/klant/daily-habit — upsert voor 1 datum (defaults to vandaag).
+  // Body: { datum?, water_ok?, slaap_ok?, stappen_ok?, training_ok?, journal?, mood_emoji? }
+  if (pathname === '/api/klant/daily-habit' && req.method === 'POST') {
+    const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+    const user = await supabaseHelper.verifyUserToken(token);
+    if (!user) return jsonRes(res, 401, { error: 'Not logged in' });
+    const klant = await supabaseHelper.getKlantByAuthUserId(user.id);
+    if (!klant) return jsonRes(res, 404, { error: 'No klant profile found' });
+    let body;
+    try { body = JSON.parse(await readBody(req)); }
+    catch { return jsonRes(res, 400, { error: 'Invalid JSON' }); }
+    const datum = body.datum || new Date().toISOString().slice(0, 10);
+    const patch = {};
+    ['water_ok', 'slaap_ok', 'stappen_ok', 'training_ok'].forEach(k => {
+      if (body[k] !== undefined) patch[k] = !!body[k];
+    });
+    if (body.journal !== undefined) patch.journal = body.journal ? String(body.journal).slice(0, 2000) : null;
+    if (body.mood_emoji !== undefined) patch.mood_emoji = body.mood_emoji ? String(body.mood_emoji).slice(0, 8) : null;
+    const r = await supabaseHelper.saveDailyHabit(klant.id, datum, patch);
+    if (!r.ok) return jsonRes(res, 500, { error: r.error });
+    return jsonRes(res, 200, { ok: true, habit: r.habit });
+  }
+
+  // GET /api/admin/klanten/:klantId/daily-habits — coach bekijkt historie
+  {
+    const m = pathname.match(/^\/api\/admin\/klanten\/([0-9a-f-]+)\/daily-habits$/i);
+    if (m && req.method === 'GET') {
+      if (!requireAuth(req, res)) return;
+      const days = parseInt(parsed.query.days || '30', 10);
+      const habits = await supabaseHelper.listDailyHabits(m[1], days);
+      return jsonRes(res, 200, { habits });
+    }
+  }
+
   // POST /api/klant/checkin-foto — upload one check-in photo as base64 JSON
   // Body: { check_in_id, positie ('front'|'side'|'back'), data_base64, mime? }
   if (pathname === '/api/klant/checkin-foto' && req.method === 'POST') {

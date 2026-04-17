@@ -109,6 +109,37 @@
     .install-banner .dismiss { background: transparent; color: #9CA3AF; font-size: 18px; padding: 4px 8px; }
     .install-banner .dismiss:hover { color: #fff; background: rgba(255,255,255,0.1); }
 
+    /* Daily habits + journal kaart */
+    .daily-card { background: #fff; border-radius: 20px; padding: 20px; margin-bottom: 16px; box-shadow: 0 10px 40px rgba(233,30,140,0.08); }
+    .daily-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 14px; }
+    .daily-head .title { font-size: 15px; font-weight: 600; color: #1F2937; }
+    .daily-head .date { font-size: 12px; color: #9CA3AF; }
+    .habits-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 14px; }
+    @media (max-width: 480px) { .habits-row { grid-template-columns: repeat(2, 1fr); } }
+    .habit {
+      background: #F9FAFB; border: 1.5px solid transparent;
+      border-radius: 14px; padding: 12px 8px;
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      cursor: pointer; transition: all 0.15s; text-align: center;
+      user-select: none;
+    }
+    .habit .emoji { font-size: 24px; line-height: 1; }
+    .habit .lbl { font-size: 11px; color: #6B7280; font-weight: 600; line-height: 1.2; }
+    .habit.on { background: #FCE7F3; border-color: #E91E8C; }
+    .habit.on .lbl { color: #9D174D; }
+    .habit:hover { transform: translateY(-1px); }
+
+    .journal-block { background: #FDF2F8; border-radius: 14px; padding: 14px; }
+    .journal-prompt { font-size: 13px; font-weight: 600; color: #9D174D; margin-bottom: 8px; line-height: 1.4; }
+    .journal-textarea {
+      width: 100%; padding: 10px 12px; border: 1.5px solid transparent;
+      background: #fff; border-radius: 10px; resize: vertical;
+      font-family: inherit; font-size: 14px; color: #1F2937; min-height: 56px;
+    }
+    .journal-textarea:focus { outline: none; border-color: #F472B6; }
+    .journal-status { font-size: 11px; color: #9CA3AF; margin-top: 6px; text-align: right; min-height: 14px; }
+    .journal-status.saved { color: #065F46; }
+
     /* Badges sectie */
     .badges-card { background: #fff; border-radius: 20px; padding: 18px 20px; margin-bottom: 16px; box-shadow: 0 10px 40px rgba(233, 30, 140, 0.08); }
     .badges-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 14px; }
@@ -1449,6 +1480,8 @@
         </div>
         ${goalBarHtml}
 
+        ${renderDailyCard()}
+
         <div class="chart-wrap">
           <div class="section-title" style="padding-left:0;margin-bottom:6px;">Gewichts-verloop</div>
           ${checkins.length === 0 ? `
@@ -1549,6 +1582,8 @@
 
       // Chat: scroll naar onder + markeer coach-berichten als gelezen
       initChatAfterRender();
+      // Daily habits + journal — laad + bind save handlers
+      initDailyCard();
     }
 
     // ===== Simpele markdown renderer =====
@@ -1781,6 +1816,133 @@
     function fmtDateShort(iso) {
       return new Date(iso).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' });
     }
+    // =============================================================
+    // DAILY HABITS + JOURNAL — vandaag-card op dashboard
+    // =============================================================
+    const HABIT_DEFS = [
+      { key: 'water_ok',    emoji: '💧', lbl: '2L water' },
+      { key: 'slaap_ok',    emoji: '😴', lbl: '≥7u slaap' },
+      { key: 'stappen_ok',  emoji: '👣', lbl: '7K+ stappen' },
+      { key: 'training_ok', emoji: '🏋', lbl: 'Training' },
+    ];
+    // Rotating journal prompts — 1 per dag (day-of-year index)
+    const JOURNAL_PROMPTS = [
+      'Wat ging vandaag goed?',
+      'Waar ben je trots op?',
+      'Wat voelde lastig vandaag — en hoe ging je ermee om?',
+      'Welk moment gaf je energie?',
+      'Wat wil je morgen iets anders doen?',
+      'Welke mini-overwinning viel je op?',
+      'Waarvoor ben je dankbaar?',
+      'Wat eet je met meer bewustzijn dan vorige week?',
+      'Hoe voelt je lichaam vandaag — op een schaal, zonder oordeel?',
+      'Welke gedachte wil je loslaten voor morgen?',
+      'Wie heeft je vandaag inspireerd of geholpen?',
+      'Wat zou de Julia van week 16 zeggen tegen de Julia van vandaag?',
+    ];
+    function todayPrompt() {
+      const d = new Date();
+      const start = new Date(d.getFullYear(), 0, 0);
+      const day = Math.floor((d - start) / 86400000);
+      return JOURNAL_PROMPTS[day % JOURNAL_PROMPTS.length];
+    }
+    function todayISO() { return new Date().toISOString().slice(0, 10); }
+    function todayLabel() {
+      return new Date().toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' });
+    }
+
+    function renderDailyCard() {
+      const habits = HABIT_DEFS.map(h => `
+        <div class="habit" data-key="${h.key}" onclick="toggleHabit('${h.key}')">
+          <div class="emoji">${h.emoji}</div>
+          <div class="lbl">${h.lbl}</div>
+        </div>`).join('');
+      return `
+        <div class="daily-card" id="dailyCard">
+          <div class="daily-head">
+            <div class="title">Vandaag</div>
+            <div class="date">${todayLabel()}</div>
+          </div>
+          <div class="habits-row" id="habitsRow">${habits}</div>
+          <div class="journal-block">
+            <div class="journal-prompt">✨ ${escapeHtml(todayPrompt())}</div>
+            <textarea class="journal-textarea" id="journalInput" placeholder="Schrijf kort — alleen jij en Julia zien dit."></textarea>
+            <div class="journal-status" id="journalStatus"></div>
+          </div>
+        </div>`;
+    }
+
+    // Na render: load today's habit + bind journal auto-save
+    async function initDailyCard() {
+      const datum = todayISO();
+      try {
+        const r = await fetch('/api/klant/daily-habit?datum=' + datum, { headers: window.__authHdr });
+        if (!r.ok) return;
+        const data = await r.json();
+        const h = data?.habit || {};
+        window.__dailyHabit = h;
+        HABIT_DEFS.forEach(def => {
+          const el = document.querySelector(`.habit[data-key="${def.key}"]`);
+          if (el && h[def.key]) el.classList.add('on');
+        });
+        const ta = document.getElementById('journalInput');
+        if (ta && h.journal) ta.value = h.journal;
+      } catch {}
+
+      // Journal auto-save (debounced 800ms after stop typing, and on blur)
+      const ta = document.getElementById('journalInput');
+      const status = document.getElementById('journalStatus');
+      if (!ta) return;
+      let journalTimer = null;
+      const saveJournal = async () => {
+        if (status) { status.className = 'journal-status'; status.textContent = 'Opslaan…'; }
+        try {
+          await saveHabit({ journal: ta.value });
+          if (status) { status.className = 'journal-status saved'; status.textContent = '✓ Opgeslagen'; }
+        } catch (e) {
+          if (status) { status.className = 'journal-status'; status.textContent = 'Fout: ' + e.message; }
+        }
+      };
+      ta.addEventListener('input', () => {
+        if (status) { status.className = 'journal-status'; status.textContent = 'Typen…'; }
+        clearTimeout(journalTimer);
+        journalTimer = setTimeout(saveJournal, 800);
+      });
+      ta.addEventListener('blur', () => {
+        clearTimeout(journalTimer);
+        if (ta.value !== (window.__dailyHabit?.journal || '')) saveJournal();
+      });
+    }
+
+    async function saveHabit(patch) {
+      const body = JSON.stringify({ datum: todayISO(), ...patch });
+      const r = await fetch('/api/klant/daily-habit', {
+        method: 'POST',
+        headers: { ...window.__authHdr, 'Content-Type': 'application/json' },
+        body,
+      });
+      if (!r.ok) {
+        const j = await r.json().catch(() => ({}));
+        throw new Error(j.error || 'HTTP ' + r.status);
+      }
+      const d = await r.json();
+      window.__dailyHabit = d.habit;
+      return d.habit;
+    }
+
+    window.toggleHabit = async (key) => {
+      const el = document.querySelector(`.habit[data-key="${key}"]`);
+      if (!el) return;
+      const newVal = !el.classList.contains('on');
+      el.classList.toggle('on', newVal); // optimistic
+      try {
+        await saveHabit({ [key]: newVal });
+      } catch (e) {
+        el.classList.toggle('on', !newVal); // revert
+        console.warn('habit save failed:', e.message);
+      }
+    };
+
     // =============================================================
     // BADGES — mijlpalen berekenen uit check-ins + klant data
     // =============================================================
