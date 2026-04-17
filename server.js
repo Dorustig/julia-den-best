@@ -500,6 +500,41 @@ const server = http.createServer(async (req, res) => {
     return jsonRes(res, 200, { klant });
   }
 
+  // PUT /api/klant/profile — klant werkt zelf een paar velden bij.
+  // Whitelist: naam, telefoon, doel_gewicht_kg. Andere velden negeren we
+  // (startgewicht, doel, lengte etc. blijven via Julia lopen).
+  if (pathname === '/api/klant/profile' && req.method === 'PUT') {
+    const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+    const user = await supabaseHelper.verifyUserToken(token);
+    if (!user) return jsonRes(res, 401, { error: 'Not logged in' });
+    const klant = await supabaseHelper.getKlantByAuthUserId(user.id);
+    if (!klant) return jsonRes(res, 404, { error: 'No klant profile found' });
+
+    let body;
+    try { body = JSON.parse(await readBody(req)); }
+    catch { return jsonRes(res, 400, { error: 'Invalid JSON' }); }
+
+    const patch = {};
+    if (typeof body.naam === 'string') {
+      const n = body.naam.trim();
+      if (n.length < 2) return jsonRes(res, 400, { error: 'Naam moet minstens 2 tekens zijn' });
+      patch.naam = n;
+    }
+    if (typeof body.telefoon === 'string' || body.telefoon === null) {
+      patch.telefoon = body.telefoon ? String(body.telefoon).trim() : null;
+    }
+    if (body.doel_gewicht_kg !== undefined) {
+      const g = body.doel_gewicht_kg === null || body.doel_gewicht_kg === '' ? null : parseFloat(body.doel_gewicht_kg);
+      if (g !== null && (isNaN(g) || g < 30 || g > 200)) return jsonRes(res, 400, { error: 'Ongeldig doelgewicht (30-200 kg)' });
+      patch.doel_gewicht_kg = g;
+    }
+    if (Object.keys(patch).length === 0) return jsonRes(res, 400, { error: 'Geen velden om bij te werken' });
+
+    const upd = await supabaseHelper.updateKlantFields(klant.id, patch);
+    if (!upd.ok) return jsonRes(res, 500, { error: upd.error });
+    return jsonRes(res, 200, { ok: true, klant: upd.klant });
+  }
+
   // POST /api/klant/intake — save intake form (requires Supabase JWT)
   if (pathname === '/api/klant/intake' && req.method === 'POST') {
     const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');

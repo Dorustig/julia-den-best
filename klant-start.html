@@ -19,8 +19,48 @@
 
     .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; padding: 0 4px; }
     .brand { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: #E91E8C; }
-    .btn-logout { background: none; border: none; color: #9CA3AF; font-size: 13px; cursor: pointer; font-family: inherit; padding: 6px 10px; }
-    .btn-logout:hover { color: #E91E8C; }
+    .topbar-actions { display: flex; gap: 4px; }
+    .btn-ghost { background: none; border: none; color: #9CA3AF; font-size: 13px; cursor: pointer; font-family: inherit; padding: 6px 10px; border-radius: 8px; }
+    .btn-ghost:hover { color: #E91E8C; background: rgba(233,30,140,0.06); }
+
+    /* Goal progress bar (onder de stats) */
+    .goal-bar-wrap { background: #fff; border-radius: 14px; padding: 14px 16px; margin-top: 10px; margin-bottom: 20px; box-shadow: 0 4px 16px rgba(233,30,140,0.06); }
+    .goal-bar-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; font-size: 13px; }
+    .goal-bar-head .lbl { color: #6B7280; font-weight: 500; }
+    .goal-bar-head .pct { color: #E91E8C; font-weight: 700; font-family: 'Playfair Display', serif; font-size: 18px; }
+    .goal-bar { height: 10px; background: #F3F4F6; border-radius: 5px; overflow: hidden; position: relative; }
+    .goal-bar-fill { height: 100%; background: linear-gradient(90deg, #F472B6, #E91E8C); border-radius: 5px; transition: width 0.5s ease; }
+    .goal-bar-ends { display: flex; justify-content: space-between; margin-top: 6px; font-size: 11px; color: #9CA3AF; }
+
+    /* Account modal */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(15,15,20,0.5); display: none; align-items: flex-start; justify-content: center; padding: 40px 16px; z-index: 100; backdrop-filter: blur(4px); }
+    .modal-overlay.active { display: flex; }
+    .modal { background: #fff; border-radius: 20px; padding: 0; max-width: 480px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.25); max-height: calc(100vh - 80px); overflow: hidden; display: flex; flex-direction: column; }
+    .modal-head { padding: 20px 24px 0; display: flex; justify-content: space-between; align-items: center; }
+    .modal-head h2 { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: #1F2937; }
+    .modal-close { background: none; border: none; font-size: 24px; color: #9CA3AF; cursor: pointer; padding: 4px 8px; line-height: 1; }
+    .modal-close:hover { color: #E91E8C; }
+    .modal-tabs { display: flex; gap: 4px; padding: 12px 24px 0; border-bottom: 1px solid #F3F4F6; }
+    .modal-tab { background: none; border: none; padding: 10px 16px; font-family: inherit; font-size: 14px; font-weight: 600; color: #9CA3AF; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+    .modal-tab.active { color: #E91E8C; border-bottom-color: #E91E8C; }
+    .modal-body { padding: 20px 24px 24px; overflow-y: auto; }
+    .modal-body .field { margin-bottom: 14px; }
+    .modal-body label { display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px; }
+    .modal-body input[type=text], .modal-body input[type=tel], .modal-body input[type=number], .modal-body input[type=password] {
+      width: 100%; padding: 12px 14px; border: 1.5px solid #E5E7EB; border-radius: 10px;
+      font-size: 15px; font-family: inherit; transition: border-color 0.15s;
+    }
+    .modal-body input:focus { outline: none; border-color: #E91E8C; }
+    .modal-body .hint { font-size: 12px; color: #9CA3AF; margin-top: 4px; }
+    .modal-submit { width: 100%; padding: 14px 20px; background: #E91E8C; color: #fff; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit; margin-top: 8px; }
+    .modal-submit:hover { background: #D01680; }
+    .modal-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+    .modal-msg { padding: 10px 12px; border-radius: 8px; font-size: 13px; margin-bottom: 12px; display: none; }
+    .modal-msg.error { background: #FEE2E2; color: #991B1B; display: block; }
+    .modal-msg.success { background: #D1FAE5; color: #065F46; display: block; }
+    .pw-row { position: relative; }
+    .pw-toggle { position: absolute; right: 8px; top: 32px; background: none; border: none; padding: 6px 10px; color: #9CA3AF; font-size: 12px; font-weight: 500; cursor: pointer; }
+    .pw-toggle:hover { color: #E91E8C; }
 
     .card { background: #fff; border-radius: 20px; padding: 24px; box-shadow: 0 10px 40px rgba(233, 30, 140, 0.08); margin-bottom: 16px; }
 
@@ -293,6 +333,62 @@
     <div class="video-modal-title" id="videoModalTitle"></div>
   </div>
 
+  <!-- Account modal: profiel + wachtwoord wijzigen -->
+  <div class="modal-overlay" id="accountModal" onclick="if(event.target===this)closeAccount()">
+    <div class="modal">
+      <div class="modal-head">
+        <h2>Account</h2>
+        <button class="modal-close" onclick="closeAccount()" aria-label="Sluiten">&times;</button>
+      </div>
+      <div class="modal-tabs">
+        <button class="modal-tab active" data-tab="profiel" onclick="selectAccountTab('profiel')">Profiel</button>
+        <button class="modal-tab" data-tab="wachtwoord" onclick="selectAccountTab('wachtwoord')">Wachtwoord</button>
+      </div>
+
+      <div class="modal-body" id="tab-profiel">
+        <div class="modal-msg" id="profielMsg"></div>
+        <form id="profielForm">
+          <div class="field">
+            <label for="accNaam">Naam</label>
+            <input type="text" id="accNaam" required minlength="2" autocomplete="name">
+          </div>
+          <div class="field">
+            <label for="accTel">Telefoon (optioneel)</label>
+            <input type="tel" id="accTel" autocomplete="tel" placeholder="+31 6 …">
+          </div>
+          <div class="field">
+            <label for="accDoel">Doelgewicht (kg)</label>
+            <input type="number" id="accDoel" step="0.1" min="30" max="200" placeholder="bv. 62.5">
+            <div class="hint">Je doel kun je zelf aanpassen. Je startgewicht, leeftijd en overige intake-data lopen via Julia.</div>
+          </div>
+          <button type="submit" class="modal-submit" id="profielSubmit">Opslaan</button>
+        </form>
+      </div>
+
+      <div class="modal-body" id="tab-wachtwoord" style="display:none">
+        <div class="modal-msg" id="pwMsg"></div>
+        <form id="pwForm">
+          <div class="field pw-row">
+            <label for="pwHuidig">Huidig wachtwoord</label>
+            <input type="password" id="pwHuidig" required autocomplete="current-password" style="padding-right:58px">
+            <button type="button" class="pw-toggle" data-target="pwHuidig">Toon</button>
+          </div>
+          <div class="field pw-row">
+            <label for="pwNieuw">Nieuw wachtwoord (min. 6 tekens)</label>
+            <input type="password" id="pwNieuw" required minlength="6" autocomplete="new-password" style="padding-right:58px">
+            <button type="button" class="pw-toggle" data-target="pwNieuw">Toon</button>
+          </div>
+          <div class="field pw-row">
+            <label for="pwNieuw2">Bevestig nieuw wachtwoord</label>
+            <input type="password" id="pwNieuw2" required minlength="6" autocomplete="new-password" style="padding-right:58px">
+            <button type="button" class="pw-toggle" data-target="pwNieuw2">Toon</button>
+          </div>
+          <button type="submit" class="modal-submit" id="pwSubmit">Wachtwoord wijzigen</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <script type="module">
     import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
@@ -342,6 +438,118 @@
         await supabase.auth.signOut();
         window.location.href = '/klant/login';
       };
+
+      // ===== Account modal (profiel + wachtwoord) =====
+      window.openAccount = () => {
+        const k = window.__klant || {};
+        document.getElementById('accNaam').value = k.naam || '';
+        document.getElementById('accTel').value = k.telefoon || '';
+        document.getElementById('accDoel').value = k.doel_gewicht_kg != null ? k.doel_gewicht_kg : '';
+        document.getElementById('profielMsg').className = 'modal-msg';
+        document.getElementById('profielMsg').textContent = '';
+        document.getElementById('pwMsg').className = 'modal-msg';
+        document.getElementById('pwMsg').textContent = '';
+        document.getElementById('pwForm').reset();
+        selectAccountTab('profiel');
+        document.getElementById('accountModal').classList.add('active');
+      };
+      window.closeAccount = () => {
+        document.getElementById('accountModal').classList.remove('active');
+      };
+      window.selectAccountTab = (tab) => {
+        document.querySelectorAll('.modal-tab').forEach(b => {
+          b.classList.toggle('active', b.dataset.tab === tab);
+        });
+        document.getElementById('tab-profiel').style.display = tab === 'profiel' ? 'block' : 'none';
+        document.getElementById('tab-wachtwoord').style.display = tab === 'wachtwoord' ? 'block' : 'none';
+      };
+
+      // Toon/verberg wachtwoord-velden
+      document.querySelectorAll('.pw-toggle').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const target = document.getElementById(btn.dataset.target);
+          if (!target) return;
+          if (target.type === 'password') { target.type = 'text'; btn.textContent = 'Verberg'; }
+          else { target.type = 'password'; btn.textContent = 'Toon'; }
+        });
+      });
+
+      // Profiel opslaan
+      document.getElementById('profielForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const msg = document.getElementById('profielMsg');
+        const btn = document.getElementById('profielSubmit');
+        msg.className = 'modal-msg'; msg.textContent = '';
+        btn.disabled = true; btn.textContent = 'Opslaan...';
+        try {
+          const naam = document.getElementById('accNaam').value.trim();
+          const telefoon = document.getElementById('accTel').value.trim();
+          const doelRaw = document.getElementById('accDoel').value.trim();
+          const payload = {
+            naam,
+            telefoon: telefoon || null,
+            doel_gewicht_kg: doelRaw === '' ? null : parseFloat(doelRaw),
+          };
+          const r = await fetch('/api/klant/profile', {
+            method: 'PUT',
+            headers: { ...window.__authHdr, 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+          const data = await r.json();
+          if (!r.ok || data.error) throw new Error(data.error || 'Opslaan mislukt');
+          window.__klant = data.klant;
+          msg.className = 'modal-msg success';
+          msg.textContent = '✓ Profiel bijgewerkt. Ververs de pagina om nieuwe waarden in je dashboard te zien.';
+        } catch (err) {
+          msg.className = 'modal-msg error';
+          msg.textContent = err.message;
+        } finally {
+          btn.disabled = false; btn.textContent = 'Opslaan';
+        }
+      });
+
+      // Wachtwoord wijzigen — re-authenticate met huidig + updateUser met nieuw
+      document.getElementById('pwForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const msg = document.getElementById('pwMsg');
+        const btn = document.getElementById('pwSubmit');
+        msg.className = 'modal-msg'; msg.textContent = '';
+        const huidig = document.getElementById('pwHuidig').value;
+        const nieuw = document.getElementById('pwNieuw').value;
+        const nieuw2 = document.getElementById('pwNieuw2').value;
+        if (nieuw.length < 6) { msg.className = 'modal-msg error'; msg.textContent = 'Nieuw wachtwoord moet minstens 6 tekens zijn.'; return; }
+        if (nieuw !== nieuw2) { msg.className = 'modal-msg error'; msg.textContent = 'De twee wachtwoorden komen niet overeen.'; return; }
+        btn.disabled = true; btn.textContent = 'Bezig...';
+        try {
+          // 1. Verifieer huidig wachtwoord door opnieuw in te loggen
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user?.email) throw new Error('Niet ingelogd');
+          const { error: signInErr } = await supabase.auth.signInWithPassword({
+            email: user.email, password: huidig,
+          });
+          if (signInErr) throw new Error('Huidig wachtwoord klopt niet.');
+          // 2. Nieuw wachtwoord instellen
+          const { error: updErr } = await supabase.auth.updateUser({ password: nieuw });
+          if (updErr) throw new Error(updErr.message);
+
+          msg.className = 'modal-msg success';
+          msg.textContent = '✓ Wachtwoord gewijzigd. Gebruik dit bij je volgende login.';
+          document.getElementById('pwForm').reset();
+        } catch (err) {
+          msg.className = 'modal-msg error';
+          msg.textContent = err.message;
+        } finally {
+          btn.disabled = false; btn.textContent = 'Wachtwoord wijzigen';
+        }
+      });
+
+      // ESC sluit modal
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          const m = document.getElementById('accountModal');
+          if (m && m.classList.contains('active')) closeAccount();
+        }
+      });
 
       window.openLightbox = (src) => {
         const lb = document.getElementById('lightbox');
@@ -404,6 +612,7 @@
       if (!r.ok) throw new Error('Profiel ophalen mislukt (HTTP ' + r.status + ')');
 
       const { klant } = await r.json();
+      window.__klant = klant; // gebruikt door Account-modal om velden te pre-fillen
       const checkins = (cr && cr.ok ? (await cr.json()).check_ins : []) || [];
       const trainingSchemas = (tr && tr.ok ? (await tr.json()).schemas : []) || [];
       const voedingPlan = (vr && vr.ok ? (await vr.json()).plan : null);
@@ -439,6 +648,28 @@
       const laatste = checkins.length ? checkins[checkins.length - 1] : null;
       const huidig = laatste ? parseFloat(laatste.gewicht_kg) : start;
       const delta = +(huidig - start).toFixed(1);
+
+      // Voortgang naar doel (0-100%).
+      // Voor afvallen: (start - huidig) / (start - doel)
+      // Voor aankomen: (huidig - start) / (doel - start)
+      let goalPct = null;
+      let goalBarHtml = '';
+      if (hasGoal && start != null && doel !== start) {
+        const totalNeeded = Math.abs(doel - start);
+        const achieved = willDown ? (start - huidig) : (huidig - start);
+        goalPct = Math.max(0, Math.min(100, (achieved / totalNeeded) * 100));
+        const kgToGo = Math.max(0, Math.abs(doel - huidig));
+        goalBarHtml = `
+          <div class="goal-bar-wrap">
+            <div class="goal-bar-head">
+              <span class="lbl">${goalPct >= 100 ? '&#127881; Doel behaald!' : `Nog <strong>${kgToGo.toFixed(1)} kg</strong> tot je doel`}</span>
+              <span class="pct">${Math.round(goalPct)}%</span>
+            </div>
+            <div class="goal-bar"><div class="goal-bar-fill" style="width:${goalPct}%"></div></div>
+            <div class="goal-bar-ends"><span>${start} kg</span><span>${doel} kg</span></div>
+          </div>
+        `;
+      }
 
       let deltaBadge = '<span class="delta neutral">Start</span>';
       if (delta !== 0) {
@@ -483,7 +714,10 @@
       render(`
         <div class="topbar">
           <div class="brand">Julia Besten</div>
-          <button class="btn-logout" onclick="logout()">Uitloggen</button>
+          <div class="topbar-actions">
+            <button class="btn-ghost" onclick="openAccount()" title="Account">&#9881;&#65039; Account</button>
+            <button class="btn-ghost" onclick="logout()">Uitloggen</button>
+          </div>
         </div>
 
         ${reminderHtml}
@@ -501,7 +735,7 @@
         </div>
 
         <div class="section-title">Jouw voortgang</div>
-        <div class="stats-grid" style="margin-bottom:20px;">
+        <div class="stats-grid" style="margin-bottom:${goalBarHtml ? '0' : '20px'};">
           <div class="stat">
             <div class="label">Start</div>
             <div class="val">${start}<span class="unit"> kg</span></div>
@@ -516,6 +750,7 @@
             <div class="val">${hasGoal ? doel : '–'}<span class="unit">${hasGoal ? ' kg' : ''}</span></div>
           </div>
         </div>
+        ${goalBarHtml}
 
         <div class="chart-wrap">
           <div class="section-title" style="padding-left:0;margin-bottom:6px;">Gewichts-verloop</div>
