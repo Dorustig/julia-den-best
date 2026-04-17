@@ -378,17 +378,21 @@
                 <!-- Klant toevoegen -->
                 <div class="card-block">
                     <h2>&#10133; Klant toevoegen</h2>
-                    <p class="hint">Nieuwe klanten komen normaal binnen via Plug&amp;Pay. Maar voor tests of vriendinnen kun je er hier handmatig eentje toevoegen.</p>
+                    <p class="hint">Vul email + naam in en kies een wachtwoord. Of laat het veld leeg, dan maak ik er zelf een makkelijke voor je.</p>
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
                         <input type="email" id="klantNieuwEmail" class="filter-input" placeholder="email@klant.nl" style="width:100%">
                         <input type="text" id="klantNieuwNaam" class="filter-input" placeholder="Volledige naam" style="width:100%">
                     </div>
                     <input type="tel" id="klantNieuwTelefoon" class="filter-input" placeholder="Telefoon (optioneel)" style="width:100%;margin-bottom:10px">
+                    <div style="display:grid;grid-template-columns:1fr auto;gap:10px;margin-bottom:10px">
+                        <input type="text" id="klantNieuwWachtwoord" class="filter-input" placeholder="Wachtwoord (min. 6 tekens) — leeg = auto-genereren" style="width:100%;font-family:monospace">
+                        <button type="button" class="btn-admin btn-refresh" onclick="genPassword()" title="Genereer een willekeurig wachtwoord">&#127922; Genereer</button>
+                    </div>
                     <label style="display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:13px;color:#374151;cursor:pointer;">
                         <input type="checkbox" id="klantNieuwSendMail" checked>
-                        &#128231; Stuur welkomstmail met inloglink
+                        &#128231; Stuur welkomstmail met login-gegevens
                     </label>
-                    <button class="btn-admin btn-export" id="klantToevoegenBtn" onclick="klantToevoegen()">Klant aanmaken + magic link</button>
+                    <button class="btn-admin btn-export" id="klantToevoegenBtn" onclick="klantToevoegen()">Klant aanmaken</button>
                     <div id="klantNieuwResult" style="margin-top:10px;font-size:13px"></div>
                 </div>
 
@@ -592,15 +596,30 @@
         window.__unreadCounts = {};
         window.__klantenCache = [];
 
+        // Makkelijk uit te spreken wachtwoord: alternate consonant-vowel-conso-vowel + 4 cijfers.
+        // Bijvoorbeeld: "bare-moti-5824". Niet cryptografisch, wel mens-vriendelijk.
+        function genPassword() {
+            const cons = 'bcdfghjkmnpqrstvwxz';
+            const vow = 'aeiouy';
+            const syl = () => cons[Math.floor(Math.random()*cons.length)] + vow[Math.floor(Math.random()*vow.length)] + cons[Math.floor(Math.random()*cons.length)] + vow[Math.floor(Math.random()*vow.length)];
+            const nr = String(1000 + Math.floor(Math.random()*9000));
+            const pw = syl() + '-' + syl() + nr;
+            const el = document.getElementById('klantNieuwWachtwoord');
+            if (el) { el.value = pw; el.focus(); el.select(); }
+            return pw;
+        }
+
         async function klantToevoegen() {
             const email = document.getElementById('klantNieuwEmail').value.trim();
             const naam = document.getElementById('klantNieuwNaam').value.trim();
             const telefoon = document.getElementById('klantNieuwTelefoon').value.trim();
+            const wachtwoord = document.getElementById('klantNieuwWachtwoord').value.trim();
             const btn = document.getElementById('klantToevoegenBtn');
             const out = document.getElementById('klantNieuwResult');
             out.innerHTML = '';
             if (!email || !email.includes('@')) { out.innerHTML = '<span style="color:#B91C1C">Geldig email vereist.</span>'; return; }
             if (!naam) { out.innerHTML = '<span style="color:#B91C1C">Naam vereist.</span>'; return; }
+            if (wachtwoord && wachtwoord.length < 6) { out.innerHTML = '<span style="color:#B91C1C">Wachtwoord moet minstens 6 tekens zijn — of laat leeg om er eentje te genereren.</span>'; return; }
 
             btn.disabled = true;
             btn.textContent = 'Aanmaken...';
@@ -610,34 +629,72 @@
                     headers: { 'Content-Type': 'application/json' },
                     credentials: 'include',
                     body: JSON.stringify({
-                        email, naam, telefoon: telefoon || null,
+                        email, naam,
+                        telefoon: telefoon || null,
+                        password: wachtwoord || null,
                         send_email: document.getElementById('klantNieuwSendMail').checked,
                     }),
                 });
                 const data = await r.json();
                 if (!r.ok || data.error) throw new Error(data.error || 'Aanmaken mislukt');
 
-                let html = '<div style="background:#ECFDF5;border:1px solid #A7F3D0;padding:12px;border-radius:8px;color:#065F46">';
-                html += '<strong>&#10003; Klant aangemaakt!</strong>' + (data.email_sent ? ' <span style="font-size:11px">&#128231; welkomstmail verstuurd</span>' : '') + '<br>';
-                if (data.magic_link) {
-                    html += '<div style="margin-top:8px;font-size:12px">Magic link (1x klikken logt de klant in):</div>';
-                    html += '<div style="margin-top:4px;display:flex;gap:8px;align-items:center">';
-                    html += '<input type="text" readonly value="' + data.magic_link.replace(/"/g, '&quot;') + '" style="flex:1;padding:6px 8px;border:1px solid #A7F3D0;border-radius:6px;font-family:monospace;font-size:11px;background:#fff" onclick="this.select()">';
-                    html += '<button class="btn-admin btn-export" style="padding:6px 10px;font-size:12px" onclick="navigator.clipboard.writeText(\'' + data.magic_link.replace(/'/g, "\\'") + '\');this.textContent=\'&#10003; Gekopieerd\'">Kopieer</button>';
-                    html += '</div>';
-                }
-                html += '</div>';
+                const pw = data.password || '';
+                const pwEsc = pw.replace(/"/g, '&quot;');
+                const pwJs = pw.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+                let html = '<div style="background:#ECFDF5;border:1px solid #A7F3D0;padding:14px;border-radius:10px;color:#065F46">';
+                html += '<strong>&#10003; Klant aangemaakt!</strong>';
+                if (data.email_sent) html += ' <span style="font-size:11px">&#128231; welkomstmail verstuurd</span>';
+                html += '<div style="margin-top:10px;font-size:13px;color:#065F46">Geef deze inloggegevens aan de klant (staan ook in de welkomstmail):</div>';
+                html += '<div style="margin-top:8px;background:#fff;border:1px solid #A7F3D0;border-radius:8px;padding:10px 12px;font-family:monospace;font-size:13px;line-height:1.8;color:#064E3B">';
+                html += '<div><strong>E-mail:</strong> ' + escapeHtml(email) + '</div>';
+                html += '<div style="display:flex;align-items:center;gap:8px"><strong>Wachtwoord:</strong> <code style="background:#FDF2F8;padding:2px 8px;border-radius:4px">' + pwEsc + '</code> ';
+                html += '<button class="btn-admin btn-export" style="padding:3px 10px;font-size:11px;margin-left:auto" onclick="navigator.clipboard.writeText(\'' + pwJs + '\');this.innerHTML=\'&#10003;\'">Kopieer</button></div>';
+                html += '<div style="font-size:11px;color:#6B7280;margin-top:6px">Inloglink: <a href="/klant/login" target="_blank" style="color:#EC4899">juliabesten.nl/klant/login</a></div>';
+                html += '</div></div>';
                 out.innerHTML = html;
 
                 document.getElementById('klantNieuwEmail').value = '';
                 document.getElementById('klantNieuwNaam').value = '';
                 document.getElementById('klantNieuwTelefoon').value = '';
+                document.getElementById('klantNieuwWachtwoord').value = '';
                 loadKlanten();
             } catch (e) {
                 out.innerHTML = '<span style="color:#B91C1C">Fout: ' + e.message + '</span>';
             } finally {
                 btn.disabled = false;
-                btn.textContent = 'Klant aanmaken + magic link';
+                btn.textContent = 'Klant aanmaken';
+            }
+        }
+
+        // Julia zet een nieuw wachtwoord voor een bestaande klant.
+        async function klantResetWachtwoord(klantId, klantNaam) {
+            const keuze = prompt(
+                `Nieuw wachtwoord voor ${klantNaam}\n\n` +
+                `Laat leeg om automatisch eentje te genereren.\n` +
+                `Of typ zelf een wachtwoord (min. 6 tekens):`,
+                ''
+            );
+            if (keuze === null) return; // user clicked annuleren
+            const pw = (keuze || '').trim();
+            if (pw && pw.length < 6) { alert('Wachtwoord moet minstens 6 tekens zijn.'); return; }
+            try {
+                const r = await fetch('/api/admin/klanten/' + klantId + '/set-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ password: pw || null }),
+                });
+                const data = await r.json();
+                if (!r.ok || data.error) throw new Error(data.error || 'Reset mislukt');
+                // Toon het nieuwe wachtwoord zodat Julia het kan kopieren
+                alert(
+                    `✓ Nieuw wachtwoord voor ${klantNaam}:\n\n` +
+                    `E-mail: ${data.email}\n` +
+                    `Wachtwoord: ${data.password}\n\n` +
+                    `Stuur dit naar de klant (bijv. via WhatsApp). De klant logt in op juliabesten.nl/klant/login`
+                );
+            } catch (e) {
+                alert('Fout: ' + e.message);
             }
         }
 
@@ -703,7 +760,7 @@
                                 <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#FCE7F3;color:#E91E8C;margin-right:3px;" onclick="klantTraining('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#127947;</button>
                                 <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#FCE7F3;color:#E91E8C;margin-right:3px;" onclick="klantVoeding('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#129382;</button>
                                 <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#FEF3C7;color:#92400E;margin-right:3px;" onclick="klantNotities('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#128221;</button>
-                                <button class="btn-admin btn-export" style="padding:4px 10px;font-size:11px" onclick="klantNieuweMagicLink('${escapeHtml(k.email)}')">&#128279;</button>
+                                <button class="btn-admin btn-export" style="padding:4px 10px;font-size:11px" title="Nieuw wachtwoord" onclick="klantResetWachtwoord('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#128273;</button>
                             </td>
                         </tr>
                     `;

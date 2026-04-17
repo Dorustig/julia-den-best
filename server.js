@@ -430,17 +430,30 @@ const server = http.createServer(async (req, res) => {
       }
     }
 
-    // 1. Create (or fetch) Supabase auth user
+    // 1. Genereer een mens-vriendelijk wachtwoord (consonant-klinker ritme, 4 cijfers).
+    // Julia wil dat klanten met email + wachtwoord kunnen inloggen, dus we
+    // zetten er meteen eentje op bij aankoop.
+    const cons = 'bcdfghjkmnpqrstvwxz';
+    const vow = 'aeiouy';
+    const syl = () => {
+      const b = crypto.randomBytes(4);
+      return cons[b[0] % cons.length] + vow[b[1] % vow.length] + cons[b[2] % cons.length] + vow[b[3] % vow.length];
+    };
+    const nr = String(1000 + (crypto.randomBytes(2).readUInt16BE(0) % 9000));
+    const generatedPassword = syl() + '-' + syl() + nr;
+
+    // 2. Create (or fetch) Supabase auth user — met wachtwoord
     const authRes = await supabaseHelper.createOrGetAuthUser(email, {
       metadata: { naam, plan_pay_order_id: orderId },
       emailConfirm: true,
+      password: generatedPassword,
     });
     if (!authRes.ok) {
       console.error('[Plug&Pay webhook] auth create failed:', authRes.error);
       return jsonRes(res, 500, { error: 'Auth user create failed: ' + authRes.error });
     }
 
-    // 2. Create klant row
+    // 3. Create klant row
     const klantRes = await supabaseHelper.createKlant({
       email,
       naam,
@@ -454,19 +467,16 @@ const server = http.createServer(async (req, res) => {
       return jsonRes(res, 500, { error: 'Klant create failed: ' + klantRes.error });
     }
 
-    // 3. Generate magic link for immediate login
-    const siteOrigin = process.env.SITE_ORIGIN || `https://${CANONICAL_HOST}`;
-    const linkRes = await supabaseHelper.generateMagicLink(
-      email,
-      `${siteOrigin}/klant/start`
-    );
-
     console.log('[Plug&Pay webhook] klant aangemaakt:', email, 'id:', klantRes.klant.id);
 
-    // Welkomstmail — fire and forget (logt bij fail, blokkeert webhook respons niet)
-    if (linkRes.ok && emailHelper.isEnabled()) {
+    // 4. Welkomstmail met email + wachtwoord — fire and forget
+    const siteOrigin = process.env.SITE_ORIGIN || `https://${CANONICAL_HOST}`;
+    if (emailHelper.isEnabled()) {
       emailHelper.sendWelcomeEmail({
-        to: email, naam, magicLink: linkRes.action_link,
+        to: email, naam,
+        loginUrl: siteOrigin + '/klant/login',
+        email,
+        password: generatedPassword,
       }).catch(e => console.warn('[Plug&Pay webhook] welkomstmail failed:', e.message));
     }
 
@@ -475,7 +485,6 @@ const server = http.createServer(async (req, res) => {
       klant_id: klantRes.klant.id,
       auth_user_id: authRes.id,
       new_user: authRes.created,
-      login_link: linkRes.ok ? linkRes.action_link : null,
     });
   }
 
@@ -1058,12 +1067,26 @@ const server = http.createServer(async (req, res) => {
     const email = (body.email || '').toLowerCase().trim();
     const naam = (body.naam || '').trim();
     const telefoon = body.telefoon ? String(body.telefoon).trim() : null;
+    // Nieuwe flow: Julia kiest zelf een wachtwoord (of laat 'm auto-genereren).
+    // Leeg → backend genereert een willekeurig wachtwoord van 10 tekens.
+    let password = body.password ? String(body.password) : '';
+    let password_generated = false;
+    if (!password) {
+      // 10 tekens uit alfanumeriek (kleine letters + cijfers — makkelijk voor
+      // niet-tech klanten om over te typen). Crypto.randomBytes voor safety.
+      const alph = 'abcdefghjkmnpqrstuvwxyz23456789'; // zonder i/l/o/0/1 — minder verwarrend
+      const buf = crypto.randomBytes(10);
+      password = Array.from(buf).map(b => alph[b % alph.length]).join('');
+      password_generated = true;
+    }
+    if (password.length < 6) return jsonRes(res, 400, { error: 'Wachtwoord moet minstens 6 tekens zijn' });
 
     if (!email || !email.includes('@')) return jsonRes(res, 400, { error: 'Geldig email vereist' });
     if (!naam) return jsonRes(res, 400, { error: 'Naam vereist' });
 
     const auth = await supabaseHelper.createOrGetAuthUser(email, {
       metadata: { naam, source: 'admin_manual' },
+      password,
     });
     if (!auth.ok) return jsonRes(res, 500, { error: 'Auth user: ' + auth.error });
 
@@ -1072,14 +1095,17 @@ const server = http.createServer(async (req, res) => {
     });
     if (!klantRes.ok) return jsonRes(res, 500, { error: 'Klant: ' + klantRes.error });
 
-    const siteOrigin = process.env.SITE_ORIGIN || `https://${CANONICAL_HOST}`;
-    const magic = await supabaseHelper.generateMagicLink(email, siteOrigin + '/klant/start');
-
-    // Welkomstmail — alleen als 'send_email' true is in body (admin kiest zelf)
+    // Welkomstmail — alleen als 'send_email' true is in body (Julia kiest zelf).
+    // De mail bevat nu email + wachtwoord i.p.v. magic link, want Julia wilde
+    // een gewone login-flow voor klanten.
     let email_sent = false;
-    if (body.send_email && magic.ok && emailHelper.isEnabled()) {
+    if (body.send_email && emailHelper.isEnabled()) {
+      const siteOrigin = process.env.SITE_ORIGIN || `https://${CANONICAL_HOST}`;
       const mailRes = await emailHelper.sendWelcomeEmail({
-        to: email, naam, magicLink: magic.action_link,
+        to: email, naam,
+        loginUrl: siteOrigin + '/klant/login',
+        email,
+        password,
       });
       email_sent = mailRes.ok;
     }
@@ -1088,10 +1114,43 @@ const server = http.createServer(async (req, res) => {
       ok: true,
       klant: klantRes.klant,
       auth_user_created: auth.created,
-      magic_link: magic.ok ? magic.action_link : null,
-      magic_link_error: magic.ok ? null : magic.error,
+      password,               // Julia toont dit in de UI en kopieert / deelt
+      password_generated,
       email_sent,
     });
+  }
+
+  // POST /api/admin/klanten/:klantId/set-password — Julia zet een nieuw wachtwoord
+  // voor een bestaande klant (bijv. als klant 'm vergeten is).
+  const setPwdMatch = pathname.match(/^\/api\/admin\/klanten\/([^\/]+)\/set-password$/);
+  if (setPwdMatch && req.method === 'POST') {
+    if (!requireAuth(req, res)) return;
+    if (!supabaseHelper.isEnabled()) {
+      return jsonRes(res, 503, { error: 'Supabase not configured' });
+    }
+    const klantId = setPwdMatch[1];
+    let body;
+    try { body = JSON.parse(await readBody(req)); }
+    catch { return jsonRes(res, 400, { error: 'Invalid JSON' }); }
+
+    let password = body.password ? String(body.password) : '';
+    let password_generated = false;
+    if (!password) {
+      const alph = 'abcdefghjkmnpqrstuvwxyz23456789';
+      const buf = crypto.randomBytes(10);
+      password = Array.from(buf).map(b => alph[b % alph.length]).join('');
+      password_generated = true;
+    }
+    if (password.length < 6) return jsonRes(res, 400, { error: 'Wachtwoord moet minstens 6 tekens zijn' });
+
+    // Haal de klant op om het auth_user_id en email te vinden
+    const klant = await supabaseHelper.getKlantById(klantId);
+    if (!klant || !klant.auth_user_id) return jsonRes(res, 404, { error: 'Klant niet gevonden (of geen auth user gekoppeld)' });
+
+    const up = await supabaseHelper.setPasswordForUser(klant.auth_user_id, password);
+    if (!up.ok) return jsonRes(res, 500, { error: 'Wachtwoord setten mislukt: ' + up.error });
+
+    return jsonRes(res, 200, { ok: true, password, password_generated, email: klant.email });
   }
 
   // ===== API ROUTES =====
