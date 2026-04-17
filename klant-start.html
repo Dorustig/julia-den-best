@@ -62,6 +62,28 @@
     .pw-toggle { position: absolute; right: 8px; top: 32px; background: none; border: none; padding: 6px 10px; color: #9CA3AF; font-size: 12px; font-weight: 500; cursor: pointer; }
     .pw-toggle:hover { color: #E91E8C; }
 
+    /* Photo before/after compare modal */
+    .compare-pair { position: relative; aspect-ratio: 3/4; border-radius: 14px; overflow: hidden; background: #F3F4F6; margin-bottom: 10px; user-select: none; }
+    .compare-pair img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+    /* After-image wordt geclipt via clip-path — zo hoeft 'ie niet herschaald te worden */
+    .compare-pair img.after { clip-path: inset(0 50% 0 0); transition: none; }
+    .compare-pair .divider { position: absolute; top: 0; bottom: 0; width: 3px; background: #fff; box-shadow: 0 0 6px rgba(0,0,0,0.3); transform: translateX(-1.5px); pointer-events: none; left: 50%; }
+    .compare-pair .handle { position: absolute; top: 50%; width: 34px; height: 34px; background: #fff; border-radius: 50%; transform: translate(-50%, -50%); box-shadow: 0 2px 10px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; color: #E91E8C; font-weight: 700; pointer-events: none; left: 50%; }
+    .compare-pair input[type=range] { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: ew-resize; margin: 0; }
+    .compare-label { position: absolute; top: 10px; padding: 4px 10px; background: rgba(0,0,0,0.7); color: #fff; border-radius: 999px; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
+    .compare-label.before { left: 10px; }
+    .compare-label.after { right: 10px; background: rgba(233,30,140,0.9); }
+    .compare-col-label { font-size: 12px; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; margin-bottom: 8px; text-align: center; }
+    .compare-dates { display: flex; justify-content: space-between; font-size: 11px; color: #6B7280; padding: 0 4px; margin-top: 6px; }
+    .compare-none { text-align: center; padding: 16px; color: #9CA3AF; font-size: 13px; background: #F9FAFB; border-radius: 12px; }
+    #compareModal .modal { max-width: 720px; }
+    #compareModal .modal-body { padding-bottom: 28px; }
+    .compare-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+    @media (max-width: 640px) { .compare-grid { grid-template-columns: 1fr; } }
+
+    .btn-compare { background: none; border: 1.5px solid #F9A8D4; color: #E91E8C; padding: 6px 14px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; }
+    .btn-compare:hover { background: #FCE7F3; }
+
     .card { background: #fff; border-radius: 20px; padding: 24px; box-shadow: 0 10px 40px rgba(233, 30, 140, 0.08); margin-bottom: 16px; }
 
     .hero { text-align: center; padding: 28px 24px; background: linear-gradient(135deg, #E91E8C 0%, #F06292 100%); color: #fff; border-radius: 20px; margin-bottom: 16px; box-shadow: 0 12px 32px rgba(233, 30, 140, 0.25); }
@@ -191,6 +213,51 @@
     .reminder-banner .text strong { display: block; font-size: 15px; margin-bottom: 2px; color: #500724; }
     .reminder-banner a { display: inline-block; background: #E91E8C; color: #fff; text-decoration: none;
       padding: 8px 14px; border-radius: 10px; font-size: 13px; font-weight: 600; white-space: nowrap; }
+
+    /* Onboarding welcome card — eerste login flow */
+    .onboarding-card {
+      background: linear-gradient(135deg, #FDF2F8 0%, #FFE4EF 100%);
+      border: 1px solid #F9A8D4;
+      border-radius: 20px;
+      padding: 22px 24px;
+      margin-bottom: 20px;
+      position: relative;
+      box-shadow: 0 10px 30px rgba(233,30,140,0.12);
+    }
+    .onb-dismiss {
+      position: absolute; top: 10px; right: 12px;
+      background: none; border: none; font-size: 22px; line-height: 1;
+      color: #9CA3AF; cursor: pointer; padding: 4px 8px;
+    }
+    .onb-dismiss:hover { color: #E91E8C; }
+    .onb-title {
+      font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700;
+      color: #9D174D; margin-bottom: 4px;
+    }
+    .onb-sub { font-size: 14px; color: #831843; margin-bottom: 14px; }
+    .onb-steps { list-style: none; padding: 0; margin: 0 0 12px; }
+    .onb-steps li {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 0; border-bottom: 1px solid #FBCFE8;
+      font-size: 14px; color: #1F2937;
+    }
+    .onb-steps li:last-child { border-bottom: none; }
+    .onb-steps li.done { color: #065F46; }
+    .onb-steps .dot {
+      flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%;
+      background: #fff; border: 2px solid #F9A8D4;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700; color: #9D174D;
+    }
+    .onb-steps li.done .dot { background: #10B981; border-color: #10B981; color: #fff; }
+    .onb-steps li > span:nth-child(2) { flex: 1; line-height: 1.4; }
+    .onb-steps .onb-cta {
+      background: #E91E8C; color: #fff; text-decoration: none;
+      padding: 6px 14px; border-radius: 10px; font-size: 13px; font-weight: 600;
+      white-space: nowrap;
+    }
+    .onb-steps .onb-cta:hover { background: #D01680; }
+    .onb-foot { font-size: 12px; color: #831843; opacity: 0.8; font-style: italic; }
 
     /* Foto voor/na timeline (Fase 2.6 D) */
     .fotovoorna-grid {
@@ -389,6 +456,22 @@
     </div>
   </div>
 
+  <!-- Progress-foto vergelijkings modal -->
+  <div class="modal-overlay" id="compareModal" onclick="if(event.target===this)closeCompare()">
+    <div class="modal">
+      <div class="modal-head">
+        <h2>Voor &amp; nu</h2>
+        <button class="modal-close" onclick="closeCompare()" aria-label="Sluiten">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:13px;color:#6B7280;margin-bottom:14px;">Sleep de witte cirkel om je eerste foto te vergelijken met de nieuwste. Per positie: voor-, zij- en achterkant.</p>
+        <div class="compare-grid" id="compareGrid">
+          <!-- gevuld door openCompare() -->
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script type="module">
     import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
@@ -437,6 +520,73 @@
       window.logout = async () => {
         await supabase.auth.signOut();
         window.location.href = '/klant/login';
+      };
+
+      // Onboarding welcome-banner dismiss: localStorage zodat 'ie niet meer
+      // verschijnt na volgende login. Na eerste check-in is hij sowieso weg
+      // (andere reminder-banner logica).
+      window.dismissOnboarding = () => {
+        try { localStorage.setItem('onboardingDone', '1'); } catch {}
+        const card = document.querySelector('.onboarding-card');
+        if (card) card.style.display = 'none';
+      };
+
+      // ===== Progress foto vergelijking (before/after slider) =====
+      window.openCompare = () => {
+        const byPos = window.__fotosByPos || {};
+        const labels = { front: 'Voorkant', side: 'Zijkant', back: 'Achterkant' };
+        const grid = document.getElementById('compareGrid');
+        const fmtD = (d) => new Date(d).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', year: 'numeric' });
+        grid.innerHTML = ['front', 'side', 'back'].map(pos => {
+          const items = byPos[pos] || [];
+          if (items.length < 2) {
+            return `
+              <div>
+                <div class="compare-col-label">${labels[pos]}</div>
+                <div class="compare-none">Nog niet genoeg foto's voor deze positie — doe meer check-ins!</div>
+              </div>`;
+          }
+          const before = items[items.length - 1]; // oudste
+          const after = items[0];                  // nieuwste
+          return `
+            <div>
+              <div class="compare-col-label">${labels[pos]}</div>
+              <div class="compare-pair">
+                <img class="before" src="${before.url}" alt="eerste">
+                <img class="after" src="${after.url}" alt="nieuwste">
+                <div class="divider"></div>
+                <div class="handle">&#8596;</div>
+                <input type="range" min="0" max="100" value="50">
+                <div class="compare-label before">Voor</div>
+                <div class="compare-label after">Nu</div>
+              </div>
+              <div class="compare-dates"><span>${fmtD(before.datum)}</span><span>${fmtD(after.datum)}</span></div>
+            </div>`;
+        }).join('');
+
+        // Wire sliders — clip-path approach: de "after" image wordt rechts weggeclipt
+        // zodat links pct% van de nieuwste foto zichtbaar is, rechts de oude foto.
+        grid.querySelectorAll('.compare-pair').forEach(pair => {
+          const range = pair.querySelector('input[type=range]');
+          const afterImg = pair.querySelector('img.after');
+          const handle = pair.querySelector('.handle');
+          const divider = pair.querySelector('.divider');
+          if (!range) return;
+          const update = (v) => {
+            const pct = Number(v);
+            // clip-path: inset(top right bottom left) — right = (100 - pct)%
+            afterImg.style.clipPath = `inset(0 ${100 - pct}% 0 0)`;
+            handle.style.left = pct + '%';
+            divider.style.left = pct + '%';
+          };
+          range.addEventListener('input', e => update(e.target.value));
+          update(range.value);
+        });
+
+        document.getElementById('compareModal').classList.add('active');
+      };
+      window.closeCompare = () => {
+        document.getElementById('compareModal').classList.remove('active');
       };
 
       // ===== Account modal (profiel + wachtwoord) =====
@@ -543,11 +693,13 @@
         }
       });
 
-      // ESC sluit modal
+      // ESC sluit account of compare modal
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
-          const m = document.getElementById('accountModal');
-          if (m && m.classList.contains('active')) closeAccount();
+          const a = document.getElementById('accountModal');
+          if (a && a.classList.contains('active')) { closeAccount(); return; }
+          const c = document.getElementById('compareModal');
+          if (c && c.classList.contains('active')) { closeCompare(); return; }
         }
       });
 
@@ -684,19 +836,30 @@
       const weekStart = new Date(Date.now() - (weekNum - 1) * msPerWeek - new Date().getDay() * 86400000);
       const thisWeekCheckIn = laatste && (Date.now() - new Date(laatste.datum).getTime()) < msPerWeek;
 
-      // Reminder-banner (Fase 2.6 B) — laat zien als geen check-in of >7 dagen
+      // Reminder-banner — normaal "vergeet niet je check-in" na 7 dagen.
       const daysSinceCheckIn = laatste ? Math.floor((Date.now() - new Date(laatste.datum).getTime()) / 86400000) : null;
       let reminderHtml = '';
       if (!laatste) {
-        reminderHtml = `
-          <div class="reminder-banner">
-            <div class="icon">✨</div>
-            <div class="text">
-              <strong>Tijd voor je eerste check-in</strong>
-              Start vandaag met je 16-weken reis — het duurt maar 2 minuten.
-            </div>
-            <a href="/klant/checkin">Start</a>
-          </div>`;
+        // Eerste keer op dashboard (nog geen check-in) → uitgebreide onboarding
+        // banner met 3 stappen. Dismissbaar via localStorage zodra ze op
+        // "Start check-in" klikken OR de X-knop.
+        const hasSeenWelcome = localStorage.getItem('onboardingDone') === '1';
+        const hasTraining = (trainingSchemas || []).length > 0;
+        if (!hasSeenWelcome) {
+          reminderHtml = `
+            <div class="onboarding-card">
+              <button class="onb-dismiss" onclick="dismissOnboarding()" aria-label="Sluiten">&times;</button>
+              <div class="onb-title">Welkom bij je 16-weken reis ✨</div>
+              <div class="onb-sub">Je bent ingelogd! Hier is wat er nu op je wacht:</div>
+              <ol class="onb-steps">
+                <li class="done"><span class="dot">&#10003;</span><span>Je account + intake zijn klaar</span></li>
+                <li><span class="dot">1</span><span>Doe je <strong>eerste check-in</strong> — 2 minuutjes, je start-meting</span><a href="/klant/checkin" class="onb-cta">Starten</a></li>
+                <li><span class="dot">${hasTraining ? '&#10003;' : '2'}</span><span>${hasTraining ? 'Je trainingsschema voor week 1 staat klaar' : 'Julia zet binnenkort je trainingsschema klaar'}</span></li>
+                <li><span class="dot">3</span><span>Stel Julia <strong>jouw eerste vraag</strong> via de chat onderin</span></li>
+              </ol>
+              <div class="onb-foot">Tip: sla deze pagina op als bookmark — dit is je thuisbasis komende 16 weken.</div>
+            </div>`;
+        }
       } else if (daysSinceCheckIn > 7) {
         reminderHtml = `
           <div class="reminder-banner">
@@ -1092,6 +1255,13 @@
       const total = byPos.front.length + byPos.side.length + byPos.back.length;
       if (total === 0) return '';
 
+      // Compare is pas zinvol bij >= 2 foto's in tenminste 1 positie
+      const canCompare = ['front','side','back'].some(p => byPos[p].length >= 2);
+      if (canCompare) {
+        // cache fotodata voor de compare modal, key = positie
+        window.__fotosByPos = byPos;
+      }
+
       const renderCol = (pos, label) => {
         const items = byPos[pos];
         if (!items.length) {
@@ -1114,8 +1284,15 @@
           </div>`;
       };
 
+      const compareBtn = canCompare
+        ? `<button class="btn-compare" onclick="openCompare()">&#128260; Vergelijk voor/nu</button>`
+        : '';
+
       return `
-        <div class="section-title">📸 Foto voor/na</div>
+        <div class="section-title" style="display:flex;justify-content:space-between;align-items:center;padding-right:4px;">
+          <span>📸 Foto voor/na</span>
+          ${compareBtn}
+        </div>
         <div class="card" style="margin-bottom:16px;">
           <div class="fotovoorna-grid">
             ${renderCol('front', 'Voorkant')}
