@@ -217,7 +217,7 @@
     }
     </script>
 
-    <link rel="stylesheet" href="style.css?v=20260418c">
+    <link rel="stylesheet" href="style.css?v=20260418d">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -495,11 +495,10 @@
                     </div>
 
                     <ul class="offer-features">
-                        <li><span><strong>~14x 1-op-1 sessie</strong> met Julia</span></li>
-                        <li class="sub">Maand 1: <strong>wekelijks</strong> — intensieve start</li>
-                        <li class="sub">Maand 2-6: om de week — consolidatie</li>
-                        <li><strong>2x Body Transformation Dag</strong> (in het echt met Julia)</li>
-                        <li class="sub">Metingen + voor/na foto's + plan-update</li>
+                        <li><strong>~14x 1-op-1 sessie</strong> met Julia</li>
+                        <li class="sub">Maand 1 wekelijks, maand 2 t/m 6 om de week</li>
+                        <li><strong>2x Body Transformation Dag</strong> in het echt</li>
+                        <li class="sub">Metingen, voor/na foto's, plan-update</li>
                         <li><strong>WhatsApp 24/7</strong> directe lijn met Julia</li>
                         <li>Daily check-ins via app <em>&amp;</em> WhatsApp</li>
                         <li>Persoonlijk <strong>voedingsplan</strong> op maat</li>
@@ -828,24 +827,24 @@
         <div class="container">
             <div class="program-header">
                 <span class="program-badge">Het Programma</span>
-                <h2>Zo ziet jouw traject eruit</h2>
-                <p class="section-subtitle">Kies je programma hieronder en ontdek week voor week hoe we samen bouwen aan de beste versie van jou.</p>
+                <h2>Kies het programma</h2>
+                <p class="section-subtitle">Zie week voor week hoe we samen bouwen aan jouw transformatie.</p>
             </div>
 
-            <!-- Toggle: Foundation / Elite -->
+            <!-- Toggle: Foundation / Elite (Elite is default) -->
             <div class="program-toggle-wrap" role="tablist">
-                <button type="button" class="active" data-variant="foundation" role="tab" aria-selected="true">
+                <button type="button" data-variant="foundation" role="tab" aria-selected="false">
                     <span>Foundation</span>
                     <span class="duur-badge">4 maanden</span>
                 </button>
-                <button type="button" data-variant="elite" role="tab" aria-selected="false">
+                <button type="button" class="active" data-variant="elite" role="tab" aria-selected="true">
                     <span>&#9733; Elite</span>
                     <span class="duur-badge">6 maanden</span>
                 </button>
             </div>
 
             <!-- === FOUNDATION TIMELINE (4 maanden, 16 weken, 8 sessies) === -->
-            <div class="timeline timeline-variant is-active" data-variant="foundation">
+            <div class="timeline timeline-variant" data-variant="foundation">
                 <div class="timeline-fill" aria-hidden="true"></div>
                 <div class="timeline-phase">
                     <div class="timeline-phase-label"><span class="phase-number">Maand 1</span><h3>De Basis · Week 1 tot 4</h3><p>We leren jouw lichaam en ritme kennen. Jouw plan gaat live.</p></div>
@@ -962,7 +961,7 @@
             </div>
 
             <!-- === ELITE TIMELINE (6 maanden, 24 weken, ~14 sessies + 2 Body Transformation Dagen) === -->
-            <div class="timeline timeline-variant" data-variant="elite">
+            <div class="timeline timeline-variant is-active" data-variant="elite">
                 <div class="timeline-fill" aria-hidden="true"></div>
 
                 <!-- Maand 1 — wekelijks + Body Transformation Dag 1 -->
@@ -1111,13 +1110,14 @@
                 <h3>Wat je krijgt</h3>
                 <div class="features-grid">
                     <div class="feature-item"><span class="feature-icon">👩‍🏫</span><h4>Persoonlijke begeleiding</h4><p>1-op-1 coaching met mij</p></div>
+                    <div class="feature-item"><span class="feature-icon">🏋🏻‍♀️</span><h4>Fysieke 1-op-1 gym-sessies</h4><p>We trainen samen in de gym (Elite)</p></div>
+                    <div class="feature-item"><span class="feature-icon">📱</span><h4>Eigen coaching-app</h4><p>Plan, check-ins, chat — alles op 1 plek</p></div>
                     <div class="feature-item"><span class="feature-icon">🥑</span><h4>Persoonlijke voeding</h4><p>Op maat gemaakte voedingsplannen</p></div>
-                    <div class="feature-item"><span class="feature-icon">🎯</span><h4>Doelgericht toezicht</h4><p>Wekelijkse check-ins</p></div>
-                    <div class="feature-item"><span class="feature-icon">📚</span><h4>Wekelijkse lessen</h4><p>Training, voeding en mindset</p></div>
+                    <div class="feature-item"><span class="feature-icon">🎯</span><h4>Doelgericht toezicht</h4><p>Dagelijkse + wekelijkse check-ins</p></div>
                     <div class="feature-item"><span class="feature-icon">🍽️</span><h4>Maaltijdplannen</h4><p>Lekkere recepten op maat</p></div>
-                    <div class="feature-item"><span class="feature-icon">🎥</span><h4>Mijn video's</h4><p>Trainings- en instructievideo's</p></div>
-                    <div class="feature-item"><span class="feature-icon">💬</span><h4>Mijn persoonlijke feedback</h4><p>Form checks en voedingsadvies</p></div>
-                    <div class="feature-item"><span class="feature-icon">👯‍♀️</span><h4>Community</h4><p>Exclusieve Discord groep</p></div>
+                    <div class="feature-item"><span class="feature-icon">🎥</span><h4>Video-bibliotheek</h4><p>Trainings- en instructievideo's</p></div>
+                    <div class="feature-item"><span class="feature-icon">💬</span><h4>Persoonlijke feedback</h4><p>Form checks en voedingsadvies</p></div>
+                    <div class="feature-item"><span class="feature-icon">👯‍♀️</span><h4>Community</h4><p>Exclusieve vrouwen-groep</p></div>
                 </div>
             </div>
         </div>
@@ -1296,6 +1296,6 @@
         </div>
     </div>
 
-    <script src="script.js?v=20260418c"></script>
+    <script src="script.js?v=20260418d"></script>
 </body>
 </html>
