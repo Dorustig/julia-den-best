@@ -559,6 +559,9 @@ const server = http.createServer(async (req, res) => {
     if (body.allergieen !== undefined) {
       patch.allergieen = body.allergieen ? String(body.allergieen).trim().slice(0, 2000) : null;
     }
+    if (body.vorige_ervaring !== undefined) {
+      patch.vorige_ervaring = body.vorige_ervaring ? String(body.vorige_ervaring).trim().slice(0, 3000) : null;
+    }
     if (Object.keys(patch).length === 0) return jsonRes(res, 400, { error: 'Geen velden om bij te werken' });
 
     const upd = await supabaseHelper.updateKlantFields(klant.id, patch);
@@ -1652,6 +1655,8 @@ const server = http.createServer(async (req, res) => {
     '/klant/start/': '/klant-start.html',
     '/klant/intake': '/klant-intake.html',
     '/klant/intake/': '/klant-intake.html',
+    '/klant/welkom': '/klant-welkom.html',
+    '/klant/welkom/': '/klant-welkom.html',
     '/klant/checkin': '/klant-checkin.html',
     '/klant/checkin/': '/klant-checkin.html',
     '/klant': '/klant-start.html',

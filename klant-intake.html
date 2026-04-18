@@ -188,6 +188,7 @@
                 <option value="4">4 dagen</option>
                 <option value="5">5 dagen</option>
                 <option value="6">6 dagen</option>
+                <option value="7">7 dagen</option>
               </select>
             </div>
             <div class="field">
@@ -203,7 +204,18 @@
         </div>
 
         <div class="section">
-          <div class="section-title"><span class="num">4</span> Nog iets om te weten?</div>
+          <div class="section-title"><span class="num">4</span> Wat heb je in het verleden al geprobeerd?</div>
+          <p style="font-size:13px;color:#6B7280;line-height:1.5;margin-bottom:10px;margin-top:-8px;">
+            Diëten, sportschool-abonnementen, YouTube-workouts, andere coaches? Wat werkte, wat niet? Hoe meer ik weet, hoe gerichter ik je kan helpen. Geen juist of fout antwoord. 💬
+          </p>
+          <div class="field">
+            <label for="vorige_ervaring">Wat heb je al gedaan?</label>
+            <textarea id="vorige_ervaring" name="vorige_ervaring" rows="4" placeholder="Bijv: 3 jaar sportschool maar motivatie kwijt. Keto dieet geprobeerd, hield het 2 weken vol. Paar home-workout apps, maar verveel me snel..."></textarea>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title"><span class="num">5</span> Nog iets om te weten?</div>
           <div class="field">
             <label for="allergieen">Allergieën, blessures of voedingsvoorkeuren</label>
             <textarea id="allergieen" name="allergieen" placeholder="Bijv: lactose-intolerant, knie-blessure, vegetarisch... of niets"></textarea>
@@ -262,6 +274,7 @@
         training_locatie,
         trainingsdagen_per_week: parseInt(fd.get('trainingsdagen_per_week'), 10) || null,
         ervaring_niveau: fd.get('ervaring_niveau') || null,
+        vorige_ervaring: (fd.get('vorige_ervaring') || '').trim() || null,
         allergieen: (fd.get('allergieen') || '').trim() || null,
       };
 
@@ -278,7 +291,8 @@
           const j = await r.json().catch(() => ({}));
           throw new Error(j.error || 'Er ging iets mis');
         }
-        window.location.href = '/klant/start';
+        // Ga naar welkom-scherm (met video van Julia)
+        window.location.href = '/klant/welkom';
       } catch (ex) {
         err.className = 'msg error';
         err.textContent = 'Er ging iets mis: ' + ex.message;

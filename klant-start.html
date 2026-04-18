@@ -549,7 +549,7 @@
               <label for="inDagen">Dagen per week</label>
               <select id="inDagen" style="width:100%;padding:12px 14px;border:1.5px solid #E5E7EB;border-radius:10px;font-size:15px;font-family:inherit;background:#fff;">
                 <option value="">—</option>
-                <option>1</option><option>2</option><option>3</option><option>4</option>
+                <option>2</option><option>3</option><option>4</option>
                 <option>5</option><option>6</option><option>7</option>
               </select>
             </div>
@@ -562,6 +562,11 @@
                 <option value="gevorderd">Gevorderd (2+ jaar)</option>
               </select>
             </div>
+          </div>
+          <div class="field">
+            <label for="inVorige">Wat heb je in het verleden al geprobeerd?</label>
+            <textarea id="inVorige" rows="4" placeholder="Diëten, trainingen, coaches... wat werkte, wat niet?" style="width:100%;padding:12px 14px;border:1.5px solid #E5E7EB;border-radius:10px;font-size:15px;font-family:inherit;resize:vertical;"></textarea>
+            <div class="hint">Hoe meer Julia weet, hoe gerichter ze je kan helpen.</div>
           </div>
           <div class="field">
             <label for="inAller">Allergieën / blessures / voedingsvoorkeuren</label>
@@ -1012,6 +1017,7 @@
         document.getElementById('inDagen').value = k.trainingsdagen_per_week != null ? k.trainingsdagen_per_week : '';
         document.getElementById('inErvaring').value = k.ervaring_niveau || '';
         document.getElementById('inAller').value = k.allergieen || '';
+        document.getElementById('inVorige').value = k.vorige_ervaring || '';
         ['profielMsg', 'intakeMsg', 'pwMsg'].forEach(id => {
           const el = document.getElementById(id);
           if (el) { el.className = 'modal-msg'; el.textContent = ''; }
@@ -1201,6 +1207,7 @@
             trainingsdagen_per_week: v('inDagen'),
             ervaring_niveau: v('inErvaring'),
             allergieen: v('inAller'),
+            vorige_ervaring: v('inVorige'),
           };
           const r = await fetch('/api/klant/profile', {
             method: 'PUT',
@@ -1564,7 +1571,8 @@
             <div class="data-row"><span class="k">Startdatum</span><span class="v">${fmtDate(klant.start_datum)}</span></div>
             <div class="data-row"><span class="k">Einddatum</span><span class="v">${fmtDate(klant.eind_datum)}</span></div>
             ${klant.allergieen ? `<div class="data-row"><span class="k">Allergieën / blessures</span><span class="v" style="max-width:60%;">${escapeHtml(klant.allergieen)}</span></div>` : ''}
-            <p style="font-size:12px;color:#9CA3AF;margin-top:14px;">Klopt iets niet? Laat het Julia weten via WhatsApp of email.</p>
+            ${klant.vorige_ervaring ? `<div class="data-row" style="flex-direction:column;align-items:stretch;gap:4px;"><span class="k">Wat je in het verleden probeerde</span><span class="v" style="text-align:left;white-space:pre-wrap;">${escapeHtml(klant.vorige_ervaring)}</span></div>` : ''}
+            <p style="font-size:12px;color:#9CA3AF;margin-top:14px;">Wil je iets wijzigen? Open ⚙️ Account → Intake.</p>
           </div>
         </details>
       `);

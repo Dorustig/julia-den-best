@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Welkom · Julia Besten</title>
+  <meta name="theme-color" content="#E91E8C">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif; color: #1F2937; min-height: 100vh;
+      background: linear-gradient(135deg, #FFF1F7 0%, #FFE4EF 50%, #FFEDE4 100%);
+      padding: 24px 16px 60px;
+    }
+    .wrap { max-width: 720px; margin: 0 auto; text-align: center; }
+
+    .brand { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: #E91E8C; margin-bottom: 8px; }
+    .hey { font-size: 13px; color: #9CA3AF; letter-spacing: 0.5px; text-transform: uppercase; font-weight: 600; margin-bottom: 20px; }
+
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 42px; font-weight: 700; line-height: 1.1;
+      color: #1F2937; margin-bottom: 12px;
+    }
+    h1 .pink { color: #E91E8C; }
+    .lead { font-size: 17px; color: #374151; line-height: 1.55; max-width: 520px; margin: 0 auto 32px; }
+
+    /* Video slot */
+    .video-slot {
+      position: relative; width: 100%; max-width: 640px; margin: 0 auto 36px;
+      aspect-ratio: 16 / 9;
+      background: #1F2937; border-radius: 20px; overflow: hidden;
+      box-shadow: 0 20px 60px rgba(233,30,140,0.22);
+    }
+    .video-slot iframe, .video-slot video {
+      position: absolute; inset: 0; width: 100%; height: 100%; border: 0;
+    }
+    .video-placeholder {
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, #E91E8C 0%, #F472B6 100%);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      color: #fff; text-align: center; padding: 24px;
+    }
+    .video-placeholder .emoji { font-size: 56px; margin-bottom: 10px; }
+    .video-placeholder .main { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+    .video-placeholder .sub { font-size: 14px; opacity: 0.9; line-height: 1.4; max-width: 360px; }
+
+    /* Next-steps card */
+    .steps {
+      background: #fff; border-radius: 20px; padding: 24px 28px;
+      box-shadow: 0 10px 40px rgba(233,30,140,0.1);
+      text-align: left; margin-bottom: 28px;
+    }
+    .steps h2 {
+      font-family: 'Playfair Display', serif; font-size: 20px;
+      color: #1F2937; margin-bottom: 14px;
+    }
+    .step { display: flex; align-items: flex-start; gap: 14px; padding: 10px 0; border-bottom: 1px solid #F3F4F6; font-size: 15px; line-height: 1.4; }
+    .step:last-child { border-bottom: none; }
+    .step .num {
+      flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%;
+      background: #FCE7F3; color: #9D174D;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 14px;
+    }
+
+    .cta {
+      display: inline-block; padding: 16px 32px;
+      background: #E91E8C; color: #fff; text-decoration: none;
+      border-radius: 14px; font-weight: 600; font-size: 15px;
+      box-shadow: 0 8px 24px rgba(233,30,140,0.35);
+      transition: all 0.15s;
+    }
+    .cta:hover { background: #D01680; transform: translateY(-1px); }
+
+    .loader { display: flex; justify-content: center; padding: 60px 0; }
+    .spinner { width: 36px; height: 36px; border: 3px solid #FCE7F3; border-top-color: #E91E8C; border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 560px) {
+      h1 { font-size: 30px; }
+      .lead { font-size: 15px; }
+      .steps { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap" id="wrap">
+    <div class="loader"><div class="spinner"></div></div>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+    const wrap = document.getElementById('wrap');
+    function render(html) { wrap.innerHTML = html; }
+
+    function escapeHtml(s) {
+      return String(s == null ? '' : s).replace(/[&<>"']/g, c =>
+        ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+    }
+
+    async function main() {
+      const cfg = await (await fetch('/api/config')).json();
+      const supabase = createClient(cfg.supabase_url, cfg.supabase_anon_key);
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        window.location.href = '/klant/login';
+        return;
+      }
+      const authHdr = { Authorization: 'Bearer ' + session.access_token };
+
+      // Haal klant-profiel + welkom-video op (video met categorie "welkom")
+      const [mRes, vRes] = await Promise.all([
+        fetch('/api/klant/me', { headers: authHdr }),
+        fetch('/api/klant/videos', { headers: authHdr }),
+      ]);
+      const klant = mRes.ok ? (await mRes.json()).klant : null;
+      const videos = vRes.ok ? ((await vRes.json()).videos || []) : [];
+      const welkomVideo = videos.find(v =>
+        (v.categorie || '').toLowerCase().includes('welkom')
+      );
+
+      const firstName = ((klant && klant.naam) || '').split(' ')[0] || 'girl';
+
+      // Video HTML — YouTube embed als we een welkom-video hebben, anders pink placeholder
+      const videoHtml = welkomVideo
+        ? `<iframe src="https://www.youtube.com/embed/${escapeHtml(welkomVideo.youtube_id)}?rel=0&modestbranding=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>`
+        : `
+          <div class="video-placeholder">
+            <div class="emoji">🎥</div>
+            <div class="main">Julia is nog aan het filmen…</div>
+            <div class="sub">Binnenkort staat hier een welkomstvideo speciaal voor jou! Kom over een paar dagen terug.</div>
+          </div>`;
+
+      render(`
+        <div class="brand">Julia Besten</div>
+        <div class="hey">Jouw coaching-traject start nu ✨</div>
+
+        <h1>Girlll,<br><span class="pink">welkom</span> ${escapeHtml(firstName)}!</h1>
+        <p class="lead">
+          Zo blij dat je er bent. 16 weken samen aan jouw doel werken —
+          en je gaat versteld staan van wat er kan gebeuren. Ik heb een korte
+          video voor je opgenomen hieronder, kijk 'm even.
+        </p>
+
+        <div class="video-slot">${videoHtml}</div>
+
+        <div class="steps">
+          <h2>Wat nu?</h2>
+          <div class="step"><div class="num">1</div><div>Bekijk je <strong>dashboard</strong> — daar komt je training, voeding en alles samen.</div></div>
+          <div class="step"><div class="num">2</div><div>Doe deze week nog je <strong>eerste check-in</strong> — je nulmeting (gewicht + foto's optioneel).</div></div>
+          <div class="step"><div class="num">3</div><div>Stuur me een <strong>hi</strong> via de chat, dan weet ik dat je bent aangekomen. 💬</div></div>
+          <div class="step"><div class="num">4</div><div>Zet het dashboard op je <strong>beginscherm</strong> (via "Zet op beginscherm") zodat het net een app voelt.</div></div>
+        </div>
+
+        <a href="/klant/start" class="cta">Naar mijn dashboard →</a>
+      `);
+    }
+
+    main().catch(err => {
+      console.error('[klant-welkom]', err);
+      render(`
+        <div class="brand">Julia Besten</div>
+        <h1>Er ging iets mis</h1>
+        <p class="lead">Probeer het over een paar seconden opnieuw.</p>
+        <a href="/klant/start" class="cta">Naar dashboard</a>
+      `);
+    });
+  </script>
+</body>
+</html>
