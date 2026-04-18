@@ -1008,6 +1008,22 @@ document.addEventListener('visibilitychange', () => {
 
     // Toggle-knoppen Foundation / Elite
     const toggleBtns = document.querySelectorAll('.program-toggle-wrap button[data-variant]');
+    // Content dat per variant wisselt in de program-header (badge + h2 + subtitle).
+    const PROGRAM_META = {
+        foundation: {
+            badge: 'Foundation',
+            title: 'Het Foundation Programma',
+            subtitle: '4 maanden — 8 persoonlijke sessies, dagelijkse check-ins, voedings- en trainingsplan op maat.',
+        },
+        elite: {
+            badge: '★ Elite',
+            title: 'Het Elite Programma',
+            subtitle: '6 maanden premium — 2x fysiek samen in de gym, 24/7 WhatsApp en ~14 persoonlijke sessies.',
+        },
+    };
+    const programBadge = document.getElementById('programBadge');
+    const programTitle = document.getElementById('programTitle');
+    const programSubtitle = document.getElementById('programSubtitle');
     toggleBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             const variant = btn.dataset.variant;
@@ -1022,6 +1038,13 @@ document.addEventListener('visibilitychange', () => {
                 t.style.setProperty('--fill', 0);
                 t.querySelectorAll('.timeline-dot').forEach(d => d.classList.remove('is-active'));
             });
+            // Update header-tekst: badge + titel + subtitle
+            const meta = PROGRAM_META[variant];
+            if (meta) {
+                if (programBadge) programBadge.textContent = meta.badge;
+                if (programTitle) programTitle.textContent = meta.title;
+                if (programSubtitle) programSubtitle.textContent = meta.subtitle;
+            }
             // Recompute voor de nieuwe variant
             requestAnimationFrame(update);
             requestAnimationFrame(() => setTimeout(update, 60));
