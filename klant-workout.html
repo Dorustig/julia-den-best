@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Workout loggen · Julia Besten</title>
+  <meta name="theme-color" content="#E91E8C">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif; color: #1F2937; min-height: 100vh;
+      background: linear-gradient(135deg, #FFF1F7 0%, #FFE4EF 50%, #FFEDE4 100%);
+      padding: 20px 16px 60px;
+    }
+    .wrap { max-width: 720px; margin: 0 auto; }
+    .topbar { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+    .back { font-size: 22px; color: #E91E8C; text-decoration: none; background: none; border: none; padding: 4px 8px; cursor: pointer; font-family: inherit; }
+    .brand { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: #E91E8C; flex: 1; }
+    h1 { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; margin-bottom: 6px; }
+    .intro { color: #6B7280; font-size: 14px; line-height: 1.5; margin-bottom: 20px; }
+
+    .card { background: #fff; border-radius: 20px; padding: 22px; box-shadow: 0 10px 40px rgba(233,30,140,0.08); margin-bottom: 16px; }
+    .section-title { font-size: 12px; font-weight: 600; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+
+    .meta-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+    .field label { display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 5px; }
+    input[type=date], input[type=number], input[type=text] {
+      width: 100%; padding: 10px 12px; border: 1.5px solid #E5E7EB; border-radius: 10px;
+      font-size: 14px; font-family: inherit;
+    }
+    input:focus { outline: none; border-color: #E91E8C; }
+    textarea {
+      width: 100%; padding: 10px 12px; border: 1.5px solid #E5E7EB; border-radius: 10px;
+      font-size: 14px; font-family: inherit; min-height: 60px; resize: vertical;
+    }
+
+    /* Oefening card */
+    .oef { background: #FDF2F8; border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; position: relative; }
+    .oef-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .oef-head input.naam {
+      flex: 1; padding: 8px 10px; border: 1.5px solid #F9A8D4; border-radius: 8px;
+      font-size: 15px; font-weight: 600; color: #1F2937; background: #fff;
+    }
+    .oef-head input.naam:focus { border-color: #E91E8C; }
+    .oef-del {
+      background: transparent; border: none; color: #9CA3AF; font-size: 18px;
+      cursor: pointer; padding: 4px 8px; border-radius: 8px;
+    }
+    .oef-del:hover { background: #fff; color: #991B1B; }
+
+    .sets-grid {
+      display: grid; grid-template-columns: 24px 1fr 1fr 28px; gap: 6px;
+      align-items: center; margin-top: 4px;
+    }
+    .sets-grid .label { font-size: 11px; color: #9CA3AF; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+    .sets-grid .num-idx { font-size: 13px; color: #9D174D; font-weight: 700; text-align: center; }
+    .sets-grid input {
+      width: 100%; padding: 8px 10px; border: 1.5px solid #FBCFE8; border-radius: 8px;
+      font-size: 14px; font-family: inherit; background: #fff;
+    }
+    .sets-grid input:focus { border-color: #E91E8C; outline: none; }
+    .sets-grid .set-del {
+      background: transparent; border: none; color: #F9A8D4; font-size: 16px;
+      cursor: pointer; padding: 2px 6px;
+    }
+    .sets-grid .set-del:hover { color: #991B1B; }
+
+    .add-set-btn, .add-oef-btn {
+      background: none; border: 1.5px dashed #F9A8D4; color: #E91E8C;
+      padding: 10px 16px; border-radius: 10px; font-family: inherit; font-size: 13px;
+      font-weight: 600; cursor: pointer; width: 100%; margin-top: 8px;
+    }
+    .add-set-btn:hover, .add-oef-btn:hover { background: #FCE7F3; }
+    .add-oef-btn { margin-top: 4px; margin-bottom: 14px; }
+
+    .submit {
+      width: 100%; padding: 16px; background: #E91E8C; color: #fff;
+      border: none; border-radius: 14px; font-size: 15px; font-weight: 600;
+      cursor: pointer; font-family: inherit; margin-top: 8px;
+      box-shadow: 0 8px 24px rgba(233,30,140,0.3);
+    }
+    .submit:hover { background: #D01680; }
+    .submit:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .history-item {
+      background: #fff; border-radius: 14px; padding: 14px 16px; margin-bottom: 10px;
+      border: 1px solid #F3F4F6; font-size: 14px;
+    }
+    .history-item .datum { font-weight: 600; color: #E91E8C; margin-bottom: 6px; }
+    .history-item .oef-line { color: #374151; padding: 2px 0; }
+    .history-item .muted { color: #9CA3AF; font-size: 12px; }
+    .history-item .row-actions { display: flex; gap: 8px; margin-top: 8px; }
+    .history-item button {
+      background: none; border: 1px solid #E5E7EB; color: #6B7280;
+      padding: 4px 10px; border-radius: 8px; font-size: 12px; cursor: pointer; font-family: inherit;
+    }
+    .history-item button:hover { background: #F9FAFB; color: #1F2937; }
+    .history-item button.del:hover { background: #FEE2E2; color: #991B1B; border-color: #FECACA; }
+
+    .msg { padding: 12px; border-radius: 10px; font-size: 13px; margin-bottom: 14px; display: none; }
+    .msg.error { background: #FEE2E2; color: #991B1B; display: block; }
+    .msg.success { background: #D1FAE5; color: #065F46; display: block; }
+    .loader { display: flex; justify-content: center; padding: 60px 0; }
+    .spinner { width: 36px; height: 36px; border: 3px solid #FCE7F3; border-top-color: #E91E8C; border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="wrap" id="wrap">
+    <div class="loader"><div class="spinner"></div></div>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+    const wrap = document.getElementById('wrap');
+    function render(html) { wrap.innerHTML = html; }
+    function escapeHtml(s) {
+      return String(s == null ? '' : s).replace(/[&<>"']/g, c =>
+        ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+    }
+
+    let supabase, session, authHdr;
+    let currentWorkout = {
+      id: null,
+      datum: new Date().toISOString().slice(0, 10),
+      week_nr: null,
+      duur_min: null,
+      oefeningen: [{ naam: '', sets: [{ reps: null, gewicht: null }], note: '' }],
+      notities: '',
+    };
+    let history = [];
+
+    async function main() {
+      const cfg = await (await fetch('/api/config')).json();
+      supabase = createClient(cfg.supabase_url, cfg.supabase_anon_key);
+      const s = await supabase.auth.getSession();
+      session = s.data?.session;
+      if (!session) { window.location.href = '/klant/login'; return; }
+      authHdr = { Authorization: 'Bearer ' + session.access_token };
+
+      // Fetch klant + history + training van huidige week (voor prefill-suggesties)
+      const [meRes, wRes] = await Promise.all([
+        fetch('/api/klant/me', { headers: authHdr }),
+        fetch('/api/klant/workouts', { headers: authHdr }),
+      ]);
+      const klant = meRes.ok ? (await meRes.json()).klant : null;
+      history = wRes.ok ? ((await wRes.json()).workouts || []) : [];
+
+      // Bereken huidige week
+      if (klant?.start_datum) {
+        const startMs = new Date(klant.start_datum).getTime();
+        const w = Math.min(16, Math.max(1, Math.ceil((Date.now() - startMs) / (7 * 86400000))));
+        currentWorkout.week_nr = w;
+      }
+
+      renderPage();
+    }
+
+    function renderPage() {
+      render(`
+        <div class="topbar">
+          <a href="/klant/start" class="back">&larr;</a>
+          <div class="brand">Julia Besten</div>
+        </div>
+        <h1>&#127947; Workout loggen</h1>
+        <p class="intro">Schrijf op wat je vandaag deed — oefeningen, sets, reps, gewicht. Zo ziet Julia hoe het gaat en kan ze je gericht sturen.</p>
+
+        <div id="msg" class="msg"></div>
+
+        <div class="card">
+          <div class="meta-row">
+            <div class="field">
+              <label>Datum</label>
+              <input type="date" id="wDatum" value="${currentWorkout.datum}">
+            </div>
+            <div class="field">
+              <label>Duur (min)</label>
+              <input type="number" id="wDuur" min="1" max="300" value="${currentWorkout.duur_min || ''}" placeholder="bv. 45">
+            </div>
+          </div>
+
+          <div class="section-title">Oefeningen</div>
+          <div id="oefList">
+            ${currentWorkout.oefeningen.map((o, i) => renderOefening(o, i)).join('')}
+          </div>
+          <button class="add-oef-btn" onclick="addOefening()">&#10133; Oefening toevoegen</button>
+
+          <div class="field" style="margin-top:10px;">
+            <label>Notities (optioneel)</label>
+            <textarea id="wNotities" placeholder="Hoe voelde het? Wat viel op? Dingen voor volgende keer..."></textarea>
+          </div>
+
+          <button class="submit" id="saveBtn" onclick="saveWorkout()">Workout opslaan</button>
+        </div>
+
+        ${history.length > 0 ? `
+          <h2 style="font-family:'Playfair Display',serif;font-size:20px;margin:24px 0 12px;">Jouw eerdere workouts</h2>
+          ${history.map(renderHistory).join('')}
+        ` : ''}
+      `);
+
+      wireInputs();
+    }
+
+    function renderOefening(o, idx) {
+      return `
+        <div class="oef" data-idx="${idx}">
+          <div class="oef-head">
+            <input class="naam" placeholder="Oefening (bv. Squats)" value="${escapeHtml(o.naam || '')}" data-f="naam">
+            <button class="oef-del" onclick="delOefening(${idx})" title="Verwijder">&times;</button>
+          </div>
+          <div class="sets-grid">
+            <div class="label">#</div>
+            <div class="label">Reps</div>
+            <div class="label">Gewicht (kg)</div>
+            <div></div>
+            ${o.sets.map((s, si) => `
+              <div class="num-idx">${si + 1}</div>
+              <input type="number" min="0" step="1" placeholder="10" value="${s.reps ?? ''}" data-sf="reps" data-si="${si}">
+              <input type="number" min="0" step="0.5" placeholder="40" value="${s.gewicht ?? ''}" data-sf="gewicht" data-si="${si}">
+              <button class="set-del" onclick="delSet(${idx}, ${si})" title="Verwijder set">&times;</button>
+            `).join('')}
+          </div>
+          <button class="add-set-btn" onclick="addSet(${idx})">&#10133; Set toevoegen</button>
+        </div>`;
+    }
+
+    function renderHistory(w) {
+      const d = new Date(w.datum).toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' });
+      const oefs = (w.oefeningen || []).map(o => {
+        const bestSet = (o.sets || []).reduce((best, s) => {
+          if (!s || s.reps == null) return best;
+          if (!best || (s.gewicht || 0) > (best.gewicht || 0)) return s;
+          return best;
+        }, null);
+        const setsCount = (o.sets || []).length;
+        const bestTxt = bestSet ? ` · top: ${bestSet.reps}× ${bestSet.gewicht || 0}kg` : '';
+        return `<div class="oef-line">&#8226; <strong>${escapeHtml(o.naam)}</strong> <span class="muted">${setsCount} sets${bestTxt}</span></div>`;
+      }).join('');
+      return `
+        <div class="history-item">
+          <div class="datum">${d}${w.week_nr ? ` · week ${w.week_nr}` : ''}${w.duur_min ? ` · ${w.duur_min} min` : ''}</div>
+          ${oefs}
+          ${w.notities ? `<div class="muted" style="margin-top:6px;font-style:italic;">"${escapeHtml(w.notities)}"</div>` : ''}
+          <div class="row-actions">
+            <button onclick="loadWorkout('${w.id}')">Bewerken</button>
+            <button class="del" onclick="deleteWorkout('${w.id}')">Verwijderen</button>
+          </div>
+        </div>`;
+    }
+
+    function wireInputs() {
+      // Meta inputs
+      document.getElementById('wDatum').addEventListener('change', e => currentWorkout.datum = e.target.value);
+      document.getElementById('wDuur').addEventListener('input', e => currentWorkout.duur_min = parseInt(e.target.value) || null);
+      document.getElementById('wNotities').addEventListener('input', e => currentWorkout.notities = e.target.value);
+      document.getElementById('wNotities').value = currentWorkout.notities || '';
+
+      // Oefening inputs
+      document.querySelectorAll('.oef').forEach(ofEl => {
+        const idx = parseInt(ofEl.dataset.idx, 10);
+        const naamInp = ofEl.querySelector('[data-f="naam"]');
+        if (naamInp) naamInp.addEventListener('input', e => {
+          currentWorkout.oefeningen[idx].naam = e.target.value;
+        });
+        ofEl.querySelectorAll('[data-sf]').forEach(inp => {
+          inp.addEventListener('input', e => {
+            const si = parseInt(inp.dataset.si, 10);
+            const f = inp.dataset.sf;
+            const v = e.target.value === '' ? null : parseFloat(e.target.value);
+            currentWorkout.oefeningen[idx].sets[si][f] = isNaN(v) ? null : v;
+          });
+        });
+      });
+    }
+
+    window.addOefening = () => {
+      currentWorkout.oefeningen.push({ naam: '', sets: [{ reps: null, gewicht: null }], note: '' });
+      renderPage();
+    };
+    window.delOefening = (idx) => {
+      if (!confirm('Deze oefening verwijderen?')) return;
+      currentWorkout.oefeningen.splice(idx, 1);
+      if (currentWorkout.oefeningen.length === 0) {
+        currentWorkout.oefeningen.push({ naam: '', sets: [{ reps: null, gewicht: null }], note: '' });
+      }
+      renderPage();
+    };
+    window.addSet = (idx) => {
+      const o = currentWorkout.oefeningen[idx];
+      const last = o.sets[o.sets.length - 1] || {};
+      // prefill nieuwe set met laatste waarden (handig voor herhalende sets)
+      o.sets.push({ reps: last.reps ?? null, gewicht: last.gewicht ?? null });
+      renderPage();
+    };
+    window.delSet = (idx, si) => {
+      const o = currentWorkout.oefeningen[idx];
+      o.sets.splice(si, 1);
+      if (o.sets.length === 0) o.sets.push({ reps: null, gewicht: null });
+      renderPage();
+    };
+
+    window.saveWorkout = async () => {
+      const msg = document.getElementById('msg');
+      const btn = document.getElementById('saveBtn');
+      msg.className = 'msg'; msg.textContent = '';
+      // Filter lege oefeningen weg
+      const filtered = currentWorkout.oefeningen
+        .filter(o => (o.naam || '').trim().length > 0)
+        .map(o => ({
+          naam: o.naam.trim(),
+          sets: (o.sets || []).filter(s => s.reps != null || s.gewicht != null),
+          note: o.note || '',
+        }));
+      if (filtered.length === 0) {
+        msg.className = 'msg error';
+        msg.textContent = 'Voeg minstens één oefening met sets toe.';
+        return;
+      }
+      btn.disabled = true; btn.textContent = 'Opslaan...';
+      try {
+        const r = await fetch('/api/klant/workouts', {
+          method: 'POST',
+          headers: { ...authHdr, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: currentWorkout.id,
+            datum: currentWorkout.datum,
+            week_nr: currentWorkout.week_nr,
+            duur_min: currentWorkout.duur_min,
+            oefeningen: filtered,
+            notities: currentWorkout.notities,
+          }),
+        });
+        const data = await r.json();
+        if (!r.ok || data.error) throw new Error(data.error || 'Opslaan mislukt');
+        msg.className = 'msg success';
+        msg.textContent = '✓ Workout opgeslagen.';
+        // Refresh history + reset form
+        const wRes = await fetch('/api/klant/workouts', { headers: authHdr });
+        history = wRes.ok ? ((await wRes.json()).workouts || []) : [];
+        currentWorkout = {
+          id: null,
+          datum: new Date().toISOString().slice(0, 10),
+          week_nr: currentWorkout.week_nr,
+          duur_min: null,
+          oefeningen: [{ naam: '', sets: [{ reps: null, gewicht: null }], note: '' }],
+          notities: '',
+        };
+        renderPage();
+      } catch (e) {
+        msg.className = 'msg error';
+        msg.textContent = e.message;
+      } finally {
+        btn.disabled = false; btn.textContent = 'Workout opslaan';
+      }
+    };
+
+    window.loadWorkout = (id) => {
+      const w = history.find(x => x.id === id);
+      if (!w) return;
+      currentWorkout = {
+        id: w.id,
+        datum: w.datum,
+        week_nr: w.week_nr,
+        duur_min: w.duur_min,
+        oefeningen: (w.oefeningen || []).length ? w.oefeningen : [{ naam: '', sets: [{ reps: null, gewicht: null }], note: '' }],
+        notities: w.notities || '',
+      };
+      renderPage();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    window.deleteWorkout = async (id) => {
+      if (!confirm('Deze workout permanent verwijderen?')) return;
+      try {
+        const r = await fetch('/api/klant/workouts/' + id, {
+          method: 'DELETE', headers: authHdr,
+        });
+        if (!r.ok) { const j = await r.json().catch(()=>({})); throw new Error(j.error || 'HTTP '+r.status); }
+        history = history.filter(w => w.id !== id);
+        renderPage();
+      } catch (e) { alert('Verwijderen mislukt: ' + e.message); }
+    };
+
+    main().catch(err => {
+      console.error('[klant-workout]', err);
+      render(`<div class="card"><h1>Er ging iets mis</h1><p class="intro">${escapeHtml(err.message || String(err))}</p><a href="/klant/start" class="back">Terug naar dashboard</a></div>`);
+    });
+  </script>
+</body>
+</html>

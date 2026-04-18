@@ -1499,7 +1499,9 @@
           ` : `<div id="chart"></div>`}
         </div>
 
-        <a href="/klant/checkin" class="cta-btn" style="margin-bottom:12px;">${thisWeekCheckIn ? '✨ Check-in updaten' : '📸 Doe je wekelijkse check-in'}</a>
+        <a href="/klant/checkin" class="cta-btn" style="margin-bottom:10px;">${thisWeekCheckIn ? '✨ Check-in updaten' : '📸 Doe je wekelijkse check-in'}</a>
+
+        <a href="/klant/workout" class="cta-btn secondary" style="margin-bottom:12px;">🏋 Workout loggen (oefeningen, sets, reps)</a>
 
         ${checkins.length > 0 ? `
           <button type="button" class="cta-btn secondary" style="margin-bottom:20px;" onclick="downloadPdf()">📄 Download voortgangsrapport</button>

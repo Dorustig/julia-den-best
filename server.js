@@ -673,6 +673,127 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
+  // ===== WORKOUT LOGS (klant) =====
+  if (pathname === '/api/klant/workouts' && req.method === 'GET') {
+    const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+    const user = await supabaseHelper.verifyUserToken(token);
+    if (!user) return jsonRes(res, 401, { error: 'Not logged in' });
+    const klant = await supabaseHelper.getKlantByAuthUserId(user.id);
+    if (!klant) return jsonRes(res, 404, { error: 'No klant profile' });
+    const workouts = await supabaseHelper.listWorkoutLogs(klant.id);
+    return jsonRes(res, 200, { workouts });
+  }
+  if (pathname === '/api/klant/workouts' && req.method === 'POST') {
+    const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+    const user = await supabaseHelper.verifyUserToken(token);
+    if (!user) return jsonRes(res, 401, { error: 'Not logged in' });
+    const klant = await supabaseHelper.getKlantByAuthUserId(user.id);
+    if (!klant) return jsonRes(res, 404, { error: 'No klant profile' });
+    let body;
+    try { body = JSON.parse(await readBody(req)); }
+    catch { return jsonRes(res, 400, { error: 'Invalid JSON' }); }
+    const r = await supabaseHelper.saveWorkoutLog({
+      klantId: klant.id,
+      datum: body.datum,
+      weekNr: body.week_nr,
+      duurMin: body.duur_min,
+      oefeningen: Array.isArray(body.oefeningen) ? body.oefeningen : [],
+      notities: body.notities,
+      id: body.id || null,
+    });
+    if (!r.ok) return jsonRes(res, 400, { error: r.error });
+    return jsonRes(res, 200, { ok: true, workout: r.workout });
+  }
+  {
+    const m = pathname.match(/^\/api\/klant\/workouts\/([0-9a-f-]+)$/i);
+    if (m && req.method === 'DELETE') {
+      const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+      const user = await supabaseHelper.verifyUserToken(token);
+      if (!user) return jsonRes(res, 401, { error: 'Not logged in' });
+      const klant = await supabaseHelper.getKlantByAuthUserId(user.id);
+      if (!klant) return jsonRes(res, 404, { error: 'No klant profile' });
+      // Check ownership
+      const w = await supabaseHelper.getWorkoutLog(m[1]);
+      if (!w || w.klant_id !== klant.id) return jsonRes(res, 403, { error: 'Niet van jou' });
+      const r = await supabaseHelper.deleteWorkoutLog(m[1]);
+      if (!r.ok) return jsonRes(res, 400, { error: r.error });
+      return jsonRes(res, 200, { ok: true });
+    }
+  }
+
+  // Coach bekijkt workout-logs van een klant
+  {
+    const m = pathname.match(/^\/api\/admin\/klanten\/([0-9a-f-]+)\/workouts$/i);
+    if (m && req.method === 'GET') {
+      if (!requireAuth(req, res)) return;
+      const workouts = await supabaseHelper.listWorkoutLogs(m[1]);
+      return jsonRes(res, 200, { workouts });
+    }
+  }
+
+  // ===== COACH EDIT KLANT (specifiek klant-profiel vanuit coach-dashboard) =====
+  // PUT /api/admin/klanten/:klantId  → Julia past klantprofiel aan
+  // DELETE /api/admin/klanten/:klantId → archiveren (status = gestopt)
+  {
+    const m = pathname.match(/^\/api\/admin\/klanten\/([0-9a-f-]+)$/i);
+    if (m && req.method === 'PUT') {
+      if (!requireAuth(req, res)) return;
+      let body;
+      try { body = JSON.parse(await readBody(req)); }
+      catch { return jsonRes(res, 400, { error: 'Invalid JSON' }); }
+      // Coach mag meer velden bewerken dan klant
+      const allowedKeys = [
+        'naam', 'email', 'telefoon',
+        'status', 'doel',
+        'start_gewicht_kg', 'doel_gewicht_kg',
+        'lengte_cm', 'leeftijd',
+        'training_locatie', 'trainingsdagen_per_week', 'ervaring_niveau',
+        'allergieen', 'vorige_ervaring', 'notities_julia',
+        'start_datum', 'eind_datum',
+      ];
+      const patch = {};
+      for (const k of allowedKeys) {
+        if (body[k] !== undefined) patch[k] = body[k];
+      }
+      if (Object.keys(patch).length === 0) return jsonRes(res, 400, { error: 'Geen velden' });
+      const upd = await supabaseHelper.updateKlantFields(m[1], patch);
+      if (!upd.ok) return jsonRes(res, 500, { error: upd.error });
+      return jsonRes(res, 200, { ok: true, klant: upd.klant });
+    }
+    if (m && req.method === 'DELETE') {
+      if (!requireAuth(req, res)) return;
+      // Soft-delete: status = gestopt. Harde delete is te riskant (FK cascades).
+      const upd = await supabaseHelper.updateKlantFields(m[1], { status: 'gestopt' });
+      if (!upd.ok) return jsonRes(res, 500, { error: upd.error });
+      return jsonRes(res, 200, { ok: true, klant: upd.klant });
+    }
+  }
+
+  // Coach verwijdert een check-in
+  {
+    const m = pathname.match(/^\/api\/admin\/checkins\/([0-9a-f-]+)$/i);
+    if (m && req.method === 'DELETE') {
+      if (!requireAuth(req, res)) return;
+      try {
+        const { error } = await supabaseHelper.supabase
+          .from('check_ins').delete().eq('id', m[1]);
+        if (error) return jsonRes(res, 500, { error: error.message });
+        return jsonRes(res, 200, { ok: true });
+      } catch (err) { return jsonRes(res, 500, { error: err.message }); }
+    }
+  }
+
+  // Coach verwijdert een workout-log
+  {
+    const m = pathname.match(/^\/api\/admin\/workouts\/([0-9a-f-]+)$/i);
+    if (m && req.method === 'DELETE') {
+      if (!requireAuth(req, res)) return;
+      const r = await supabaseHelper.deleteWorkoutLog(m[1]);
+      if (!r.ok) return jsonRes(res, 500, { error: r.error });
+      return jsonRes(res, 200, { ok: true });
+    }
+  }
+
   // POST /api/klant/checkin-foto — upload one check-in photo as base64 JSON
   // Body: { check_in_id, positie ('front'|'side'|'back'), data_base64, mime? }
   if (pathname === '/api/klant/checkin-foto' && req.method === 'POST') {
@@ -1699,6 +1820,8 @@ const server = http.createServer(async (req, res) => {
     '/klant/welkom/': '/klant-welkom.html',
     '/klant/checkin': '/klant-checkin.html',
     '/klant/checkin/': '/klant-checkin.html',
+    '/klant/workout': '/klant-workout.html',
+    '/klant/workout/': '/klant-workout.html',
     '/klant': '/klant-start.html',
     '/klant/': '/klant-start.html',
   };

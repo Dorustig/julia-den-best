@@ -539,6 +539,12 @@
     <div class="lead-modal" id="videoEditorModal">
         <div class="lead-modal-content" id="videoEditorContent" style="max-width:640px;"></div>
     </div>
+    <div class="lead-modal" id="editKlantModal">
+        <div class="lead-modal-content" id="editKlantContent" style="max-width:640px;"></div>
+    </div>
+    <div class="lead-modal" id="workoutsModal">
+        <div class="lead-modal-content" id="workoutsContent" style="max-width:720px;"></div>
+    </div>
     <div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
         <button class="lightbox-close" onclick="closeLightbox(event, true)">&#10005;</button>
         <img id="lightboxImg" alt="">
@@ -801,12 +807,206 @@
                                 <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#FCE7F3;color:#E91E8C;margin-right:3px;" onclick="klantTraining('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#127947;</button>
                                 <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#FCE7F3;color:#E91E8C;margin-right:3px;" onclick="klantVoeding('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#129382;</button>
                                 <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#FEF3C7;color:#92400E;margin-right:3px;" onclick="klantNotities('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#128221;</button>
+                                <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#EDE9FE;color:#5B21B6;margin-right:3px;" title="Workouts bekijken" onclick="klantWorkouts('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#128170;</button>
+                                <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#E0E7FF;color:#3730A3;margin-right:3px;" title="Bewerk klant" onclick="klantBewerken('${k.id}')">&#9998;</button>
                                 <button class="btn-admin btn-export" style="padding:4px 10px;font-size:11px" title="Nieuw wachtwoord" onclick="klantResetWachtwoord('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#128273;</button>
                             </td>
                         </tr>
                     `;
                 }).join('');
             } catch (e) { console.warn('loadKlanten error:', e); }
+        }
+
+        // ========================================================
+        // KLANT BEWERKEN (coach bewerkt klant-profiel)
+        // ========================================================
+        async function klantBewerken(klantId) {
+            const modal = document.getElementById('editKlantModal');
+            const content = document.getElementById('editKlantContent');
+            modal.classList.add('active');
+            content.innerHTML = '<div style="padding:24px;text-align:center;color:#9CA3AF;">Laden...</div>';
+            const klant = (window.__klantenCache || []).find(k => k.id === klantId);
+            if (!klant) {
+                content.innerHTML = '<div class="lead-modal-header"><h2>Klant niet gevonden</h2><button class="modal-close" onclick="closeEditKlant()">&times;</button></div>';
+                return;
+            }
+            const v = (x) => x == null ? '' : x;
+            content.innerHTML = `
+                <div class="lead-modal-header">
+                    <h2>&#9998; Bewerk klant — ${escapeHtml(klant.naam || klant.email)}</h2>
+                    <button class="modal-close" onclick="closeEditKlant()">&times;</button>
+                </div>
+                <div id="editKlantMsg" style="margin:0 20px 10px;"></div>
+                <form id="editKlantForm" style="padding:0 20px 20px;">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                        <div><label style="font-size:12px;color:#6B7280">Naam</label><input name="naam" value="${escapeHtml(v(klant.naam))}" class="filter-input" style="width:100%"></div>
+                        <div><label style="font-size:12px;color:#6B7280">Email</label><input name="email" type="email" value="${escapeHtml(v(klant.email))}" class="filter-input" style="width:100%" readonly title="Email wijzigen moet via Supabase auth"></div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
+                        <div><label style="font-size:12px;color:#6B7280">Telefoon</label><input name="telefoon" value="${escapeHtml(v(klant.telefoon))}" class="filter-input" style="width:100%"></div>
+                        <div><label style="font-size:12px;color:#6B7280">Status</label>
+                            <select name="status" class="filter-input" style="width:100%">
+                                ${['onboarding','actief','gepauzeerd','afgerond','gestopt'].map(s => `<option value="${s}" ${s===klant.status?'selected':''}>${s}</option>`).join('')}
+                            </select>
+                        </div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:10px">
+                        <div><label style="font-size:12px;color:#6B7280">Startgewicht (kg)</label><input name="start_gewicht_kg" type="number" step="0.1" value="${v(klant.start_gewicht_kg)}" class="filter-input" style="width:100%"></div>
+                        <div><label style="font-size:12px;color:#6B7280">Doelgewicht (kg)</label><input name="doel_gewicht_kg" type="number" step="0.1" value="${v(klant.doel_gewicht_kg)}" class="filter-input" style="width:100%"></div>
+                        <div><label style="font-size:12px;color:#6B7280">Lengte (cm)</label><input name="lengte_cm" type="number" value="${v(klant.lengte_cm)}" class="filter-input" style="width:100%"></div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:10px">
+                        <div><label style="font-size:12px;color:#6B7280">Start datum</label><input name="start_datum" type="date" value="${v(klant.start_datum)}" class="filter-input" style="width:100%"></div>
+                        <div><label style="font-size:12px;color:#6B7280">Eind datum</label><input name="eind_datum" type="date" value="${v(klant.eind_datum)}" class="filter-input" style="width:100%"></div>
+                        <div><label style="font-size:12px;color:#6B7280">Leeftijd</label><input name="leeftijd" type="number" value="${v(klant.leeftijd)}" class="filter-input" style="width:100%"></div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:10px">
+                        <div><label style="font-size:12px;color:#6B7280">Doel</label>
+                            <select name="doel" class="filter-input" style="width:100%">
+                                <option value="">—</option>
+                                ${['afvallen','billen_aankomen','gespierd_aankomen','slanker_worden','recomposition'].map(d => `<option value="${d}" ${d===klant.doel?'selected':''}>${d.replace(/_/g,' ')}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div><label style="font-size:12px;color:#6B7280">Training locatie</label>
+                            <select name="training_locatie" class="filter-input" style="width:100%">
+                                ${['thuis','gym','beide'].map(x => `<option value="${x}" ${x===klant.training_locatie?'selected':''}>${x}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div><label style="font-size:12px;color:#6B7280">Dagen per week</label>
+                            <select name="trainingsdagen_per_week" class="filter-input" style="width:100%">
+                                <option value="">—</option>
+                                ${[2,3,4,5,6,7].map(n => `<option value="${n}" ${n==klant.trainingsdagen_per_week?'selected':''}>${n}</option>`).join('')}
+                            </select>
+                        </div>
+                    </div>
+                    <div style="margin-top:10px"><label style="font-size:12px;color:#6B7280">Allergieën/blessures</label>
+                        <textarea name="allergieen" class="filter-input" style="width:100%;min-height:50px">${escapeHtml(v(klant.allergieen))}</textarea></div>
+                    <div style="margin-top:10px"><label style="font-size:12px;color:#6B7280">Vorige ervaring</label>
+                        <textarea name="vorige_ervaring" class="filter-input" style="width:100%;min-height:50px">${escapeHtml(v(klant.vorige_ervaring))}</textarea></div>
+                    <div style="margin-top:10px"><label style="font-size:12px;color:#6B7280">&#128221; Notities Julia (privé)</label>
+                        <textarea name="notities_julia" class="filter-input" style="width:100%;min-height:70px">${escapeHtml(v(klant.notities_julia))}</textarea></div>
+                    <div style="display:flex;gap:10px;margin-top:16px;justify-content:space-between">
+                        <button type="button" class="btn-admin" style="background:#FEE2E2;color:#991B1B;padding:10px 16px;" onclick="archiveerKlant('${klant.id}', '${escapeHtml((klant.naam||klant.email).replace(/'/g,"\\'"))}')">&#128465; Archiveren</button>
+                        <button type="submit" class="btn-admin btn-export" style="background:#EC4899;color:#fff">Opslaan</button>
+                    </div>
+                </form>
+            `;
+            document.getElementById('editKlantForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const fd = new FormData(e.target);
+                const payload = {};
+                ['naam','telefoon','status','doel','training_locatie','allergieen','vorige_ervaring','notities_julia','start_datum','eind_datum'].forEach(k => {
+                    const v = fd.get(k);
+                    payload[k] = v === '' ? null : v;
+                });
+                ['start_gewicht_kg','doel_gewicht_kg'].forEach(k => {
+                    const v = fd.get(k);
+                    payload[k] = v === '' ? null : parseFloat(v);
+                });
+                ['lengte_cm','leeftijd','trainingsdagen_per_week'].forEach(k => {
+                    const v = fd.get(k);
+                    payload[k] = v === '' ? null : parseInt(v, 10);
+                });
+                const msg = document.getElementById('editKlantMsg');
+                msg.innerHTML = '<span style="color:#6B7280">Opslaan...</span>';
+                try {
+                    const r = await fetch('/api/admin/klanten/' + klantId, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify(payload),
+                    });
+                    const d = await r.json();
+                    if (!r.ok || d.error) throw new Error(d.error || 'Opslaan mislukt');
+                    msg.innerHTML = '<span style="background:#D1FAE5;color:#065F46;padding:6px 12px;border-radius:8px;display:inline-block">&#10003; Opgeslagen</span>';
+                    loadKlanten();
+                    setTimeout(closeEditKlant, 800);
+                } catch (err) {
+                    msg.innerHTML = '<span style="background:#FEE2E2;color:#991B1B;padding:6px 12px;border-radius:8px;display:inline-block">' + escapeHtml(err.message) + '</span>';
+                }
+            });
+        }
+        function closeEditKlant() {
+            document.getElementById('editKlantModal').classList.remove('active');
+        }
+
+        async function archiveerKlant(klantId, naam) {
+            if (!confirm(`"${naam}" archiveren (status wordt 'gestopt')?`)) return;
+            try {
+                const r = await fetch('/api/admin/klanten/' + klantId, {
+                    method: 'DELETE', credentials: 'include',
+                });
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                closeEditKlant();
+                loadKlanten();
+            } catch (e) { alert('Mislukt: ' + e.message); }
+        }
+
+        // ========================================================
+        // WORKOUTS BEKIJKEN (coach)
+        // ========================================================
+        async function klantWorkouts(klantId, naam) {
+            const modal = document.getElementById('workoutsModal');
+            const content = document.getElementById('workoutsContent');
+            modal.classList.add('active');
+            content.innerHTML = '<div style="padding:24px;text-align:center;color:#9CA3AF;">Laden...</div>';
+            try {
+                const r = await fetch('/api/admin/klanten/' + klantId + '/workouts', { credentials: 'include' });
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                const { workouts } = await r.json();
+                if (!workouts || workouts.length === 0) {
+                    content.innerHTML = `
+                        <div class="lead-modal-header">
+                            <h2>&#128170; Workouts — ${escapeHtml(naam)}</h2>
+                            <button class="modal-close" onclick="document.getElementById('workoutsModal').classList.remove('active')">&times;</button>
+                        </div>
+                        <div style="padding:40px;text-align:center;color:#6B7280">Nog geen workout-logs.</div>`;
+                    return;
+                }
+                const rows = workouts.map(w => {
+                    const d = new Date(w.datum).toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' });
+                    const oefs = (w.oefeningen || []).map(o => {
+                        const sets = (o.sets || []).map(s => `${s.reps ?? '–'}×${s.gewicht ?? '–'}kg`).join(', ');
+                        return `<div style="padding:4px 0;"><strong>${escapeHtml(o.naam)}</strong> <span style="color:#6B7280;font-size:12px">· ${sets}</span></div>`;
+                    }).join('');
+                    return `
+                        <div style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:14px;margin-bottom:10px;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                                <div style="font-weight:600;color:#E91E8C;">${d}${w.week_nr ? ` · week ${w.week_nr}` : ''}${w.duur_min ? ` · ${w.duur_min} min`:''}</div>
+                                <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:none;color:#991B1B;border:1px solid #FECACA;" onclick="coachDeleteWorkout('${w.id}', '${klantId}', '${escapeHtml(naam.replace(/'/g,"\\'"))}')">&#128465;</button>
+                            </div>
+                            ${oefs}
+                            ${w.notities ? `<div style="margin-top:8px;padding:8px;background:#F9FAFB;border-radius:6px;font-size:12px;font-style:italic;">"${escapeHtml(w.notities)}"</div>` : ''}
+                        </div>`;
+                }).join('');
+                content.innerHTML = `
+                    <div class="lead-modal-header">
+                        <h2>&#128170; Workouts — ${escapeHtml(naam)} <span style="color:#9CA3AF;font-weight:400;font-size:14px;">(${workouts.length})</span></h2>
+                        <button class="modal-close" onclick="document.getElementById('workoutsModal').classList.remove('active')">&times;</button>
+                    </div>
+                    <div style="padding:0 20px 20px;">${rows}</div>`;
+            } catch (e) {
+                content.innerHTML = `<div class="lead-modal-header"><h2>Fout</h2><button class="modal-close" onclick="document.getElementById('workoutsModal').classList.remove('active')">&times;</button></div><div style="padding:20px;color:#991B1B">${escapeHtml(e.message)}</div>`;
+            }
+        }
+
+        async function coachDeleteWorkout(id, klantId, naam) {
+            if (!confirm('Workout-log verwijderen?')) return;
+            try {
+                const r = await fetch('/api/admin/workouts/' + id, { method: 'DELETE', credentials: 'include' });
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                klantWorkouts(klantId, naam); // reload
+            } catch (e) { alert('Mislukt: ' + e.message); }
+        }
+
+        // Delete check-in (gebruikt in klantBekijkCheckIns modal — via global fn)
+        async function coachDeleteCheckIn(id, klantId, naam) {
+            if (!confirm('Deze check-in permanent verwijderen?')) return;
+            try {
+                const r = await fetch('/api/admin/checkins/' + id, { method: 'DELETE', credentials: 'include' });
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                klantBekijkCheckIns(klantId, naam); // reload
+            } catch (e) { alert('Mislukt: ' + e.message); }
         }
 
         async function klantNieuweMagicLink(email) {
@@ -953,8 +1153,11 @@
                         <div style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:16px;margin-bottom:12px;">
                             <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;">
                                 <div style="font-weight:600;font-size:14px;color:#1F2937;">${d}</div>
-                                <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#E91E8C;">
-                                    ${gewicht.toFixed(1)}<span style="font-size:12px;color:#9CA3AF;font-family:'Inter',sans-serif;"> kg</span>${deltaText}
+                                <div style="display:flex;gap:10px;align-items:baseline;">
+                                    <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#E91E8C;">
+                                        ${gewicht.toFixed(1)}<span style="font-size:12px;color:#9CA3AF;font-family:'Inter',sans-serif;"> kg</span>${deltaText}
+                                    </div>
+                                    <button class="btn-admin" style="padding:2px 8px;font-size:11px;background:none;color:#9CA3AF;border:1px solid #E5E7EB;" title="Verwijder check-in" onclick="coachDeleteCheckIn('${c.id}', '${klantId}', '${escapeHtml(klantNaam.replace(/'/g,"\\'"))}')">&#128465;</button>
                                 </div>
                             </div>
                             ${maten ? `<div style="font-size:12px;color:#6B7280;margin-bottom:6px;">&#128207; ${maten}</div>` : ''}
