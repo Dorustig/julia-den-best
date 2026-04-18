@@ -1522,6 +1522,8 @@
           ${checkins.slice().reverse().slice(0, 6).map(c => {
             const wk = Math.min(16, Math.max(1, Math.floor((new Date(c.datum).getTime() - startMs) / msPerWeek) + 1));
             const d = new Date(c.datum).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' });
+            // Tijd uit created_at (= exact moment check-in werd ingediend)
+            const tijd = c.created_at ? new Date(c.created_at).toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' }) : '';
             const fotos = Array.isArray(c.fotos) ? c.fotos.filter(f => f && f.signed_url) : [];
             // sorteer consistent: front, side, back
             const order = { front: 0, side: 1, back: 2 };
@@ -1542,7 +1544,7 @@
               <div style="padding:12px 20px;border-bottom:1px solid #F3F4F6;">
                 <div style="display:flex;justify-content:space-between;align-items:center;">
                   <div>
-                    <div style="font-weight:600;font-size:14px;">Week ${wk} · ${d}</div>
+                    <div style="font-weight:600;font-size:14px;">Week ${wk} · ${d}${tijd ? ' · ' + tijd : ''}</div>
                     <div style="font-size:12px;color:#9CA3AF;margin-top:2px;">
                       ${c.mood ? '😊 ' + c.mood + '/10  ' : ''}
                       ${c.energie ? '⚡ ' + c.energie + '/10  ' : ''}
@@ -1829,11 +1831,14 @@
     // =============================================================
     // DAILY HABITS + JOURNAL — vandaag-card op dashboard
     // =============================================================
+    // Habit-chips die elke dag aangevinkt kunnen worden.
+    // Training-chip wordt alleen getoond als het GEEN rustdag is.
     const HABIT_DEFS = [
       { key: 'water_ok',    emoji: '💧', lbl: '2L water' },
       { key: 'slaap_ok',    emoji: '😴', lbl: '≥7u slaap' },
       { key: 'stappen_ok',  emoji: '👣', lbl: '7K+ stappen' },
-      { key: 'training_ok', emoji: '🏋', lbl: 'Training' },
+      { key: 'voeding_ok',  emoji: '🥗', lbl: 'Voeding gevolgd' },
+      { key: 'training_ok', emoji: '🏋', lbl: 'Workout gelogd', hideOnRustdag: true },
     ];
     // Rotating journal prompts — 1 per dag (day-of-year index)
     const JOURNAL_PROMPTS = [
@@ -1862,8 +1867,10 @@
     }
 
     function renderDailyCard() {
+      // habits-row + rustdag toggle — we renderen altijd alle chips, de
+      // training-chip wordt via display:none verborgen op rustdagen.
       const habits = HABIT_DEFS.map(h => `
-        <div class="habit" data-key="${h.key}" onclick="toggleHabit('${h.key}')">
+        <div class="habit" data-key="${h.key}" data-hideonrest="${h.hideOnRustdag ? '1' : '0'}" onclick="toggleHabit('${h.key}')">
           <div class="emoji">${h.emoji}</div>
           <div class="lbl">${h.lbl}</div>
         </div>`).join('');
@@ -1873,6 +1880,24 @@
             <div class="title">Vandaag</div>
             <div class="date">${todayLabel()}</div>
           </div>
+
+          <!-- Rust-dag / training-dag toggle -->
+          <div id="rustdagRow" style="display:flex;gap:8px;margin-bottom:14px;font-size:13px;">
+            <button type="button" id="btnTrain" onclick="setRustdag(false)" style="flex:1;padding:10px;background:#FCE7F3;border:1.5px solid transparent;border-radius:12px;font-family:inherit;font-weight:600;color:#9D174D;cursor:pointer;">⚡ Trainingsdag</button>
+            <button type="button" id="btnRust" onclick="setRustdag(true)" style="flex:1;padding:10px;background:#F9FAFB;border:1.5px solid transparent;border-radius:12px;font-family:inherit;font-weight:600;color:#6B7280;cursor:pointer;">🛌 Rustdag</button>
+          </div>
+
+          <!-- Workout CTA — alleen zichtbaar op trainingsdag als nog niet gelogd -->
+          <a href="/klant/workout" id="workoutCta" style="display:none;background:linear-gradient(135deg,#E91E8C,#F472B6);color:#fff;padding:14px 16px;border-radius:14px;text-decoration:none;margin-bottom:12px;align-items:center;justify-content:space-between;">
+            <span><strong>🏋 Log je workout</strong><span style="display:block;font-size:12px;opacity:0.85;margin-top:2px;">Oefeningen, sets + reps</span></span>
+            <span style="font-size:20px;">→</span>
+          </a>
+
+          <!-- Rustdag-bericht -->
+          <div id="rustdagMsg" style="display:none;background:#F3F4F6;color:#6B7280;padding:12px 16px;border-radius:12px;margin-bottom:12px;font-size:13px;text-align:center;">
+            🛌 Rustdag vandaag — geen workout loggen nodig. Geniet ervan.
+          </div>
+
           <div class="habits-row" id="habitsRow">${habits}</div>
           <div class="journal-block">
             <div class="journal-prompt">✨ ${escapeHtml(todayPrompt())}</div>
@@ -1880,6 +1905,30 @@
             <div class="journal-status" id="journalStatus"></div>
           </div>
         </div>`;
+    }
+
+    // UI state na load of state-wissel: zichtbaarheid training-chip + CTA + rust-msg
+    function applyRustdagUI(isRust, trainingDone) {
+      document.querySelectorAll('.habit[data-hideonrest="1"]').forEach(el => {
+        el.style.display = isRust ? 'none' : '';
+      });
+      const cta = document.getElementById('workoutCta');
+      const msg = document.getElementById('rustdagMsg');
+      if (cta) cta.style.display = (isRust || trainingDone) ? 'none' : 'flex';
+      if (msg) msg.style.display = isRust ? 'block' : 'none';
+      // Toggle-button styling
+      const btnTrain = document.getElementById('btnTrain');
+      const btnRust = document.getElementById('btnRust');
+      if (btnTrain) {
+        btnTrain.style.background = isRust ? '#F9FAFB' : '#FCE7F3';
+        btnTrain.style.color = isRust ? '#6B7280' : '#9D174D';
+        btnTrain.style.borderColor = isRust ? 'transparent' : '#E91E8C';
+      }
+      if (btnRust) {
+        btnRust.style.background = isRust ? '#EDE9FE' : '#F9FAFB';
+        btnRust.style.color = isRust ? '#5B21B6' : '#6B7280';
+        btnRust.style.borderColor = isRust ? '#8B5CF6' : 'transparent';
+      }
     }
 
     // Na render: load today's habit + bind journal auto-save
@@ -1895,9 +1944,12 @@
           const el = document.querySelector(`.habit[data-key="${def.key}"]`);
           if (el && h[def.key]) el.classList.add('on');
         });
+        applyRustdagUI(!!h.rustdag, !!h.training_ok);
         const ta = document.getElementById('journalInput');
         if (ta && h.journal) ta.value = h.journal;
-      } catch {}
+      } catch {
+        applyRustdagUI(false, false);
+      }
 
       // Journal auto-save (debounced 800ms after stop typing, and on blur)
       const ta = document.getElementById('journalInput');
@@ -1947,9 +1999,36 @@
       el.classList.toggle('on', newVal); // optimistic
       try {
         await saveHabit({ [key]: newVal });
+        // Training aangevinkt → CTA verbergen (workout is gelogd)
+        if (key === 'training_ok') {
+          const isRust = !!(window.__dailyHabit?.rustdag);
+          applyRustdagUI(isRust, newVal);
+        }
       } catch (e) {
         el.classList.toggle('on', !newVal); // revert
         console.warn('habit save failed:', e.message);
+      }
+    };
+
+    window.setRustdag = async (isRust) => {
+      // Als klant op rustdag klikt terwijl training_ok aan staat → vraag bevestiging
+      const hadTraining = !!(window.__dailyHabit?.training_ok);
+      if (isRust && hadTraining) {
+        if (!confirm('Je hebt vandaag al "workout gelogd" aangevinkt. Rustdag zetten maakt dat ongedaan. Doorgaan?')) return;
+      }
+      const patch = { rustdag: isRust };
+      // Op rustdag zetten we training_ok uit (opslaan expliciet)
+      if (isRust) patch.training_ok = false;
+      // Optimistic UI
+      applyRustdagUI(isRust, isRust ? false : hadTraining);
+      if (isRust) {
+        const trainEl = document.querySelector('.habit[data-key="training_ok"]');
+        if (trainEl) trainEl.classList.remove('on');
+      }
+      try {
+        await saveHabit(patch);
+      } catch (e) {
+        console.warn('rustdag save failed:', e.message);
       }
     };
 

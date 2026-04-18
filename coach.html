@@ -1124,6 +1124,7 @@
                 const order = { front: 0, side: 1, back: 2 };
                 const rows = sorted.map(c => {
                     const d = new Date(c.datum).toLocaleDateString('nl-NL', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+                    const tijd = c.created_at ? new Date(c.created_at).toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' }) : '';
                     const gewicht = parseFloat(c.gewicht_kg);
                     const deltaStart = startGewicht != null ? (gewicht - startGewicht).toFixed(1) : null;
                     const deltaText = deltaStart != null && deltaStart !== '0.0'
@@ -1152,7 +1153,7 @@
                     return `
                         <div style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:16px;margin-bottom:12px;">
                             <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;">
-                                <div style="font-weight:600;font-size:14px;color:#1F2937;">${d}</div>
+                                <div style="font-weight:600;font-size:14px;color:#1F2937;">${d}${tijd ? ` <span style="font-weight:400;color:#9CA3AF;">· ${tijd}</span>` : ''}</div>
                                 <div style="display:flex;gap:10px;align-items:baseline;">
                                     <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#E91E8C;">
                                         ${gewicht.toFixed(1)}<span style="font-size:12px;color:#9CA3AF;font-family:'Inter',sans-serif;"> kg</span>${deltaText}

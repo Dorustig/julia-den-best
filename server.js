@@ -77,6 +77,15 @@ const ADMIN_SLUG = process.env.ADMIN_SLUG || 'portal-j8k3m9q2x7p5v4';
 const COACH_SLUG = process.env.COACH_SLUG || 'coach-h7k3m9p4x2v6q8';
 const ADMIN_USER = process.env.ADMIN_USER || 'Dorus';
 const ADMIN_PASS = process.env.ADMIN_PASS || 'Deurenzijncool123';
+// Tweede admin: Julia (coach zelf). Krijgt dezelfde rechten als Dorus.
+const ADMIN_USER_2 = process.env.ADMIN_USER_2 || 'Julia';
+const ADMIN_PASS_2 = process.env.ADMIN_PASS_2 || '#Cheesy123';
+
+// Lijst van toegestane (user, pass) combinaties — beide hebben admin rechten.
+const ADMIN_CREDENTIALS = [
+  { user: ADMIN_USER,   pass: ADMIN_PASS },
+  { user: ADMIN_USER_2, pass: ADMIN_PASS_2 },
+];
 
 // Session secret used to sign cookies. Generated once and persisted to the
 // data volume so sessions survive deploys. Override with env var if desired.
@@ -306,17 +315,24 @@ const server = http.createServer(async (req, res) => {
     // Trim — defensive against clients that send a trailing newline/space.
     const user = String(creds.username || '').trim();
     const pass = String(creds.password || '').trim();
-    // Constant-time compare on both fields to avoid timing leaks
+    // Check tegen alle toegestane (user, pass) combinaties.
+    // Constant-time compare op beide velden (user + pass) om timing-leaks te
+    // vermijden. We lopen AL-TIJD door alle credentials — ook als de eerste
+    // al matcht — zodat response-tijd niet verraadt welke user geprobeerd is.
     const userBuf = Buffer.from(user.padEnd(64, '\0').slice(0, 64));
     const passBuf = Buffer.from(pass.padEnd(64, '\0').slice(0, 64));
-    const expectedUser = Buffer.from(ADMIN_USER.padEnd(64, '\0').slice(0, 64));
-    const expectedPass = Buffer.from(ADMIN_PASS.padEnd(64, '\0').slice(0, 64));
-    const ok = crypto.timingSafeEqual(userBuf, expectedUser) &&
-               crypto.timingSafeEqual(passBuf, expectedPass);
-    if (!ok) {
+    let matchedUser = null;
+    for (const cred of ADMIN_CREDENTIALS) {
+      const expectedUser = Buffer.from(cred.user.padEnd(64, '\0').slice(0, 64));
+      const expectedPass = Buffer.from(cred.pass.padEnd(64, '\0').slice(0, 64));
+      const uOk = crypto.timingSafeEqual(userBuf, expectedUser);
+      const pOk = crypto.timingSafeEqual(passBuf, expectedPass);
+      if (uOk && pOk && !matchedUser) matchedUser = cred.user;
+    }
+    if (!matchedUser) {
       return jsonRes(res, 401, { error: 'Ongeldige gebruikersnaam of wachtwoord' });
     }
-    const token = signToken({ user: ADMIN_USER, role: 'admin', exp: Date.now() + SESSION_TTL_MS });
+    const token = signToken({ user: matchedUser, role: 'admin', exp: Date.now() + SESSION_TTL_MS });
     setSessionCookie(req, res, token);
     // Default post-login destination is the coach dashboard (primary daily workflow).
     // The leads/admin portal is a secondary page, reachable from the coach sidebar.
@@ -652,7 +668,7 @@ const server = http.createServer(async (req, res) => {
     catch { return jsonRes(res, 400, { error: 'Invalid JSON' }); }
     const datum = body.datum || new Date().toISOString().slice(0, 10);
     const patch = {};
-    ['water_ok', 'slaap_ok', 'stappen_ok', 'training_ok'].forEach(k => {
+    ['water_ok', 'slaap_ok', 'stappen_ok', 'training_ok', 'voeding_ok', 'rustdag'].forEach(k => {
       if (body[k] !== undefined) patch[k] = !!body[k];
     });
     if (body.journal !== undefined) patch.journal = body.journal ? String(body.journal).slice(0, 2000) : null;
@@ -1890,8 +1906,8 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`[Julia Den Best] Server running on port ${PORT}`);
-  console.log(`[Julia Den Best] http://localhost:${PORT}`);
+  console.log(`[Julia Besten] Server running on port ${PORT}`);
+  console.log(`[Julia Besten] http://localhost:${PORT}`);
 });
 
 // =============================================================
