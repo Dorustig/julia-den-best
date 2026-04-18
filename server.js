@@ -1213,6 +1213,46 @@ const server = http.createServer(async (req, res) => {
     return jsonRes(res, 200, stats || { nieuweCheckIns: [], chatOnbeantwoord: [], trainingTePlannen: [], geenCheckIn10d: [], totaal: 0 });
   }
 
+  // ===== COACH TO-DO LIST =====
+  if (pathname === '/api/admin/todos' && req.method === 'GET') {
+    if (!requireAuth(req, res)) return;
+    const todos = await supabaseHelper.listCoachTodos();
+    return jsonRes(res, 200, { todos });
+  }
+  if (pathname === '/api/admin/todos' && req.method === 'POST') {
+    if (!requireAuth(req, res)) return;
+    let body;
+    try { body = JSON.parse(await readBody(req)); }
+    catch { return jsonRes(res, 400, { error: 'Invalid JSON' }); }
+    const r = await supabaseHelper.createCoachTodo({
+      title: body.title,
+      description: body.description,
+      klantId: body.klant_id,
+      dueDate: body.due_date,
+      prioriteit: body.prioriteit,
+    });
+    if (!r.ok) return jsonRes(res, 400, { error: r.error });
+    return jsonRes(res, 200, { ok: true, todo: r.todo });
+  }
+  {
+    const m = pathname.match(/^\/api\/admin\/todos\/([0-9a-f-]+)$/i);
+    if (m && req.method === 'PUT') {
+      if (!requireAuth(req, res)) return;
+      let body;
+      try { body = JSON.parse(await readBody(req)); }
+      catch { return jsonRes(res, 400, { error: 'Invalid JSON' }); }
+      const r = await supabaseHelper.updateCoachTodo(m[1], body);
+      if (!r.ok) return jsonRes(res, 400, { error: r.error });
+      return jsonRes(res, 200, { ok: true, todo: r.todo });
+    }
+    if (m && req.method === 'DELETE') {
+      if (!requireAuth(req, res)) return;
+      const r = await supabaseHelper.deleteCoachTodo(m[1]);
+      if (!r.ok) return jsonRes(res, 400, { error: r.error });
+      return jsonRes(res, 200, { ok: true });
+    }
+  }
+
   // POST /api/admin/reminders/run — handmatig de weekly check-in reminders draaien.
   // Alleen voor admin (Julia/Dorus) — om te testen of eenmalig te pushen.
   if (pathname === '/api/admin/reminders/run' && req.method === 'POST') {
@@ -1850,6 +1890,88 @@ setTimeout(() => {
   checkReminderCron();
   setInterval(checkReminderCron, 5 * 60 * 1000); // elke 5 min
 }, 30 * 1000);
+
+// =============================================================
+// DAILY HABIT REMINDER CRON
+// =============================================================
+// Elke avond ~20:00 Europe/Amsterdam krijgen actieve klanten die nog
+// géén daily_habit rij voor vandaag hebben gevuld een korte push + mail.
+// Zelfde markerbestand-patroon als weekly.
+// =============================================================
+
+const DAILY_REMINDER_MARKER = path.join(DATA_DIR, 'last-daily-reminder-run.txt');
+const DAILY_REMINDER_HOUR_LOCAL = 20;
+
+function readDailyMarker() {
+  try {
+    if (!fs.existsSync(DAILY_REMINDER_MARKER)) return 0;
+    return parseInt(fs.readFileSync(DAILY_REMINDER_MARKER, 'utf-8').trim(), 10) || 0;
+  } catch { return 0; }
+}
+function writeDailyMarker(ts) {
+  try { fs.writeFileSync(DAILY_REMINDER_MARKER, String(ts)); } catch {}
+}
+
+async function runDailyHabitReminders() {
+  if (!supabaseHelper.isEnabled()) { console.log('[DailyReminder] Supabase off'); return; }
+  const klanten = await supabaseHelper.listKlantenMetLaatsteCheckIn();
+  if (!klanten) { console.warn('[DailyReminder] klanten fetch failed'); return; }
+  const vandaag = new Date().toISOString().slice(0, 10);
+  let sent = 0; let skipped = 0;
+  for (const k of klanten) {
+    if (k.status !== 'actief') { skipped++; continue; } // alleen actieve klanten
+    // Check of ze al een daily_habit rij hebben voor vandaag met iets ingevuld
+    const habit = await supabaseHelper.getDailyHabit(k.id, vandaag);
+    const hasAnything = habit && (
+      habit.water_ok || habit.slaap_ok || habit.stappen_ok || habit.training_ok ||
+      (habit.journal && habit.journal.trim().length > 0)
+    );
+    if (hasAnything) { skipped++; continue; }
+
+    // Push naar alle devices (als push enabled + klant ge-subscribed)
+    pushToKlant(k.id, {
+      title: '☀️ Je dagelijkse check-in',
+      body: 'Tik je 4 vakjes aan en schrijf 1 zin — 30 seconden werk.',
+      url: '/klant/start',
+      tag: 'daily-reminder-' + k.id,
+    }).catch(() => {});
+
+    // Mail — alleen als email geconfigureerd is
+    if (k.email && emailHelper.isEnabled()) {
+      try {
+        await emailHelper.sendDailyHabitReminderEmail({ to: k.email, naam: k.naam });
+        sent++;
+      } catch (e) {
+        console.warn('[DailyReminder] mail fail', k.email, e.message);
+      }
+    } else {
+      sent++;
+    }
+  }
+  console.log(`[DailyReminder] push/mail: ${sent}, skipped: ${skipped}`);
+}
+
+async function checkDailyReminderCron() {
+  try {
+    const now = new Date();
+    const { hour } = localHourInAmsterdam(now);
+    if (hour < DAILY_REMINDER_HOUR_LOCAL) return;
+    const lastRun = readDailyMarker();
+    // Al gedraaid in de afgelopen 18 uur? Skip (voorkomt dubbele push na restart)
+    if (Date.now() - lastRun < 18 * 60 * 60 * 1000) return;
+    console.log('[DailyReminder] avond in Amsterdam, start ronde...');
+    writeDailyMarker(Date.now());
+    await runDailyHabitReminders();
+  } catch (e) {
+    console.warn('[DailyReminder] cron-check error:', e.message);
+  }
+}
+
+// Start de daily-check 35 sec na listen (iets na weekly)
+setTimeout(() => {
+  checkDailyReminderCron();
+  setInterval(checkDailyReminderCron, 5 * 60 * 1000);
+}, 35 * 1000);
 
 // Handmatige trigger endpoint — voor testen of als Julia zelf wil pushen.
 // Protected: alleen admin-session of X-Admin-Secret header.
