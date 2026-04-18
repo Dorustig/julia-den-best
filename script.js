@@ -1013,12 +1013,12 @@ document.addEventListener('visibilitychange', () => {
         foundation: {
             badge: 'Foundation',
             title: 'Het Foundation Programma',
-            subtitle: '4 maanden — 8 persoonlijke sessies, dagelijkse check-ins, voedings- en trainingsplan op maat.',
+            subtitle: '4 maanden met 8 persoonlijke sessies, dagelijkse check-ins, voedings- en trainingsplan op maat.',
         },
         elite: {
             badge: '★ Elite',
             title: 'Het Elite Programma',
-            subtitle: '6 maanden premium — 2x fysiek samen in de gym, 24/7 WhatsApp en ~14 persoonlijke sessies.',
+            subtitle: '6 maanden premium met 2 fysieke gym-dagen, 24/7 WhatsApp en ~14 persoonlijke sessies.',
         },
     };
     const programBadge = document.getElementById('programBadge');
