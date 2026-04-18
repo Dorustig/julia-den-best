@@ -1163,3 +1163,90 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', Georgia, serif; font-weight: 7
     font-size: 12px; color: var(--gray-text); margin-top: 16px;
     font-style: italic;
 }
+
+/* =============================================================
+   PROGRAM TOGGLE — Foundation vs Elite timeline keuze
+   ============================================================= */
+.program-toggle-wrap {
+    max-width: 540px; margin: 0 auto 40px;
+    background: #fff; border-radius: 50px; padding: 6px;
+    box-shadow: 0 8px 30px rgba(233,30,140,0.12);
+    display: grid; grid-template-columns: 1fr 1fr;
+    position: relative; border: 1.5px solid var(--pink-soft);
+}
+.program-toggle-wrap button {
+    background: none; border: none; padding: 14px 20px;
+    font-family: inherit; font-weight: 600; font-size: 15px;
+    color: var(--gray-text); cursor: pointer;
+    border-radius: 50px; transition: var(--transition);
+    position: relative; z-index: 2;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.program-toggle-wrap button.active {
+    background: linear-gradient(135deg, var(--pink), var(--pink-light));
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(233,30,140,0.4);
+}
+.program-toggle-wrap button .duur-badge {
+    font-size: 11px; opacity: 0.9; font-weight: 500;
+    background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 20px;
+    color: inherit;
+}
+.program-toggle-wrap button:not(.active) .duur-badge {
+    background: var(--pink-soft); color: var(--pink);
+}
+
+/* Show/hide timelines */
+.timeline-variant { display: none; }
+.timeline-variant.is-active { display: block; }
+
+/* Special week markers — call, body-transformation-day */
+.timeline-week.special .timeline-dot {
+    background: linear-gradient(135deg, var(--pink), var(--pink-light));
+    box-shadow: 0 0 0 4px #fff, 0 0 0 6px var(--pink-light), 0 0 24px rgba(233,30,140,0.5);
+    color: #fff;
+    animation: pulse-glow 2.5s ease-in-out infinite;
+}
+@keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 0 4px #fff, 0 0 0 6px var(--pink-light), 0 0 24px rgba(233,30,140,0.5); }
+    50% { box-shadow: 0 0 0 4px #fff, 0 0 0 6px var(--pink-light), 0 0 36px rgba(233,30,140,0.75); }
+}
+.timeline-week.special .timeline-content {
+    background: linear-gradient(135deg, #FFF, #FFF1F7);
+    border: 1.5px solid var(--pink-light);
+    box-shadow: 0 8px 30px rgba(233,30,140,0.18);
+}
+.timeline-week.btd .timeline-dot { /* Body Transformation Dag = extra groot + sterren */
+    width: 48px; height: 48px; font-size: 18px;
+    background: linear-gradient(135deg, #E91E8C, #F472B6);
+    box-shadow: 0 0 0 5px #fff, 0 0 0 8px var(--pink), 0 0 40px rgba(233,30,140,0.65);
+}
+.timeline-week.btd .timeline-dot::after {
+    content: '✦'; position: absolute; right: -16px; top: -8px;
+    color: var(--pink); font-size: 14px;
+}
+.timeline-week.btd .timeline-content {
+    background: linear-gradient(135deg, #FFF 0%, #FFF1F7 50%, #FCE7F3 100%);
+    border: 2px solid var(--pink);
+}
+.timeline-week.btd .timeline-content h4 { color: var(--pink); font-size: 19px; }
+.timeline-tag {
+    display: inline-block; margin-bottom: 6px;
+    background: var(--pink); color: #fff;
+    padding: 3px 10px; border-radius: 50px;
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 1px; text-transform: uppercase;
+}
+.timeline-tag.session { background: var(--pink-light); }
+.timeline-tag.btd {
+    background: linear-gradient(135deg, var(--pink), #8B5CF6);
+    padding: 4px 12px; font-size: 12px;
+}
+
+/* Op de lege positie van phase-label (wordt overgeslagen bij dots alignment) */
+.timeline-week.span-full .timeline-content { min-width: 100%; }
+
+@media (max-width: 600px) {
+    .program-toggle-wrap button { padding: 12px 10px; font-size: 13.5px; gap: 6px; flex-direction: column; }
+    .program-toggle-wrap button .duur-badge { font-size: 10px; padding: 1px 7px; }
+}

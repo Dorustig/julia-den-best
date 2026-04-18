@@ -954,26 +954,27 @@ document.addEventListener('visibilitychange', () => {
     }
 })();
 
-// ===== TIMELINE SCROLL-FILL =====
-// As the user scrolls the 16-week timeline into view, the pink line fills
-// from top to bottom and dots light up as they're passed. Smooth + cheap
-// on mobile: rAF-throttled + transform-based (no layout thrashing).
+// ===== TIMELINE SCROLL-FILL + Foundation/Elite Toggle =====
+// De gloeiende roze balk vult mee met scrollen. Werkt nu op meerdere
+// timeline-varianten (Foundation / Elite) — alleen de actieve variant
+// krijgt de fill-update.
 (function setupTimelineFill() {
-    const timeline = document.querySelector('.timeline');
-    if (!timeline) return;
-    const fill = timeline.querySelector('.timeline-fill');
-    const dots = [...timeline.querySelectorAll('.timeline-dot')];
-    const phases = [...timeline.querySelectorAll('.timeline-phase')];
-    if (!fill || !dots.length) return;
+    const timelines = [...document.querySelectorAll('.timeline')];
+    if (!timelines.length) return;
+
+    function activeTimeline() {
+        // Als er varianten zijn: pak de actieve. Anders: gewoon de eerste.
+        return document.querySelector('.timeline-variant.is-active') || timelines[0];
+    }
 
     let ticking = false;
     function update() {
         ticking = false;
+        const timeline = activeTimeline();
+        if (!timeline) return;
         const rect = timeline.getBoundingClientRect();
         const vh = window.innerHeight || document.documentElement.clientHeight;
-        // Anchor the fill line at ~60% viewport height — feels natural on scroll
         const anchor = vh * 0.6;
-        // Fill progress: 0 when timeline top hits anchor, 1 when timeline bottom hits anchor
         const total = rect.height;
         const progressed = anchor - rect.top;
         let t = total > 0 ? progressed / total : 0;
@@ -981,13 +982,14 @@ document.addEventListener('visibilitychange', () => {
         if (t > 1) t = 1;
         timeline.style.setProperty('--fill', t.toFixed(4));
 
-        // Light up each dot once its center passes the anchor
+        // Dots van de actieve timeline lighten up
+        const dots = timeline.querySelectorAll('.timeline-dot');
         for (const dot of dots) {
             const d = dot.getBoundingClientRect();
             const dotCenter = d.top + d.height / 2;
             dot.classList.toggle('is-active', dotCenter < anchor);
         }
-        // Phase label flower icon pulse when phase is actively being passed
+        const phases = timeline.querySelectorAll('.timeline-phase');
         for (const phase of phases) {
             const p = phase.getBoundingClientRect();
             const active = p.top < anchor && p.bottom > anchor * 0.4;
@@ -1001,9 +1003,30 @@ document.addEventListener('visibilitychange', () => {
     }
     window.addEventListener('scroll', schedule, { passive: true });
     window.addEventListener('resize', schedule, { passive: true });
-    // Also update after images/fonts load (affects layout)
     window.addEventListener('load', update);
     update();
+
+    // Toggle-knoppen Foundation / Elite
+    const toggleBtns = document.querySelectorAll('.program-toggle-wrap button[data-variant]');
+    toggleBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const variant = btn.dataset.variant;
+            toggleBtns.forEach(b => {
+                const active = b.dataset.variant === variant;
+                b.classList.toggle('active', active);
+                b.setAttribute('aria-selected', active ? 'true' : 'false');
+            });
+            document.querySelectorAll('.timeline-variant').forEach(t => {
+                t.classList.toggle('is-active', t.dataset.variant === variant);
+                // Reset fill + dot-state op de net getoonde timeline
+                t.style.setProperty('--fill', 0);
+                t.querySelectorAll('.timeline-dot').forEach(d => d.classList.remove('is-active'));
+            });
+            // Recompute voor de nieuwe variant
+            requestAnimationFrame(update);
+            requestAnimationFrame(() => setTimeout(update, 60));
+        });
+    });
 })();
 
 // ===== CRM HELPERS =====
