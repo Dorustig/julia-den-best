@@ -997,3 +997,169 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', Georgia, serif; font-weight: 7
     .option-card { min-height: 48px; }
     a, button { -webkit-tap-highlight-color: rgba(233, 30, 140, 0.2); }
 }
+
+/* =============================================================
+   OFFER-CARDS — Foundation vs Elite pakketten
+   ============================================================= */
+.offer-section { padding: 70px 0 50px; background: #FFF8FC; position: relative; overflow: hidden; }
+.offer-section::before {
+    content: ''; position: absolute; top: -60px; right: -80px;
+    width: 300px; height: 300px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(233,30,140,0.12), transparent 70%);
+    z-index: 0;
+}
+.offer-section::after {
+    content: ''; position: absolute; bottom: -80px; left: -80px;
+    width: 300px; height: 300px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(244,114,182,0.15), transparent 70%);
+    z-index: 0;
+}
+.offer-section .container { position: relative; z-index: 1; }
+
+.offer-header { text-align: center; margin-bottom: 44px; max-width: 680px; margin-left: auto; margin-right: auto; }
+.offer-header h2 { font-size: clamp(30px, 4.5vw, 42px); color: var(--text); margin-bottom: 12px; }
+.offer-header p { font-size: 17px; color: var(--gray-text); line-height: 1.6; }
+
+.offer-grid {
+    display: grid; gap: 28px;
+    grid-template-columns: 1fr 1.15fr;  /* Elite iets groter */
+    align-items: stretch;
+}
+@media (max-width: 900px) {
+    .offer-grid { grid-template-columns: 1fr; gap: 36px; }
+}
+
+.offer-card {
+    background: var(--white); border-radius: 24px;
+    padding: 36px 30px 30px;
+    box-shadow: var(--shadow);
+    border: 1.5px solid var(--gray);
+    display: flex; flex-direction: column;
+    position: relative;
+    transition: var(--transition);
+}
+.offer-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+
+.offer-card .duur {
+    font-size: 12px; font-weight: 700; color: var(--pink);
+    text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;
+}
+.offer-card .naam {
+    font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 700;
+    color: var(--text); margin-bottom: 6px;
+}
+.offer-card .subtitel {
+    color: var(--gray-text); font-size: 14px; margin-bottom: 22px; line-height: 1.5;
+}
+
+.offer-features { list-style: none; padding: 0; margin: 0 0 26px; flex: 1; }
+.offer-features li {
+    display: flex; gap: 11px; align-items: flex-start;
+    padding: 9px 0; font-size: 14.5px; color: var(--gray-dark); line-height: 1.5;
+}
+.offer-features li::before {
+    content: '♡'; color: var(--pink); font-size: 16px; flex-shrink: 0; line-height: 1.4;
+}
+.offer-features li strong { color: var(--text); font-weight: 600; }
+.offer-features li.highlight-feat { color: var(--text); font-weight: 500; }
+.offer-features li.sub {
+    padding: 2px 0 2px 24px; font-size: 13px; color: var(--gray-text);
+}
+.offer-features li.sub::before { content: '·'; color: var(--pink-light); font-size: 18px; }
+
+.offer-cta {
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 14px 26px; border-radius: 50px; font-family: inherit;
+    font-weight: 600; font-size: 15px; cursor: pointer; border: none;
+    text-decoration: none; transition: var(--transition);
+    background: var(--white); color: var(--pink);
+    border: 2px solid var(--pink-light);
+    margin-top: auto;
+}
+.offer-cta:hover { background: var(--pink-soft); transform: translateY(-1px); }
+
+/* ELITE — prominent, gloed, groter gevoel */
+.offer-card.elite {
+    background: linear-gradient(180deg, #FFFFFF 0%, #FFF1F7 100%);
+    border: 2px solid var(--pink);
+    box-shadow: 0 20px 60px rgba(233,30,140,0.25), 0 0 0 1px rgba(233,30,140,0.04);
+    padding-top: 46px;
+    overflow: visible;
+}
+.offer-card.elite::after {
+    content: ''; position: absolute; inset: -2px;
+    border-radius: 24px;
+    background: linear-gradient(135deg, rgba(233,30,140,0.25), rgba(244,114,182,0.15), transparent 60%);
+    z-index: -1; filter: blur(12px); opacity: 0.7;
+}
+.offer-card.elite .badge-top {
+    position: absolute; top: -15px; left: 50%; transform: translateX(-50%);
+    background: linear-gradient(135deg, var(--pink), var(--pink-light));
+    color: #fff; padding: 8px 20px; border-radius: 50px;
+    font-size: 12px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase;
+    box-shadow: 0 6px 20px rgba(233,30,140,0.4);
+    white-space: nowrap;
+}
+.offer-card.elite .naam {
+    background: linear-gradient(135deg, var(--pink), var(--pink-light));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    font-size: 38px;
+}
+.offer-card.elite .duur { color: var(--pink); font-size: 13px; }
+.offer-card.elite .offer-features li::before {
+    content: '✧'; color: var(--pink);
+}
+.offer-card.elite .offer-cta {
+    background: linear-gradient(135deg, var(--pink), var(--pink-light));
+    color: #fff; border: none;
+    box-shadow: 0 6px 20px rgba(233,30,140,0.35);
+    padding: 16px 28px; font-size: 16px;
+}
+.offer-card.elite .offer-cta:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(233,30,140,0.45);
+}
+
+/* Hoogtepunt-regel binnen Elite */
+.elite-highlight {
+    background: linear-gradient(135deg, rgba(233,30,140,0.08), rgba(244,114,182,0.04));
+    border-left: 3px solid var(--pink);
+    padding: 12px 14px; border-radius: 10px;
+    margin: 8px 0 10px; font-size: 14px; color: var(--text); font-weight: 500;
+}
+.elite-highlight .emoji { font-size: 18px; margin-right: 6px; }
+
+/* Belofte-blok onder de pakketten */
+.offer-belofte {
+    margin-top: 40px; padding: 30px 28px;
+    background: linear-gradient(135deg, #FFFFFF, var(--pink-soft));
+    border-radius: 20px; border: 1px solid var(--pink-light);
+    max-width: 860px; margin-left: auto; margin-right: auto;
+    text-align: center;
+}
+.offer-belofte h3 {
+    font-family: 'Playfair Display', serif; font-size: 26px; color: var(--text);
+    margin-bottom: 18px;
+}
+.offer-belofte .promises {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 20px; text-align: left; margin: 20px 0 8px;
+}
+@media (max-width: 700px) { .offer-belofte .promises { grid-template-columns: 1fr; } }
+.offer-belofte .promise {
+    background: var(--white); border-radius: 14px; padding: 18px 20px;
+    border: 1px solid rgba(233,30,140,0.12);
+    display: flex; gap: 14px; align-items: flex-start;
+}
+.offer-belofte .promise .icon {
+    font-size: 26px; flex-shrink: 0; line-height: 1;
+}
+.offer-belofte .promise .title {
+    font-weight: 700; color: var(--pink); font-size: 15px; margin-bottom: 4px;
+}
+.offer-belofte .promise .body {
+    font-size: 13.5px; color: var(--gray-dark); line-height: 1.55;
+}
+.offer-belofte .voorwaarden {
+    font-size: 12px; color: var(--gray-text); margin-top: 16px;
+    font-style: italic;
+}
