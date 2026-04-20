@@ -352,7 +352,8 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', Georgia, serif; font-weight: 7
 .transformations-section { padding: 80px 0; background: var(--pink-bg); }
 .transformations-section h2 { text-align: center; font-size: 32px; margin-bottom: 8px; }
 .section-subtitle { text-align: center; color: var(--gray-text); margin-bottom: 48px; font-size: 16px; }
-.transformations-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; max-width: 820px; margin: 0 auto; }
+.transformations-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; max-width: 1180px; margin: 0 auto; justify-content: center; justify-items: center; }
+.transformations-grid .transformation-card { width: 100%; max-width: 380px; }
 .transformation-card { background: var(--white); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
 .before-after { display: flex; align-items: center; gap: 8px; padding: 20px; }
 .ba-side { flex: 1; text-align: center; }
@@ -365,7 +366,7 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', Georgia, serif; font-weight: 7
     aspect-ratio: 3 / 4;
     border-radius: var(--radius-sm);
     background-size: cover;
-    background-position: center top;
+    background-position: center center;
     background-repeat: no-repeat;
     box-shadow: 0 6px 20px rgba(0,0,0,0.08);
 }
