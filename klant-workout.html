@@ -129,6 +129,18 @@
     .submit:hover { background: #D01680; }
     .submit:disabled { opacity: 0.6; cursor: not-allowed; }
 
+    /* Sticky save-knop — altijd bereikbaar tijdens scrollen */
+    .sticky-save {
+      position: fixed; left: 0; right: 0; bottom: 0;
+      padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
+      background: linear-gradient(180deg, rgba(255,241,247,0) 0%, rgba(255,241,247,0.92) 30%, #FFF1F7 90%);
+      z-index: 50; display: none;
+    }
+    .sticky-save .submit { margin: 0; box-shadow: 0 10px 30px rgba(233,30,140,0.35); }
+    .has-sticky-save .submit.inline { display: none; }
+    .has-sticky-save { padding-bottom: 110px; }
+    @media (max-width: 720px) { .sticky-save { display: block; } }
+
     .history-item {
       background: #fff; border-radius: 14px; padding: 14px 16px; margin-bottom: 10px;
       border: 1px solid #F3F4F6; font-size: 14px;
@@ -261,15 +273,20 @@
             <textarea id="wNotities" placeholder="Hoe voelde het? Wat viel op? Dingen voor volgende keer..."></textarea>
           </div>
 
-          <button class="submit" id="saveBtn" onclick="saveWorkout()">Workout opslaan</button>
+          <button class="submit inline" id="saveBtnInline" onclick="saveWorkout()">Workout opslaan</button>
         </div>
 
         ${history.length > 0 ? `
           <h2 style="font-family:'Playfair Display',serif;font-size:20px;margin:24px 0 12px;">Jouw eerdere workouts</h2>
           ${history.map(renderHistory).join('')}
         ` : ''}
+
+        <div class="sticky-save">
+          <button class="submit" id="saveBtn" onclick="saveWorkout()">Workout opslaan</button>
+        </div>
       `);
 
+      document.body.classList.add('has-sticky-save');
       wireInputs();
     }
 
@@ -518,7 +535,8 @@
 
     window.saveWorkout = async () => {
       const msg = document.getElementById('msg');
-      const btn = document.getElementById('saveBtn');
+      const btns = [document.getElementById('saveBtn'), document.getElementById('saveBtnInline')].filter(Boolean);
+      const setBtnState = (disabled, label) => btns.forEach(b => { b.disabled = disabled; b.textContent = label; });
       msg.className = 'msg'; msg.textContent = '';
       // Filter lege oefeningen weg, behoud done/skipped/rating in JSONB
       const filtered = currentWorkout.oefeningen
@@ -534,7 +552,7 @@
         msg.textContent = 'Voeg minstens één oefening met sets toe.';
         return;
       }
-      btn.disabled = true; btn.textContent = 'Opslaan...';
+      setBtnState(true, 'Opslaan...');
       try {
         const r = await fetch('/api/klant/workouts', {
           method: 'POST',
@@ -575,7 +593,7 @@
         msg.className = 'msg error';
         msg.textContent = e.message;
       } finally {
-        btn.disabled = false; btn.textContent = 'Workout opslaan';
+        setBtnState(false, 'Workout opslaan');
       }
     };
 
