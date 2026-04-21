@@ -2,7 +2,7 @@
 // Simpele strategie: cache-first voor static assets, network-first voor alle /api
 // en HTML pagina's. Wijzig de CACHE_VERSION om users geforceerd te updaten.
 
-const CACHE_VERSION = 'jb-v1';
+const CACHE_VERSION = 'jb-v2';
 const STATIC_ASSETS = [
   '/manifest.webmanifest',
   '/img/icon-192.svg',
