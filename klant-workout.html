@@ -96,6 +96,22 @@
     .sets-header { display: grid; grid-template-columns: 22px 1fr 1fr 40px; gap: 6px; padding: 0 4px 4px; }
     .sets-header .label { font-size: 10px; color: #9CA3AF; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; text-align: center; }
 
+    /* Gym-mode op kleine schermen: dikke knoppen, kg als placeholder, geen tekstlabel inline */
+    @media (max-width: 480px) {
+      body { padding: 14px 10px 120px; }
+      .oef { padding: 12px 10px; }
+      .set-main { grid-template-columns: 20px 1fr 1fr 44px; gap: 5px; }
+      .stepper { height: 46px; }
+      .stepper button { flex: 0 0 38px; font-size: 22px; }
+      .stepper .unit { display: none; }
+      .stepper input { font-size: 16px; padding: 6px 2px; }
+      .set-check { width: 44px; height: 46px; font-size: 22px; }
+      .set-actions { padding-left: 24px; gap: 4px; }
+      .rating-btn { min-width: 40px; padding: 6px 4px; font-size: 16px; }
+      .set-skip, .set-delete { font-size: 11px; }
+      .sets-header { grid-template-columns: 20px 1fr 1fr 44px; gap: 5px; }
+    }
+
     .add-set-btn, .add-oef-btn {
       background: none; border: 1.5px dashed #F9A8D4; color: #E91E8C;
       padding: 10px 16px; border-radius: 10px; font-family: inherit; font-size: 13px;
