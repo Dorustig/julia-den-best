@@ -160,7 +160,7 @@ const T = {
         comPerk3: 'Deel je progressie, recepten en tips met andere vrouwen',
         comPerk4: 'Je staat er nooit alleen voor, altijd iemand die je begrijpt',
         comCta: 'Ik wil erbij!',
-        comCount: '50+ vrouwen zijn je al voorgegaan',
+        comCount: '20+ vrouwen zijn je al voorgegaan',
         // Program
         progBadge: '★ Elite',
         progTitle: 'Het Elite Programma',
@@ -269,7 +269,7 @@ const T = {
         comPerk3: 'Share your progress, recipes and tips with other women',
         comPerk4: "You're never alone, always someone who understands you",
         comCta: 'I want to join!',
-        comCount: '50+ women have gone before you',
+        comCount: '20+ women have gone before you',
         progBadge: '★ Elite',
         progTitle: 'The Elite Program',
         progSub: '6 months premium with 2 in-person gym days, 24/7 WhatsApp and ~14 personal sessions.',
