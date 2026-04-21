@@ -38,6 +38,13 @@
       font-size: 14px; font-family: inherit; min-height: 60px; resize: vertical;
     }
 
+    /* Schema header (Julia's plan) */
+    .schema-card { background: linear-gradient(135deg, #FCE7F3 0%, #FFF1F7 100%); border: 1.5px solid #F9A8D4; border-radius: 14px; padding: 14px 16px; margin-bottom: 14px; }
+    .schema-card .schema-label { font-size: 11px; font-weight: 700; color: #9D174D; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+    .schema-card .schema-title { font-size: 15px; font-weight: 600; color: #1F2937; margin-bottom: 8px; }
+    .schema-card .schema-body { font-size: 13px; color: #4B5563; line-height: 1.5; white-space: pre-wrap; max-height: 140px; overflow-y: auto; }
+    .schema-card .schema-toggle { background: none; border: none; color: #E91E8C; font-weight: 600; font-size: 12px; cursor: pointer; padding: 4px 0 0; font-family: inherit; }
+
     /* Oefening card */
     .oef { background: #FDF2F8; border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; position: relative; }
     .oef-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 10px; }
@@ -51,23 +58,43 @@
       cursor: pointer; padding: 4px 8px; border-radius: 8px;
     }
     .oef-del:hover { background: #fff; color: #991B1B; }
+    .oef-prev { font-size: 11px; color: #9D174D; margin: -4px 0 8px; font-style: italic; }
 
-    .sets-grid {
-      display: grid; grid-template-columns: 24px 1fr 1fr 28px; gap: 6px;
-      align-items: center; margin-top: 4px;
-    }
-    .sets-grid .label { font-size: 11px; color: #9CA3AF; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
-    .sets-grid .num-idx { font-size: 13px; color: #9D174D; font-weight: 700; text-align: center; }
-    .sets-grid input {
-      width: 100%; padding: 8px 10px; border: 1.5px solid #FBCFE8; border-radius: 8px;
-      font-size: 14px; font-family: inherit; background: #fff;
-    }
-    .sets-grid input:focus { border-color: #E91E8C; outline: none; }
-    .sets-grid .set-del {
-      background: transparent; border: none; color: #F9A8D4; font-size: 16px;
-      cursor: pointer; padding: 2px 6px;
-    }
-    .sets-grid .set-del:hover { color: #991B1B; }
+    /* Set row: twee regels: invoer + actie-knoppen */
+    .set-row { display: grid; grid-template-rows: auto auto; gap: 6px; padding: 8px 4px; border-bottom: 1px solid #FCE7F3; }
+    .set-row:last-of-type { border-bottom: none; }
+    .set-row.done { background: #ECFDF5; border-radius: 10px; }
+    .set-row.skipped { opacity: 0.45; }
+    .set-row.skipped .stepper input { text-decoration: line-through; }
+
+    .set-main { display: grid; grid-template-columns: 22px 1fr 1fr 40px; gap: 6px; align-items: center; }
+    .set-main .num-idx { font-size: 13px; color: #9D174D; font-weight: 700; text-align: center; }
+
+    /* Stepper */
+    .stepper { display: flex; align-items: center; gap: 0; background: #fff; border: 1.5px solid #FBCFE8; border-radius: 10px; overflow: hidden; height: 42px; }
+    .stepper:focus-within { border-color: #E91E8C; }
+    .stepper button { flex: 0 0 34px; height: 100%; background: transparent; border: none; color: #E91E8C; font-size: 18px; font-weight: 700; cursor: pointer; padding: 0; font-family: inherit; user-select: none; -webkit-tap-highlight-color: transparent; }
+    .stepper button:active { background: #FCE7F3; }
+    .stepper input { flex: 1; min-width: 0; padding: 8px 4px; border: none; background: transparent; font-size: 15px; font-family: inherit; font-weight: 600; text-align: center; color: #1F2937; -moz-appearance: textfield; }
+    .stepper input::-webkit-outer-spin-button, .stepper input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .stepper .unit { font-size: 10px; color: #9CA3AF; font-weight: 600; text-transform: uppercase; padding-right: 6px; letter-spacing: 0.5px; }
+
+    /* Done + skip + rating */
+    .set-check { width: 40px; height: 42px; border-radius: 10px; background: #fff; border: 1.5px solid #FBCFE8; color: #F9A8D4; font-size: 20px; cursor: pointer; font-family: inherit; padding: 0; }
+    .set-check:active { transform: scale(0.95); }
+    .set-row.done .set-check { background: #10B981; border-color: #10B981; color: #fff; }
+
+    .set-actions { display: flex; gap: 4px; justify-content: space-between; align-items: center; padding-left: 28px; }
+    .rating-group { display: flex; gap: 4px; }
+    .rating-btn { background: #fff; border: 1.5px solid #FBCFE8; border-radius: 8px; padding: 4px 8px; font-size: 15px; cursor: pointer; font-family: inherit; min-width: 36px; }
+    .rating-btn:active { transform: scale(0.95); }
+    .rating-btn.selected { background: #FCE7F3; border-color: #E91E8C; }
+    .set-skip, .set-delete { background: transparent; border: none; color: #9CA3AF; font-size: 12px; cursor: pointer; padding: 4px 8px; border-radius: 6px; font-family: inherit; }
+    .set-skip:hover, .set-delete:hover { background: #fff; color: #374151; }
+    .set-skip.active { color: #9CA3AF; font-style: italic; }
+
+    .sets-header { display: grid; grid-template-columns: 22px 1fr 1fr 40px; gap: 6px; padding: 0 4px 4px; }
+    .sets-header .label { font-size: 10px; color: #9CA3AF; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; text-align: center; }
 
     .add-set-btn, .add-oef-btn {
       background: none; border: 1.5px dashed #F9A8D4; color: #E91E8C;
@@ -124,16 +151,19 @@
         ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
     }
 
-    let supabase, session, authHdr;
+    let supabase, session, authHdr, klantInfo = null;
+    const emptySet = () => ({ reps: null, gewicht: null, done: false, skipped: false, rating: null });
     let currentWorkout = {
       id: null,
       datum: new Date().toISOString().slice(0, 10),
       week_nr: null,
       duur_min: null,
-      oefeningen: [{ naam: '', sets: [{ reps: null, gewicht: null }], note: '' }],
+      oefeningen: [{ naam: '', sets: [emptySet()], note: '' }],
       notities: '',
     };
     let history = [];
+    let weekSchema = null;
+    let schemaExpanded = false;
 
     async function main() {
       const cfg = await (await fetch('/api/config')).json();
@@ -143,22 +173,40 @@
       if (!session) { window.location.href = '/klant/login'; return; }
       authHdr = { Authorization: 'Bearer ' + session.access_token };
 
-      // Fetch klant + history + training van huidige week (voor prefill-suggesties)
-      const [meRes, wRes] = await Promise.all([
+      const [meRes, wRes, schemaRes] = await Promise.all([
         fetch('/api/klant/me', { headers: authHdr }),
         fetch('/api/klant/workouts', { headers: authHdr }),
+        fetch('/api/klant/training-schemas', { headers: authHdr }),
       ]);
-      const klant = meRes.ok ? (await meRes.json()).klant : null;
+      klantInfo = meRes.ok ? (await meRes.json()).klant : null;
       history = wRes.ok ? ((await wRes.json()).workouts || []) : [];
+      const schemas = schemaRes.ok ? ((await schemaRes.json()).schemas || []) : [];
 
-      // Bereken huidige week
-      if (klant?.start_datum) {
-        const startMs = new Date(klant.start_datum).getTime();
+      if (klantInfo?.start_datum) {
+        const startMs = new Date(klantInfo.start_datum).getTime();
         const w = Math.min(16, Math.max(1, Math.ceil((Date.now() - startMs) / (7 * 86400000))));
         currentWorkout.week_nr = w;
       }
+      weekSchema = currentWorkout.week_nr
+        ? (schemas.find(s => s.week_nr === currentWorkout.week_nr) || null)
+        : null;
 
       renderPage();
+    }
+
+    // Zoek laatste log van dezelfde oefening (case-insensitive) in history.
+    function findLastLog(naam) {
+      if (!naam || !naam.trim()) return null;
+      const key = naam.trim().toLowerCase();
+      for (const w of history) {
+        for (const o of (w.oefeningen || [])) {
+          if ((o.naam || '').trim().toLowerCase() === key) {
+            const nonEmpty = (o.sets || []).filter(s => s && (s.reps != null || s.gewicht != null));
+            if (nonEmpty.length) return { datum: w.datum, sets: nonEmpty };
+          }
+        }
+      }
+      return null;
     }
 
     function renderPage() {
@@ -168,9 +216,11 @@
           <div class="brand">Julia Besten</div>
         </div>
         <h1>&#127947; Workout loggen</h1>
-        <p class="intro">Schrijf op wat je vandaag deed — oefeningen, sets, reps, gewicht. Zo ziet Julia hoe het gaat en kan ze je gericht sturen.</p>
+        <p class="intro">Log per set wat je hebt gedaan. Tik het vinkje om een set als klaar te markeren. Vorige keer zie je in grijs.</p>
 
         <div id="msg" class="msg"></div>
+
+        ${renderSchemaCard()}
 
         <div class="card">
           <div class="meta-row">
@@ -207,27 +257,90 @@
       wireInputs();
     }
 
+    function renderSchemaCard() {
+      if (!weekSchema) return '';
+      const body = (weekSchema.content_markdown || '').trim();
+      if (!body) return '';
+      const titel = weekSchema.titel || `Week ${currentWorkout.week_nr} trainingsschema`;
+      const shown = schemaExpanded ? body : body.slice(0, 300) + (body.length > 300 ? '...' : '');
+      return `
+        <div class="schema-card">
+          <div class="schema-label">&#128221; Julia's schema &middot; week ${currentWorkout.week_nr}</div>
+          <div class="schema-title">${escapeHtml(titel)}</div>
+          <div class="schema-body">${escapeHtml(shown)}</div>
+          ${body.length > 300 ? `<button class="schema-toggle" onclick="toggleSchema()">${schemaExpanded ? 'Minder tonen' : 'Volledig schema'}</button>` : ''}
+        </div>
+      `;
+    }
+    window.toggleSchema = () => { schemaExpanded = !schemaExpanded; renderPage(); };
+
     function renderOefening(o, idx) {
+      const last = findLastLog(o.naam);
+      const prevLine = last
+        ? `<div class="oef-prev">Vorige keer (${formatKort(last.datum)}): ${last.sets.map(s => `${s.reps ?? '?'}&times;${s.gewicht != null ? s.gewicht + 'kg' : '—'}`).join(' &middot; ')}</div>`
+        : '';
       return `
         <div class="oef" data-idx="${idx}">
           <div class="oef-head">
-            <input class="naam" placeholder="Oefening (bv. Squats)" value="${escapeHtml(o.naam || '')}" data-f="naam">
+            <input class="naam" placeholder="Oefening (bv. Squats)" value="${escapeHtml(o.naam || '')}" data-f="naam" list="oef-suggesties-${idx}">
+            <datalist id="oef-suggesties-${idx}">${oefeningSuggesties().map(n => `<option value="${escapeHtml(n)}">`).join('')}</datalist>
             <button class="oef-del" onclick="delOefening(${idx})" title="Verwijder">&times;</button>
           </div>
-          <div class="sets-grid">
+          ${prevLine}
+          <div class="sets-header">
             <div class="label">#</div>
             <div class="label">Reps</div>
-            <div class="label">Gewicht (kg)</div>
-            <div></div>
-            ${o.sets.map((s, si) => `
-              <div class="num-idx">${si + 1}</div>
-              <input type="number" min="0" step="1" placeholder="10" value="${s.reps ?? ''}" data-sf="reps" data-si="${si}">
-              <input type="number" min="0" step="0.5" placeholder="40" value="${s.gewicht ?? ''}" data-sf="gewicht" data-si="${si}">
-              <button class="set-del" onclick="delSet(${idx}, ${si})" title="Verwijder set">&times;</button>
-            `).join('')}
+            <div class="label">Gewicht</div>
+            <div class="label">&#10003;</div>
           </div>
+          ${o.sets.map((s, si) => renderSet(s, idx, si)).join('')}
           <button class="add-set-btn" onclick="addSet(${idx})">&#10133; Set toevoegen</button>
         </div>`;
+    }
+
+    function renderSet(s, idx, si) {
+      const cls = ['set-row'];
+      if (s.done) cls.push('done');
+      if (s.skipped) cls.push('skipped');
+      const ratings = ['👍','🟰','🔻'];
+      return `
+        <div class="${cls.join(' ')}" data-idx="${idx}" data-si="${si}">
+          <div class="set-main">
+            <div class="num-idx">${si + 1}</div>
+            <div class="stepper">
+              <button type="button" data-step="reps" data-delta="-1" data-idx="${idx}" data-si="${si}">&minus;</button>
+              <input type="number" inputmode="numeric" min="0" step="1" placeholder="0" value="${s.reps ?? ''}" data-sf="reps" data-si="${si}">
+              <button type="button" data-step="reps" data-delta="1" data-idx="${idx}" data-si="${si}">+</button>
+            </div>
+            <div class="stepper">
+              <button type="button" data-step="gewicht" data-delta="-2.5" data-idx="${idx}" data-si="${si}">&minus;</button>
+              <input type="number" inputmode="decimal" min="0" step="0.5" placeholder="0" value="${s.gewicht ?? ''}" data-sf="gewicht" data-si="${si}">
+              <span class="unit">kg</span>
+              <button type="button" data-step="gewicht" data-delta="2.5" data-idx="${idx}" data-si="${si}">+</button>
+            </div>
+            <button class="set-check" data-check="${idx}-${si}" title="${s.done ? 'Zet uit klaar' : 'Zet als klaar'}">${s.done ? '&#10003;' : '&#9675;'}</button>
+          </div>
+          <div class="set-actions">
+            <div class="rating-group">
+              ${ratings.map(r => `<button class="rating-btn ${s.rating === r ? 'selected' : ''}" data-rating="${idx}-${si}" data-value="${r}">${r}</button>`).join('')}
+            </div>
+            <div>
+              <button class="set-skip ${s.skipped ? 'active' : ''}" data-skip="${idx}-${si}">${s.skipped ? 'overgeslagen' : 'overslaan'}</button>
+              <button class="set-delete" data-del="${idx}-${si}" title="Verwijder set">&times;</button>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    function oefeningSuggesties() {
+      const s = new Set();
+      for (const w of history) for (const o of (w.oefeningen || [])) if (o.naam) s.add(o.naam.trim());
+      return [...s].slice(0, 30);
+    }
+
+    function formatKort(d) {
+      if (!d) return '';
+      return new Date(d).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' });
     }
 
     function renderHistory(w) {
@@ -261,13 +374,27 @@
       document.getElementById('wNotities').addEventListener('input', e => currentWorkout.notities = e.target.value);
       document.getElementById('wNotities').value = currentWorkout.notities || '';
 
-      // Oefening inputs
+      // Oefening naam + previous-set autofill op blur
       document.querySelectorAll('.oef').forEach(ofEl => {
         const idx = parseInt(ofEl.dataset.idx, 10);
         const naamInp = ofEl.querySelector('[data-f="naam"]');
-        if (naamInp) naamInp.addEventListener('input', e => {
-          currentWorkout.oefeningen[idx].naam = e.target.value;
-        });
+        if (naamInp) {
+          naamInp.addEventListener('input', e => {
+            currentWorkout.oefeningen[idx].naam = e.target.value;
+          });
+          naamInp.addEventListener('blur', () => {
+            // Autofill alleen als alle sets leeg zijn
+            const o = currentWorkout.oefeningen[idx];
+            const allEmpty = (o.sets || []).every(s => s.reps == null && s.gewicht == null);
+            if (!allEmpty) return;
+            const last = findLastLog(o.naam);
+            if (!last) return;
+            o.sets = last.sets.map(s => ({ reps: s.reps ?? null, gewicht: s.gewicht ?? null, done: false, skipped: false, rating: null }));
+            if (!o.sets.length) o.sets = [emptySet()];
+            renderPage();
+          });
+        }
+        // Direct typen in sets
         ofEl.querySelectorAll('[data-sf]').forEach(inp => {
           inp.addEventListener('input', e => {
             const si = parseInt(inp.dataset.si, 10);
@@ -277,46 +404,115 @@
           });
         });
       });
+
+      // Steppers (+/-)
+      document.querySelectorAll('[data-step]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const idx = parseInt(btn.dataset.idx, 10);
+          const si = parseInt(btn.dataset.si, 10);
+          const f = btn.dataset.step;
+          const delta = parseFloat(btn.dataset.delta);
+          const o = currentWorkout.oefeningen[idx];
+          if (!o?.sets?.[si]) return;
+          const current = o.sets[si][f];
+          // Als leeg, pak vorige set in dezelfde oefening, anders autofill uit laatste log, anders 0
+          let base = current;
+          if (base == null) {
+            const prev = o.sets[si - 1]?.[f];
+            if (prev != null) base = prev;
+            else {
+              const last = findLastLog(o.naam);
+              base = last?.sets?.[si]?.[f] ?? last?.sets?.[last.sets.length - 1]?.[f] ?? 0;
+            }
+          }
+          let next = (base || 0) + delta;
+          if (next < 0) next = 0;
+          o.sets[si][f] = f === 'reps' ? Math.round(next) : Math.round(next * 10) / 10;
+          renderPage();
+        });
+      });
+
+      // ✓ per set
+      document.querySelectorAll('[data-check]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const [idx, si] = btn.dataset.check.split('-').map(n => parseInt(n, 10));
+          const s = currentWorkout.oefeningen[idx].sets[si];
+          s.done = !s.done;
+          if (s.done) s.skipped = false;
+          renderPage();
+        });
+      });
+
+      // Rating
+      document.querySelectorAll('[data-rating]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const [idx, si] = btn.dataset.rating.split('-').map(n => parseInt(n, 10));
+          const s = currentWorkout.oefeningen[idx].sets[si];
+          const v = btn.dataset.value;
+          s.rating = s.rating === v ? null : v;
+          renderPage();
+        });
+      });
+
+      // Skip
+      document.querySelectorAll('[data-skip]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const [idx, si] = btn.dataset.skip.split('-').map(n => parseInt(n, 10));
+          const s = currentWorkout.oefeningen[idx].sets[si];
+          s.skipped = !s.skipped;
+          if (s.skipped) s.done = false;
+          renderPage();
+        });
+      });
+
+      // Set verwijderen
+      document.querySelectorAll('[data-del]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const [idx, si] = btn.dataset.del.split('-').map(n => parseInt(n, 10));
+          delSet(idx, si);
+        });
+      });
     }
 
     window.addOefening = () => {
-      currentWorkout.oefeningen.push({ naam: '', sets: [{ reps: null, gewicht: null }], note: '' });
+      currentWorkout.oefeningen.push({ naam: '', sets: [emptySet()], note: '' });
       renderPage();
     };
     window.delOefening = (idx) => {
       if (!confirm('Deze oefening verwijderen?')) return;
       currentWorkout.oefeningen.splice(idx, 1);
       if (currentWorkout.oefeningen.length === 0) {
-        currentWorkout.oefeningen.push({ naam: '', sets: [{ reps: null, gewicht: null }], note: '' });
+        currentWorkout.oefeningen.push({ naam: '', sets: [emptySet()], note: '' });
       }
       renderPage();
     };
     window.addSet = (idx) => {
       const o = currentWorkout.oefeningen[idx];
       const last = o.sets[o.sets.length - 1] || {};
-      // prefill nieuwe set met laatste waarden (handig voor herhalende sets)
-      o.sets.push({ reps: last.reps ?? null, gewicht: last.gewicht ?? null });
+      o.sets.push({ reps: last.reps ?? null, gewicht: last.gewicht ?? null, done: false, skipped: false, rating: null });
       renderPage();
     };
-    window.delSet = (idx, si) => {
+    function delSet(idx, si) {
       const o = currentWorkout.oefeningen[idx];
       o.sets.splice(si, 1);
-      if (o.sets.length === 0) o.sets.push({ reps: null, gewicht: null });
+      if (o.sets.length === 0) o.sets.push(emptySet());
       renderPage();
-    };
+    }
+    window.delSet = delSet;
 
     window.saveWorkout = async () => {
       const msg = document.getElementById('msg');
       const btn = document.getElementById('saveBtn');
       msg.className = 'msg'; msg.textContent = '';
-      // Filter lege oefeningen weg
+      // Filter lege oefeningen weg, behoud done/skipped/rating in JSONB
       const filtered = currentWorkout.oefeningen
         .filter(o => (o.naam || '').trim().length > 0)
         .map(o => ({
           naam: o.naam.trim(),
-          sets: (o.sets || []).filter(s => s.reps != null || s.gewicht != null),
+          sets: (o.sets || []).filter(s => s.reps != null || s.gewicht != null || s.done || s.skipped),
           note: o.note || '',
-        }));
+        }))
+        .filter(o => o.sets.length > 0);
       if (filtered.length === 0) {
         msg.className = 'msg error';
         msg.textContent = 'Voeg minstens één oefening met sets toe.';
@@ -338,6 +534,13 @@
         });
         const data = await r.json();
         if (!r.ok || data.error) throw new Error(data.error || 'Opslaan mislukt');
+
+        // Side-write naar workout_sets (shadow-tabel voor analytics)
+        const savedLog = data.workout || null;
+        if (savedLog?.id && klantInfo?.id) {
+          syncWorkoutSets(savedLog.id, klantInfo.id, filtered).catch(err => console.warn('[workout_sets sync]', err));
+        }
+
         msg.className = 'msg success';
         msg.textContent = '✓ Workout opgeslagen.';
         // Refresh history + reset form
@@ -348,7 +551,7 @@
           datum: new Date().toISOString().slice(0, 10),
           week_nr: currentWorkout.week_nr,
           duur_min: null,
-          oefeningen: [{ naam: '', sets: [{ reps: null, gewicht: null }], note: '' }],
+          oefeningen: [{ naam: '', sets: [emptySet()], note: '' }],
           notities: '',
         };
         renderPage();
@@ -360,15 +563,50 @@
       }
     };
 
+    // Shadow-tabel: één rij per set voor rijke analytics.
+    // Bij update: oude rijen weg, opnieuw inserten.
+    async function syncWorkoutSets(workoutLogId, klantId, oefeningen) {
+      await supabase.from('workout_sets').delete().eq('workout_log_id', workoutLogId);
+      const rows = [];
+      for (const o of oefeningen) {
+        (o.sets || []).forEach((s, i) => {
+          if (s.skipped) return;
+          rows.push({
+            workout_log_id: workoutLogId,
+            klant_id: klantId,
+            exercise_name: o.naam,
+            set_number: i + 1,
+            reps: s.reps ?? null,
+            weight_kg: s.gewicht ?? null,
+            rating: s.rating ?? null,
+            note: o.note || null,
+          });
+        });
+      }
+      if (rows.length) {
+        const { error } = await supabase.from('workout_sets').insert(rows);
+        if (error) console.warn('[workout_sets insert]', error);
+      }
+    }
+
     window.loadWorkout = (id) => {
       const w = history.find(x => x.id === id);
       if (!w) return;
+      const oefs = (w.oefeningen || []).length
+        ? w.oefeningen.map(o => ({
+            naam: o.naam || '',
+            sets: (o.sets || []).length
+              ? o.sets.map(s => ({ reps: s.reps ?? null, gewicht: s.gewicht ?? null, done: !!s.done, skipped: !!s.skipped, rating: s.rating ?? null }))
+              : [emptySet()],
+            note: o.note || '',
+          }))
+        : [{ naam: '', sets: [emptySet()], note: '' }];
       currentWorkout = {
         id: w.id,
         datum: w.datum,
         week_nr: w.week_nr,
         duur_min: w.duur_min,
-        oefeningen: (w.oefeningen || []).length ? w.oefeningen : [{ naam: '', sets: [{ reps: null, gewicht: null }], note: '' }],
+        oefeningen: oefs,
         notities: w.notities || '',
       };
       renderPage();
