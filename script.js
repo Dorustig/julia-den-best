@@ -81,7 +81,7 @@ const T = {
         navCta: 'Start Nu',
         // Hero
         heroBadge: 'Nog maar 5 plekken beschikbaar deze maand',
-        heroTitle: 'Girll, jij verdient <span class="highlight">écht</span> een transformatie.',
+        heroTitle: 'Girl, jij verdient <span class="highlight">écht</span> een transformatie.',
         heroSubtitle: 'Of je wil <strong>afvallen</strong>, je <strong>billen laten aankomen</strong> of <strong>gespierd aankomen</strong>. Ik help elke vrouw in Nederland, beginner of gevorderd. <strong>Je krijgt persoonlijke 1-op-1 begeleiding, een plan op maat en ik sta elke dag voor je klaar.</strong> Tijd om je eindelijk lekker in je lichaam te voelen. ✨',
         usp1: '100% persoonlijke begeleiding',
         usp2: '1-op-1 persoonlijke coaching',
@@ -196,7 +196,7 @@ const T = {
     en: {
         navCta: 'Start Now',
         heroBadge: 'Only 5 spots left this month',
-        heroTitle: 'Girll, you <span class="highlight">truly</span> deserve a transformation.',
+        heroTitle: 'Girl, you <span class="highlight">truly</span> deserve a transformation.',
         heroSubtitle: 'I help every woman, whether you\'re just starting or already experienced. <strong>With me you get personal 1-on-1 coaching, a plan tailored to you and I\'m there for you every day.</strong> Time to finally feel at home in your body. ✨',
         usp1: '100% personal coaching',
         usp2: '1-on-1 personal coaching',

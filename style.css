@@ -358,8 +358,12 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', Georgia, serif; font-weight: 7
 .before-after { display: flex; align-items: center; gap: 8px; padding: 20px; }
 .ba-side { flex: 1; text-align: center; }
 .ba-label { display: block; font-size: 12px; font-weight: 600; color: var(--gray-text); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
-.ba-placeholder { height: 140px; background: var(--gray); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 14px; color: var(--gray-text); }
+.ba-placeholder { aspect-ratio: 3 / 4; background: var(--gray); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 14px; color: var(--gray-text); }
 .ba-placeholder.glow { background: linear-gradient(135deg, var(--pink-soft), #FCE7F3); color: var(--pink); font-weight: 600; }
+a.transformation-card { text-decoration: none; color: inherit; display: block; transition: transform .2s ease, box-shadow .2s ease; }
+a.transformation-card:hover { transform: translateY(-4px); box-shadow: 0 16px 36px rgba(233,30,140,0.18); }
+a.transformation-card:hover .jouw-reis-arrow { transform: translateX(4px); }
+.jouw-reis-arrow { color: var(--pink); display: inline-block; margin-left: 4px; transition: transform .2s ease; }
 
 /* Echte voor/na foto — vervangt ba-placeholder */
 .ba-photo {
