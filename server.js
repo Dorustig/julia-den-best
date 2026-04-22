@@ -307,12 +307,18 @@ const server = http.createServer(async (req, res) => {
   }
 
   // ===== SOCIAL TRACKING LINKS =====
-  // Korte, deelbare links voor in de bio. Redirect naar / met UTM-params
-  // zodat de first-touch attribution in script.js deze als bron opslaat.
-  // Voeg hier extra kanalen toe met hetzelfde patroon.
+  // Korte, deelbare links met bron-tracking. Redirect naar / met UTM-params
+  // zodat de first-touch attribution in script.js de bron opslaat bij de lead.
+  // Distincte utm_source per ingang zodat je in de admin direct ziet of een
+  // lead uit de bio, DM of ergens anders binnenkwam. Voeg hier extra kanalen
+  // toe met hetzelfde patroon.
   const SOCIAL_REDIRECTS = {
-    '/instagram': '/?utm_source=instagram&utm_medium=social&utm_campaign=bio',
-    '/ig':        '/?utm_source=instagram&utm_medium=social&utm_campaign=bio',
+    // Instagram
+    '/insta1':    '/?utm_source=instagram-bio&utm_medium=social&utm_campaign=bio',  // Julia's IG bio link
+    '/insta':     '/?utm_source=instagram-dm&utm_medium=social&utm_campaign=dm',    // IG DM link
+    '/instagram': '/?utm_source=instagram-bio&utm_medium=social&utm_campaign=bio',  // alias
+    '/ig':        '/?utm_source=instagram-bio&utm_medium=social&utm_campaign=bio',  // alias
+    // TikTok
     '/tiktok':    '/?utm_source=tiktok&utm_medium=social&utm_campaign=bio',
     '/tt':        '/?utm_source=tiktok&utm_medium=social&utm_campaign=bio',
   };
