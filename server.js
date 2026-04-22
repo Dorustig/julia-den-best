@@ -306,6 +306,22 @@ const server = http.createServer(async (req, res) => {
     return res.end();
   }
 
+  // ===== SOCIAL TRACKING LINKS =====
+  // Korte, deelbare links voor in de bio. Redirect naar / met UTM-params
+  // zodat de first-touch attribution in script.js deze als bron opslaat.
+  // Voeg hier extra kanalen toe met hetzelfde patroon.
+  const SOCIAL_REDIRECTS = {
+    '/instagram': '/?utm_source=instagram&utm_medium=social&utm_campaign=bio',
+    '/ig':        '/?utm_source=instagram&utm_medium=social&utm_campaign=bio',
+    '/tiktok':    '/?utm_source=tiktok&utm_medium=social&utm_campaign=bio',
+    '/tt':        '/?utm_source=tiktok&utm_medium=social&utm_campaign=bio',
+  };
+  const socialTarget = SOCIAL_REDIRECTS[pathname.replace(/\/$/, '')];
+  if (socialTarget) {
+    res.writeHead(302, { Location: socialTarget, 'Cache-Control': 'no-store' });
+    return res.end();
+  }
+
   // ===== AUTH ROUTES =====
 
   // POST /api/login — exchange username+password for a session cookie
