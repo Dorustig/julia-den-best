@@ -178,6 +178,7 @@ const MIME = {
   '.jpeg': 'image/jpeg', '.svg': 'image/svg+xml', '.ico': 'image/x-icon',
   '.webp': 'image/webp', '.gif': 'image/gif', '.woff2': 'font/woff2',
   '.txt': 'text/plain', '.xml': 'application/xml',
+  '.md': 'text/markdown; charset=utf-8',
 };
 
 // ===== HELPERS =====

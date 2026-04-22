@@ -1,0 +1,185 @@
+/* ===== POLICY PAGE STYLES ===== */
+/* Gedeeld door /algemene-voorwaarden en /privacy — beide laden een .md bestand uit /policies/ */
+
+.policy-nav {
+    background: var(--white);
+    border-bottom: 1px solid var(--gray, #E5E7EB);
+    padding: 16px 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.95);
+}
+
+.policy-nav-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+}
+
+.policy-nav a.policy-back {
+    color: var(--pink);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 15px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.policy-nav a.policy-back:hover { text-decoration: underline; }
+
+.policy-brand {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    text-decoration: none;
+}
+
+.policy-hero {
+    background: linear-gradient(135deg, var(--pink-soft), #FCE7F3);
+    padding: 48px 0 32px;
+    border-bottom: 1px solid var(--pink-light);
+}
+
+.policy-hero h1 {
+    font-size: clamp(28px, 4vw, 40px);
+    color: var(--text);
+    margin: 0 0 8px;
+    font-weight: 800;
+}
+
+.policy-hero .policy-meta {
+    color: #6B7280;
+    font-size: 14px;
+}
+
+.policy-main {
+    background: var(--white);
+    padding: 48px 0 64px;
+}
+
+.policy-content {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 0 20px;
+    color: var(--text);
+    font-size: 16px;
+    line-height: 1.7;
+}
+
+.policy-content h1 { display: none; }
+
+.policy-content h2 {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+    margin: 40px 0 12px;
+    padding-top: 16px;
+    border-top: 2px solid var(--pink-soft);
+}
+
+.policy-content h2:first-of-type { border-top: none; padding-top: 0; margin-top: 0; }
+
+.policy-content h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--pink);
+    margin: 28px 0 10px;
+}
+
+.policy-content p {
+    margin: 0 0 14px;
+    color: #374151;
+}
+
+.policy-content strong { color: var(--text); font-weight: 700; }
+
+.policy-content a {
+    color: var(--pink);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.policy-content a:hover { color: var(--pink-light); }
+
+.policy-content ul {
+    margin: 0 0 16px;
+    padding-left: 22px;
+}
+
+.policy-content li {
+    margin: 0 0 8px;
+    color: #374151;
+}
+
+.policy-content li::marker { color: var(--pink); }
+
+.policy-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0 20px;
+    font-size: 14px;
+    background: var(--white);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+.policy-content table th,
+.policy-content table td {
+    padding: 10px 14px;
+    text-align: left;
+    vertical-align: top;
+    border-bottom: 1px solid #E5E7EB;
+}
+
+.policy-content table th {
+    background: var(--pink-soft);
+    color: var(--text);
+    font-weight: 700;
+    font-size: 13px;
+}
+
+.policy-content table tr:last-child td { border-bottom: none; }
+
+.policy-content table tr:nth-child(even) td { background: #FAFAFB; }
+
+.policy-loading {
+    text-align: center;
+    padding: 40px;
+    color: #9CA3AF;
+}
+
+.policy-error {
+    text-align: center;
+    padding: 40px;
+    color: #DC2626;
+    background: #FEF2F2;
+    border-radius: 8px;
+    border: 1px solid #FCA5A5;
+}
+
+.policy-footer {
+    text-align: center;
+    padding: 40px 20px;
+    background: var(--pink-soft);
+    border-top: 1px solid var(--pink-light);
+    color: #6B7280;
+    font-size: 14px;
+}
+
+.policy-footer a { color: var(--pink); text-decoration: none; font-weight: 600; }
+.policy-footer a:hover { text-decoration: underline; }
+
+@media (max-width: 640px) {
+    .policy-hero { padding: 32px 0 24px; }
+    .policy-main { padding: 32px 0 48px; }
+    .policy-content { font-size: 15px; }
+    .policy-content h2 { font-size: 19px; }
+    .policy-content h3 { font-size: 17px; }
+    .policy-content table { font-size: 13px; display: block; overflow-x: auto; }
+    .policy-content table th, .policy-content table td { padding: 8px 10px; }
+}

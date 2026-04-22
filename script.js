@@ -1108,21 +1108,27 @@ applyTranslations(currentLang);
 (function setupMobileStickyCTA() {
     const stickyCTA = document.getElementById('mobileStickyCTA');
     const formSection = document.getElementById('vragenlijst');
+    const footerEl = document.querySelector('.footer');
     if (!stickyCTA || !formSection) return;
 
     let formVisible = false;
+    let footerVisible = false;
     if ('IntersectionObserver' in window) {
         const obs = new IntersectionObserver((entries) => {
-            entries.forEach(e => { formVisible = e.isIntersecting; });
+            entries.forEach(e => {
+                if (e.target === formSection) formVisible = e.isIntersecting;
+                if (e.target === footerEl) footerVisible = e.isIntersecting;
+            });
             update();
         }, { threshold: 0.15 });
         obs.observe(formSection);
+        if (footerEl) obs.observe(footerEl);
     }
 
     let ticking = false;
     function update() {
         const scrolled = window.scrollY > 400; // show after passing hero
-        const shouldShow = scrolled && !formVisible;
+        const shouldShow = scrolled && !formVisible && !footerVisible;
         stickyCTA.classList.toggle('visible', shouldShow);
         stickyCTA.setAttribute('aria-hidden', shouldShow ? 'false' : 'true');
         ticking = false;
