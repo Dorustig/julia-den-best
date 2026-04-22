@@ -80,11 +80,15 @@ const ADMIN_PASS = process.env.ADMIN_PASS || 'Deurenzijncool123';
 // Tweede admin: Julia (coach zelf). Krijgt dezelfde rechten als Dorus.
 const ADMIN_USER_2 = process.env.ADMIN_USER_2 || 'Julia';
 const ADMIN_PASS_2 = process.env.ADMIN_PASS_2 || '#Cheesy123';
+// Derde admin: Kim (appointment setter). Zelfde rechten — ziet alle leads.
+const ADMIN_USER_3 = process.env.ADMIN_USER_3 || 'Kim01hendriks@gmail.com';
+const ADMIN_PASS_3 = process.env.ADMIN_PASS_3 || '#CalvinsSaus321';
 
-// Lijst van toegestane (user, pass) combinaties — beide hebben admin rechten.
+// Lijst van toegestane (user, pass) combinaties — alle drie hebben admin rechten.
 const ADMIN_CREDENTIALS = [
   { user: ADMIN_USER,   pass: ADMIN_PASS },
   { user: ADMIN_USER_2, pass: ADMIN_PASS_2 },
+  { user: ADMIN_USER_3, pass: ADMIN_PASS_3 },
 ];
 
 // Session secret used to sign cookies. Generated once and persisted to the
