@@ -181,9 +181,6 @@ const T = {
         modalReminderSpan: 'of geef hier je beschikbaarheid alvast door.',
         modalCTA: 'Stuur beschikbaarheid',
         modalDisclaimer: '* Als je het ons niet laat weten, nemen wij binnen 1 uur contact met je op met een vaste datum en tijd.',
-        modalDivider: 'Bekijk daarna de korte video voor de volgende stap',
-        modalVideoTitle: 'Julia legt uit wat er nu gebeurt',
-        modalVideoSub: 'Korte video · klik om te bekijken',
         avTitle: 'Wanneer komt het jou uit?',
         avDaysLabel: 'Welke dagen?',
         avTijdvakLabel: 'Voorkeur tijdvak',
@@ -286,9 +283,6 @@ const T = {
         modalReminderSpan: 'or share your availability below.',
         modalCTA: 'Share availability',
         modalDisclaimer: "* If you don't let us know, we'll contact you within 1 hour with a fixed date and time.",
-        modalDivider: 'Afterwards, watch the short video for the next step',
-        modalVideoTitle: 'Julia explains what happens next',
-        modalVideoSub: 'Short video · click to watch',
         avTitle: 'When works for you?',
         avDaysLabel: 'Which days?',
         avTijdvakLabel: 'Preferred time',
@@ -398,9 +392,6 @@ const TRANSLATION_MAP = [
     { sel: '.reminder-text span', key: 'modalReminderSpan' },
     { sel: '#beschikbaarheidBtn', key: 'modalCTA' },
     { sel: '.success-disclaimer', key: 'modalDisclaimer' },
-    { sel: '.almost-done-divider span', key: 'modalDivider' },
-    { sel: '.video-caption strong', key: 'modalVideoTitle' },
-    { sel: '.video-caption > span', key: 'modalVideoSub' },
     { sel: '.availability-form h3', key: 'avTitle' },
     { sel: '.availability-form .av-field:nth-of-type(1) .av-field-label', key: 'avDaysLabel' },
     { sel: '.availability-form .av-field:nth-of-type(2) .av-field-label', key: 'avTijdvakLabel' },
@@ -939,18 +930,6 @@ document.addEventListener('visibilitychange', () => {
         });
     }
 
-    // Video card placeholder — opens alert until real video is connected
-    const videoCard = document.getElementById('juliaVideoCard');
-    if (videoCard) {
-        const openVideo = () => {
-            // TODO: replace with real video URL (YouTube iframe or direct mp4)
-            alert('Julia is bezig met het opnemen van de video. Voor nu: we nemen snel contact met je op!');
-        };
-        videoCard.addEventListener('click', openVideo);
-        videoCard.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openVideo(); }
-        });
-    }
 })();
 
 // ===== TIMELINE SCROLL-FILL + Foundation/Elite Toggle =====
