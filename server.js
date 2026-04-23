@@ -340,7 +340,9 @@ const server = http.createServer(async (req, res) => {
     try { creds = JSON.parse(await readBody(req)); }
     catch { return jsonRes(res, 400, { error: 'Invalid JSON' }); }
     // Trim — defensive against clients that send a trailing newline/space.
-    const user = String(creds.username || '').trim();
+    // Username case-insensitive zodat email-style logins (Kim) niet struikelen
+    // over hoofdletters. Wachtwoord blijft case-sensitive.
+    const user = String(creds.username || '').trim().toLowerCase();
     const pass = String(creds.password || '').trim();
     // Check tegen alle toegestane (user, pass) combinaties.
     // Constant-time compare op beide velden (user + pass) om timing-leaks te
@@ -350,7 +352,7 @@ const server = http.createServer(async (req, res) => {
     const passBuf = Buffer.from(pass.padEnd(64, '\0').slice(0, 64));
     let matchedUser = null;
     for (const cred of ADMIN_CREDENTIALS) {
-      const expectedUser = Buffer.from(cred.user.padEnd(64, '\0').slice(0, 64));
+      const expectedUser = Buffer.from(cred.user.toLowerCase().padEnd(64, '\0').slice(0, 64));
       const expectedPass = Buffer.from(cred.pass.padEnd(64, '\0').slice(0, 64));
       const uOk = crypto.timingSafeEqual(userBuf, expectedUser);
       const pOk = crypto.timingSafeEqual(passBuf, expectedPass);
