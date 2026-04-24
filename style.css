@@ -287,15 +287,107 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', Georgia, serif; font-weight: 7
     margin-bottom: 14px; font-weight: 800; line-height: 1.15;
 }
 .welcome-video-intro p { color: var(--gray-text); font-size: 17px; line-height: 1.6; margin: 0; }
-.welcome-video-frame {
+/* Custom video player — zonder fullscreen, PiP, playback speed etc. */
+.welcome-video-player {
+    position: relative;
     max-width: 920px; margin: 0 auto;
     border-radius: 24px; overflow: hidden;
     box-shadow: 0 24px 60px rgba(233,30,140,0.22), 0 8px 20px rgba(0,0,0,0.08);
     border: 3px solid var(--white);
     background: #000;
-    position: relative;
+    cursor: pointer;
+    user-select: none;
 }
-.welcome-video { display: block; width: 100%; height: auto; aspect-ratio: 16/9; background: #000; }
+.welcome-video {
+    display: block; width: 100%; height: auto;
+    aspect-ratio: 16/9; background: #000;
+    pointer-events: none; /* klikken gaan naar de player-wrapper */
+}
+/* Hide native controls op iOS Safari die soms tóch verschijnen */
+.welcome-video::-webkit-media-controls { display: none !important; }
+.welcome-video::-webkit-media-controls-enclosure { display: none !important; }
+.welcome-video::-webkit-media-controls-start-playback-button { display: none !important; -webkit-appearance: none; }
+
+/* "Klik voor geluid" overlay */
+.video-unmute-overlay {
+    position: absolute; inset: 0;
+    display: flex; align-items: flex-end; justify-content: center;
+    padding-bottom: 54px;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    z-index: 2;
+}
+.video-unmute-overlay.hidden { opacity: 0; }
+.video-unmute-badge {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: rgba(255,255,255,0.96);
+    color: var(--pink);
+    padding: 12px 22px;
+    border-radius: 50px;
+    font-weight: 700; font-size: 16px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.28), 0 0 0 2px rgba(233,30,140,0.15);
+    animation: unmutePulse 2s ease-in-out infinite;
+}
+@keyframes unmutePulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 8px 24px rgba(0,0,0,0.28), 0 0 0 2px rgba(233,30,140,0.15); }
+    50% { transform: scale(1.06); box-shadow: 0 10px 28px rgba(0,0,0,0.32), 0 0 0 6px rgba(233,30,140,0.12); }
+}
+.video-unmute-icon { display: inline-flex; }
+
+/* Mute/unmute knop rechtsboven */
+.video-mute-btn {
+    position: absolute; top: 14px; right: 14px;
+    width: 42px; height: 42px;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(0,0,0,0.55);
+    color: white; border: none; border-radius: 50%;
+    cursor: pointer; transition: background 0.2s, transform 0.15s;
+    z-index: 3; -webkit-tap-highlight-color: transparent;
+}
+.video-mute-btn:hover { background: rgba(0,0,0,0.78); transform: scale(1.05); }
+.video-mute-btn .icon-unmuted { display: none; }
+.welcome-video-player.unmuted .video-mute-btn .icon-muted { display: none; }
+.welcome-video-player.unmuted .video-mute-btn .icon-unmuted { display: inline-flex; }
+
+/* Grote play-knop in midden — alleen zichtbaar bij pauze/ended */
+.video-play-btn {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 82px; height: 82px;
+    background: rgba(255,255,255,0.96);
+    color: var(--pink); border: none; border-radius: 50%;
+    cursor: pointer;
+    display: none;
+    align-items: center; justify-content: center;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.4);
+    z-index: 2;
+    padding-left: 6px;
+    transition: transform 0.15s;
+}
+.video-play-btn:hover { transform: translate(-50%, -50%) scale(1.06); }
+.welcome-video-player.paused .video-play-btn,
+.welcome-video-player.ended .video-play-btn { display: flex; }
+
+/* Progress bar onderaan (niet klikbaar — alleen visueel) */
+.video-progress-bar {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 4px;
+    background: rgba(255,255,255,0.2);
+    z-index: 2; pointer-events: none;
+}
+.video-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--pink), var(--pink-light));
+    width: 0%;
+    transition: width 0.1s linear;
+}
+
+@media (max-width: 640px) {
+    .video-mute-btn { width: 38px; height: 38px; top: 10px; right: 10px; }
+    .video-play-btn { width: 68px; height: 68px; }
+    .video-unmute-overlay { padding-bottom: 40px; }
+    .video-unmute-badge { font-size: 14px; padding: 10px 18px; }
+}
 .welcome-video-cta { text-align: center; padding: 36px 20px 0; max-width: 620px; margin: 0 auto; }
 .welcome-cta-text { font-size: 18px; font-weight: 600; color: var(--text); margin: 0 0 12px; line-height: 1.5; }
 .welcome-arrow {

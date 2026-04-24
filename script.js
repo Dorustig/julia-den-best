@@ -1145,3 +1145,79 @@ applyTranslations(currentLang);
     }, { passive: true });
     update();
 })();
+
+// ===== WELKOMSTVIDEO — custom player =====
+// Autoplay muted + "Klik voor geluid" overlay; geen fullscreen, geen PiP,
+// geen playback-speed. Eerste klik unmute, volgende klikken toggle play/pause.
+(function setupJuliaVideo() {
+    const video = document.getElementById('juliaVideo');
+    const player = document.getElementById('juliaVideoPlayer');
+    if (!video || !player) return;
+    const unmuteOverlay = document.getElementById('videoUnmuteOverlay');
+    const playBtn = document.getElementById('videoPlayBtn');
+    const muteBtn = document.getElementById('videoMuteBtn');
+    const progressFill = document.getElementById('videoProgressFill');
+
+    let hasUnmuted = false;
+
+    // Probeer autoplay (muted + playsinline is toegestaan door browsers)
+    const tryPlay = () => video.play().catch(() => {/* geblokkeerd — user klikt zelf */});
+    tryPlay();
+
+    function unmute() {
+        video.muted = false;
+        try { video.volume = 1; } catch (e) {}
+        hasUnmuted = true;
+        player.classList.add('unmuted');
+        unmuteOverlay?.classList.add('hidden');
+    }
+    function doMute() {
+        video.muted = true;
+        player.classList.remove('unmuted');
+    }
+
+    // Klik ergens op de player:
+    //   • 1e keer: unmute + start spelen
+    //   • daarna: toggle play/pause
+    // Klikken op mute-/play-knop worden door hun eigen handlers afgehandeld.
+    player.addEventListener('click', (e) => {
+        if (e.target.closest('.video-mute-btn') || e.target.closest('.video-play-btn')) return;
+        if (!hasUnmuted) {
+            unmute();
+            tryPlay();
+            return;
+        }
+        if (video.paused || video.ended) tryPlay();
+        else video.pause();
+    });
+
+    muteBtn?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (video.muted) unmute();
+        else doMute();
+    });
+
+    playBtn?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (!hasUnmuted) unmute();
+        if (video.paused || video.ended) tryPlay();
+        else video.pause();
+    });
+
+    // Verhinder dubbelklik → fullscreen (extra defensie boven disablePictureInPicture +
+    // controlsList, omdat sommige browsers het nog steeds toelaten via dbl-click)
+    video.addEventListener('dblclick', (e) => e.preventDefault());
+
+    video.addEventListener('play',  () => { player.classList.add('playing');  player.classList.remove('paused','ended'); });
+    video.addEventListener('pause', () => { player.classList.remove('playing'); player.classList.add('paused'); });
+    video.addEventListener('ended', () => { player.classList.remove('playing'); player.classList.add('ended'); });
+    video.addEventListener('timeupdate', () => {
+        if (!video.duration || !progressFill) return;
+        progressFill.style.width = (video.currentTime / video.duration * 100) + '%';
+    });
+
+    // Eerste user-interactie met de pagina mag ook unmute triggeren (sommige
+    // browsers forceren user-gesture voor unmute — scrolling telt niet als
+    // gesture, klikken wel)
+    // Al gedekt door de player.click boven.
+})();
