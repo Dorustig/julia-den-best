@@ -1166,6 +1166,12 @@ function initCustomVideoPlayer(player, opts = {}) {
     const tryPlay = () => video.play().catch(() => {/* geblokkeerd — user klikt zelf */});
 
     function unmute() {
+        // Bij de ALLEREERSTE unmute-klik: start video opnieuw vanaf 0 zodat
+        // de user niks van de boodschap mist. Latere mute/unmute toggles
+        // laten currentTime met rust.
+        if (!hasUnmuted) {
+            try { video.currentTime = 0; } catch (e) {}
+        }
         video.muted = false;
         try { video.volume = 1; } catch (e) {}
         hasUnmuted = true;
