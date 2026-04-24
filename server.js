@@ -22,6 +22,7 @@ const BACKUP_DIR = path.join(DATA_DIR, 'backups');
 const LEADS_FILE = path.join(DATA_DIR, 'leads.json');
 const LEADS_APPEND_LOG = path.join(DATA_DIR, 'leads-append.jsonl');
 const TRACKING_FILE = path.join(DATA_DIR, 'tracking.json');
+const LINK_CLICKS_LOG = path.join(DATA_DIR, 'link-clicks.jsonl');
 
 // Ensure data + backup directories exist
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -217,6 +218,30 @@ function appendLeadLog(lead) {
 function leadExists(leads, id) {
   return id && leads.some(l => l.id === id);
 }
+
+// ===== LINK CLICK TRACKING =====
+// Elke hit op /insta1, /tiktok etc. wordt als 1 regel weggeschreven naar
+// link-clicks.jsonl. Bot-user-agents worden gefilterd (anders blazen link-
+// previews van WhatsApp/Facebook/Slack de cijfers op). Fire-and-forget
+// zodat een traag disk de redirect niet vertraagt.
+const BOT_UA_RE = /bot|crawler|spider|slurp|preview|whatsapp|facebookexternalhit|facebot|telegram|linkedinbot|twitter|discord|embedly|applebot|semrush|ahrefs|petal|bingbot|yandex|duckduckbot|baiduspider/i;
+function logLinkClick(socialPath, target, req) {
+  try {
+    const ua = req.headers['user-agent'] || '';
+    if (!ua || BOT_UA_RE.test(ua)) return;
+    // Extract utm_source uit target URL voor eenvoudige lookup in analytics
+    const m = target.match(/utm_source=([^&]+)/);
+    const utm_source = m ? decodeURIComponent(m[1]) : '';
+    const entry = {
+      ts: new Date().toISOString(),
+      path: socialPath,
+      utm_source,
+      ua: ua.substring(0, 200),
+      ref: (req.headers.referer || '').substring(0, 300),
+    };
+    fs.appendFile(LINK_CLICKS_LOG, JSON.stringify(entry) + '\n', () => {});
+  } catch (e) {}
+}
 function leadsToCSV(leads) {
   const headers = ['id','timestamp','naam','email','telefoon','instagram','leeftijd','doel_type','nummer_een_doel','obstakel','urgentie','budget','bereid','status','bron','utm_source','utm_medium','utm_campaign','utm_content','referrer','lang','notities'];
   const escape = v => {
@@ -327,8 +352,12 @@ const server = http.createServer(async (req, res) => {
     '/tiktok':    '/?utm_source=tiktok&utm_medium=social&utm_campaign=bio',
     '/tt':        '/?utm_source=tiktok&utm_medium=social&utm_campaign=bio',
   };
-  const socialTarget = SOCIAL_REDIRECTS[pathname.replace(/\/$/, '')];
+  const socialPath = pathname.replace(/\/$/, '');
+  const socialTarget = SOCIAL_REDIRECTS[socialPath];
   if (socialTarget) {
+    // Log de klik voor analytics (bot-UAs worden weggefilterd) — zie
+    // helperfunctie hieronder. Doet fire-and-forget, blokkeert redirect niet.
+    logLinkClick(socialPath, socialTarget, req);
     res.writeHead(302, { Location: socialTarget, 'Cache-Control': 'no-store' });
     return res.end();
   }
@@ -1713,6 +1742,78 @@ const server = http.createServer(async (req, res) => {
       urgent: leads.filter(l => parseInt(l.urgentie) >= 4).length,
       vandaag: leads.filter(l => l.timestamp && l.timestamp.startsWith(today)).length,
     });
+  }
+
+  // GET /api/analytics/sources — clicks per link + leads + conversieratio's
+  // Admin-only. Leest de append-only link-clicks log en combineert met leads.
+  if (pathname === '/api/analytics/sources' && req.method === 'GET') {
+    if (!requireAuth(req, res)) return;
+    try {
+      // 1. Klikken per utm_source (uit link-clicks.jsonl)
+      const clicksBySource = {};
+      const clicksByPath = {};
+      try {
+        const raw = fs.readFileSync(LINK_CLICKS_LOG, 'utf-8');
+        for (const line of raw.split('\n')) {
+          if (!line.trim()) continue;
+          try {
+            const c = JSON.parse(line);
+            const src = (c.utm_source || 'unknown').toLowerCase();
+            clicksBySource[src] = (clicksBySource[src] || 0) + 1;
+            const p = c.path || '';
+            clicksByPath[p] = (clicksByPath[p] || 0) + 1;
+          } catch (e) { /* skip malformed line */ }
+        }
+      } catch (e) { /* file bestaat nog niet — 0 klikken */ }
+
+      // 2. Leads per bron + status
+      const leads = readLeads();
+      const leadsBySource = {};
+      for (const l of leads) {
+        const src = (l.bron || 'direct').toLowerCase().trim() || 'direct';
+        if (!leadsBySource[src]) {
+          leadsBySource[src] = { total: 0, nieuw: 0, gebeld: 0, afspraak: 0, klant: 0, verloren: 0 };
+        }
+        leadsBySource[src].total += 1;
+        const status = (l.status || 'nieuw').toLowerCase();
+        if (leadsBySource[src][status] !== undefined) leadsBySource[src][status] += 1;
+      }
+
+      // 3. Combineren per source
+      const allSources = new Set([...Object.keys(clicksBySource), ...Object.keys(leadsBySource)]);
+      const rows = [];
+      for (const src of allSources) {
+        const clicks = clicksBySource[src] || 0;
+        const info = leadsBySource[src] || { total: 0, nieuw: 0, gebeld: 0, afspraak: 0, klant: 0, verloren: 0 };
+        rows.push({
+          source: src,
+          clicks,
+          leads: info.total,
+          nieuw: info.nieuw,
+          gebeld: info.gebeld,
+          afspraak: info.afspraak,
+          klant: info.klant,
+          verloren: info.verloren,
+          // Conversieratio's (null als geen noemer)
+          click_to_lead: clicks > 0 ? (info.total / clicks) : null,
+          lead_to_klant: info.total > 0 ? (info.klant / info.total) : null,
+          click_to_klant: clicks > 0 ? (info.klant / clicks) : null,
+        });
+      }
+      rows.sort((a, b) => (b.clicks + b.leads) - (a.clicks + a.leads));
+
+      return jsonRes(res, 200, {
+        sources: rows,
+        byPath: clicksByPath,
+        totals: {
+          total_clicks: Object.values(clicksBySource).reduce((a, b) => a + b, 0),
+          total_leads: leads.length,
+          total_klanten: leads.filter(l => (l.status || '').toLowerCase() === 'klant').length,
+        },
+      });
+    } catch (e) {
+      return jsonRes(res, 500, { error: e.message });
+    }
   }
 
   // GET /api/tracking-config — tracking pixel IDs (public, read-only)

@@ -482,6 +482,17 @@
                 </div>
             </div>
 
+            <!-- Tracking links analytics: klikken per bron + booking-rate -->
+            <div class="analytics-card" style="margin-top:14px">
+                <h3>
+                    <span>🔗 Tracking links — klikken & conversie</span>
+                    <button class="tab-btn" onclick="loadSourceAnalytics()" title="Ververs">↻</button>
+                </h3>
+                <div id="sourceAnalyticsContent">
+                    <p style="color:#9CA3AF;font-size:13px">Klik op ↻ om te laden, of wacht op auto-load...</p>
+                </div>
+            </div>
+
             <!-- Filters -->
             <div class="filters">
                 <input type="text" class="filter-input" id="searchInput" placeholder="Zoek op naam, email, Instagram..." oninput="renderTable()">
@@ -623,6 +634,83 @@
             updateStats();
             renderTable();
             renderAnalytics();
+            loadSourceAnalytics();
+        }
+
+        // ===== Tracking-link analytics =====
+        // Haalt klikken-per-bron + leads + conversies op. Rendert tabel.
+        async function loadSourceAnalytics() {
+            const root = document.getElementById('sourceAnalyticsContent');
+            if (!root) return;
+            root.innerHTML = '<p style="color:#9CA3AF;font-size:13px">Laden…</p>';
+            try {
+                const res = await fetch('/api/analytics/sources');
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                const data = await res.json();
+                renderSourceAnalytics(data);
+            } catch (e) {
+                root.innerHTML = `<p style="color:#DC2626;font-size:13px">Kon analytics niet laden: ${esc(e.message)}</p>`;
+            }
+        }
+
+        function renderSourceAnalytics(data) {
+            const root = document.getElementById('sourceAnalyticsContent');
+            if (!root || !data?.sources) return;
+            const pct = (v) => v == null ? '—' : (v * 100).toFixed(1) + '%';
+            const pretty = (src) => {
+                const map = {
+                    'instagram-bio': '📸 Instagram — Bio (/insta1)',
+                    'instagram-dm':  '💬 Instagram — DM (/insta)',
+                    'instagram':     '📸 Instagram (algemeen)',
+                    'tiktok':        '🎵 TikTok (/tiktok)',
+                    'youtube':       '▶️ YouTube',
+                    'facebook':      '📘 Facebook',
+                    'google':        '🔍 Google',
+                    'direct':        '🌐 Direct (geen link)',
+                };
+                return map[src] || src;
+            };
+            const rows = data.sources.length === 0
+                ? '<tr><td colspan="6" style="padding:20px;text-align:center;color:#9CA3AF">Nog geen klikken of leads. Deel een /insta1 of /tiktok link om data te verzamelen.</td></tr>'
+                : data.sources.map(s => `
+                    <tr>
+                        <td style="padding:10px 8px;font-weight:600">${esc(pretty(s.source))}</td>
+                        <td style="padding:10px 8px;text-align:right;font-variant-numeric:tabular-nums">${s.clicks}</td>
+                        <td style="padding:10px 8px;text-align:right;font-variant-numeric:tabular-nums">${s.leads}</td>
+                        <td style="padding:10px 8px;text-align:right;font-variant-numeric:tabular-nums;color:#10B981;font-weight:600">${s.klant}</td>
+                        <td style="padding:10px 8px;text-align:right;font-variant-numeric:tabular-nums;color:#6B7280">${pct(s.click_to_lead)}</td>
+                        <td style="padding:10px 8px;text-align:right;font-variant-numeric:tabular-nums;color:#6B7280">${pct(s.click_to_klant)}</td>
+                    </tr>
+                `).join('');
+
+            const t = data.totals || {};
+            root.innerHTML = `
+                <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px;font-size:13px">
+                    <span style="background:#FDF2F8;color:#E91E8C;padding:6px 12px;border-radius:8px;font-weight:600">Klikken totaal: ${t.total_clicks ?? 0}</span>
+                    <span style="background:#ECFDF5;color:#047857;padding:6px 12px;border-radius:8px;font-weight:600">Leads: ${t.total_leads ?? 0}</span>
+                    <span style="background:#EFF6FF;color:#1D4ED8;padding:6px 12px;border-radius:8px;font-weight:600">Klanten: ${t.total_klanten ?? 0}</span>
+                </div>
+                <div style="overflow-x:auto">
+                <table style="width:100%;border-collapse:collapse;font-size:13px">
+                    <thead>
+                        <tr style="background:#F9FAFB;color:#374151;text-align:left;border-bottom:2px solid #E5E7EB">
+                            <th style="padding:10px 8px;font-weight:700">Bron</th>
+                            <th style="padding:10px 8px;text-align:right;font-weight:700">Klikken</th>
+                            <th style="padding:10px 8px;text-align:right;font-weight:700">Leads</th>
+                            <th style="padding:10px 8px;text-align:right;font-weight:700">Klanten</th>
+                            <th style="padding:10px 8px;text-align:right;font-weight:700" title="Hoeveel % van de klikken vult ook het formulier in">Klik → Lead</th>
+                            <th style="padding:10px 8px;text-align:right;font-weight:700" title="Hoeveel % van de klikken wordt uiteindelijk klant (booking rate)">Klik → Klant</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rows}</tbody>
+                </table>
+                </div>
+                <p style="color:#9CA3AF;font-size:11px;margin-top:10px;line-height:1.4">
+                    <strong>Tip:</strong> <code>/insta1</code> voor IG bio-link, <code>/insta</code> voor IG DM,
+                    <code>/tiktok</code> voor TikTok. Zet die in je bio/DM en deze tabel laat zien welke het beste converteert.
+                    Bot-traffic (WhatsApp/Slack/Facebook previews etc.) wordt automatisch uitgefilterd.
+                </p>
+            `;
         }
 
         async function logout() {
