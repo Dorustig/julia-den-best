@@ -314,6 +314,25 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', Georgia, serif; font-weight: 7
 .quiz-textarea { width: 100%; min-height: 120px; padding: 16px; border: 2px solid var(--gray); border-radius: var(--radius-sm); font-family: 'Inter', sans-serif; font-size: 15px; resize: vertical; transition: var(--transition); margin-top: 24px; }
 .quiz-textarea:focus { outline: none; border-color: var(--pink); box-shadow: 0 0 0 3px var(--pink-glow); }
 
+/* Leeftijd-input — simpel nummerveld met 'jaar' suffix */
+.age-input-wrap { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 32px; }
+.quiz-age-input {
+    width: 180px; padding: 20px 24px; border: 2px solid var(--gray);
+    border-radius: var(--radius-sm); font-family: 'Inter', sans-serif;
+    font-size: 28px; font-weight: 600; text-align: center;
+    transition: var(--transition); color: var(--text);
+    -moz-appearance: textfield;
+}
+.quiz-age-input::-webkit-outer-spin-button,
+.quiz-age-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.quiz-age-input:focus { outline: none; border-color: var(--pink); box-shadow: 0 0 0 3px var(--pink-glow); }
+.quiz-age-input::placeholder { color: #C7CED9; font-weight: 400; }
+.age-suffix { font-size: 20px; font-weight: 500; color: var(--gray-text); }
+@media (max-width: 640px) {
+    .quiz-age-input { width: 140px; font-size: 24px; padding: 16px 20px; }
+    .age-suffix { font-size: 18px; }
+}
+
 .commitment-section { margin-top: 24px; }
 .commitment-card { text-align: center; padding: 40px 24px; background: linear-gradient(135deg, var(--pink-soft), #FCE7F3); border-radius: var(--radius); border: 2px solid var(--pink-light); }
 .commitment-emoji { font-size: 48px; display: block; margin-bottom: 16px; }

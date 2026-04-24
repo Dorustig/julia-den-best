@@ -116,7 +116,7 @@ const T = {
         stepOf: 'Stap {n} van 8',
         q1: 'Hoe kan ik je het beste helpen?',
         q1a: 'Afvallen', q1b: 'Spiermassa opbouwen', q1c: 'Gezonde levensstijl', q1d: 'Lichaamstransformatie',
-        q2: 'Wat is jouw leeftijd?',
+        q2: 'Hoe oud ben je?',
         q2a: '16 tot 17 jaar', q2b: '18 tot 25 jaar', q2c: '25 tot 35 jaar', q2d: '35+ jaar',
         q3: 'Wat is je absolute nummer 1 doel op het gebied van fitness en gezondheid?',
         q3ph: 'Vertel hier over je belangrijkste doel...',
@@ -225,7 +225,7 @@ const T = {
         stepOf: 'Step {n} of 8',
         q1: 'How can I help you best?',
         q1a: 'Lose weight', q1b: 'Build muscle', q1c: 'Healthy lifestyle', q1d: 'Body transformation',
-        q2: 'What is your age?',
+        q2: 'How old are you?',
         q2a: '16 to 17 years', q2b: '18 to 25 years', q2c: '25 to 35 years', q2d: '35+ years',
         q3: 'What is your absolute #1 goal regarding fitness and health?',
         q3ph: 'Tell us about your most important goal...',
@@ -614,10 +614,21 @@ function validateCurrentStep() {
         if (!ta.value.trim()) { showFieldError(ta, 'Vul dit veld in'); return false; }
     }
 
-    const inputs = step.querySelectorAll('input[type="text"][required], input[type="email"][required], input[type="tel"][required]');
+    const inputs = step.querySelectorAll('input[type="text"][required], input[type="email"][required], input[type="tel"][required], input[type="number"][required]');
     for (const input of inputs) {
         if (!input.value.trim()) { showFieldError(input, 'Vul dit veld in'); return false; }
         clearFieldError(input);
+    }
+
+    // Leeftijd-input: minimaal 16 (wettelijk), realistisch max 99
+    const ageInput = step.querySelector('input[name="leeftijd"]');
+    if (ageInput && ageInput.type === 'number' && ageInput.value) {
+        const n = parseInt(ageInput.value, 10);
+        if (isNaN(n) || n < 16 || n > 99) {
+            showFieldError(ageInput, 'Vul een leeftijd in tussen 16 en 99');
+            return false;
+        }
+        clearFieldError(ageInput);
     }
 
     const emailInput = step.querySelector('input[type="email"]');
@@ -707,6 +718,14 @@ document.querySelectorAll('.option-card input[type="radio"], .scale-card input[t
         if (stepNum === 7 || stepNum === 5) return;
         setTimeout(() => { if (currentStep < TOTAL_STEPS) { currentStep++; showStep(currentStep); } }, 300);
     });
+});
+
+// Enter-toets op leeftijd-input = klikt Volgende (handiger op mobiel)
+document.querySelector('input[name="leeftijd"]')?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        document.getElementById('btnVolgende')?.click();
+    }
 });
 
 document.querySelector('.btn-commitment')?.addEventListener('click', () => {

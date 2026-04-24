@@ -575,12 +575,10 @@
 
                     <!-- STAP 2 -->
                     <div class="quiz-step" data-step="2">
-                        <h3>Wat is jouw leeftijd?</h3>
-                        <div class="options-grid">
-                            <label class="option-card"><input type="radio" name="leeftijd" value="16-17" required><div class="option-content"><span class="option-text">16 tot 17 jaar</span></div></label>
-                            <label class="option-card"><input type="radio" name="leeftijd" value="18-25"><div class="option-content"><span class="option-text">18 tot 25 jaar</span></div></label>
-                            <label class="option-card"><input type="radio" name="leeftijd" value="25-35"><div class="option-content"><span class="option-text">25 tot 35 jaar</span></div></label>
-                            <label class="option-card"><input type="radio" name="leeftijd" value="35+"><div class="option-content"><span class="option-text">35+ jaar</span></div></label>
+                        <h3>Hoe oud ben je?</h3>
+                        <div class="age-input-wrap">
+                            <input type="number" name="leeftijd" class="quiz-age-input" min="16" max="99" step="1" placeholder="28" inputmode="numeric" autocomplete="off" required>
+                            <span class="age-suffix">jaar</span>
                         </div>
                     </div>
 
