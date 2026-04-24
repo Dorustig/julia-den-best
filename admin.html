@@ -659,6 +659,24 @@
             return b || 'direct';
         }
 
+        // Friendly labels voor tracking bronnen — map technische waarde naar
+        // duidelijke omschrijving zodat Dorus direct ziet welke link gebruikt is.
+        function bronLabel(bron) {
+            const b = (bron || '').toLowerCase().trim();
+            const map = {
+                'instagram-bio': { label: 'Instagram — Bio link', link: '/insta1', emoji: '📸' },
+                'instagram-dm':  { label: 'Instagram — DM link', link: '/insta',  emoji: '💬' },
+                'instagram':     { label: 'Instagram (algemeen)', link: '/instagram of /ig', emoji: '📸' },
+                'tiktok':        { label: 'TikTok', link: '/tiktok of /tt', emoji: '🎵' },
+                'youtube':       { label: 'YouTube', link: '(via referrer)', emoji: '▶️' },
+                'facebook':      { label: 'Facebook', link: '(via referrer)', emoji: '📘' },
+                'google':        { label: 'Google', link: '(via referrer)', emoji: '🔍' },
+                '':              { label: 'Direct (geen trackinglink gebruikt)', link: 'typed juliabesten.nl in', emoji: '🌐' },
+                'direct':        { label: 'Direct (geen trackinglink gebruikt)', link: 'typed juliabesten.nl in', emoji: '🌐' },
+            };
+            return map[b] || { label: bron, link: '(onbekende bron)', emoji: '❓' };
+        }
+
         function renderAnalytics() {
             // --- Source breakdown ---
             const now = Date.now();
@@ -849,7 +867,11 @@
                 <div class="lead-field" style="margin-top:8px"><label>Nummer 1 Doel</label><div class="value">${esc(l.nummer_een_doel || '-')}</div></div>
                 <div class="lead-field"><label>Obstakel</label><div class="value">${esc(l.obstakel || '-')}</div></div>
                 <div class="lead-field"><label>Bron / Traffic Source</label><div class="value">
-                    <strong>${esc(l.bron || 'direct')}</strong>
+                    ${(() => { const bl = bronLabel(l.bron); return `
+                        <strong>${bl.emoji} ${esc(bl.label)}</strong>
+                        <br><span style="font-size:12px;color:#6B7280">Via: <code style="background:#F3F4F6;padding:2px 6px;border-radius:4px;font-size:11px">${esc(bl.link)}</code></span>
+                        <br><span style="font-size:11px;color:#9CA3AF">Raw utm_source: ${esc(l.bron || 'geen')}</span>
+                    `; })()}
                     ${l.utm_campaign ? `<br><span style="font-size:12px;color:#6B7280">Campagne: ${esc(l.utm_campaign)}</span>` : ''}
                     ${l.utm_medium ? `<br><span style="font-size:12px;color:#6B7280">Medium: ${esc(l.utm_medium)}</span>` : ''}
                     ${l.referrer ? `<br><span style="font-size:12px;color:#6B7280;word-break:break-all">Referrer: ${esc(l.referrer)}</span>` : ''}

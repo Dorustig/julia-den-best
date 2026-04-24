@@ -5,11 +5,16 @@ let currentStep = 1;
 let currentLang = localStorage.getItem('julia_lang') || 'nl';
 
 // ===== UTM / traffic-source capture =====
-// Saves the first-touch attribution so even if user returns via direct link,
-// we still know the original source that brought them in.
+// Strategie:
+//   • Eerste bezoek zonder UTM-params → sla direct/organic op (first-touch).
+//   • Bezoek MET UTM-params (dus via /insta1, /tiktok etc. redirect) →
+//     ALTIJD overschrijven. Deze links zijn intentioneel — ze vertellen ons
+//     de actuele bron. Zonder overschrijven zou een test-visit of bookmark
+//     de attribution voor altijd op 'direct' vastzetten.
 (function captureUTM() {
     try {
         const params = new URLSearchParams(window.location.search);
+        const hasUtm = params.get('utm_source');
         const utm = {
             utm_source: params.get('utm_source') || '',
             utm_medium: params.get('utm_medium') || '',
@@ -19,8 +24,8 @@ let currentLang = localStorage.getItem('julia_lang') || 'nl';
             referrer: document.referrer || '',
             landing_at: new Date().toISOString()
         };
-        // Only save first-touch — don't overwrite
-        if (!localStorage.getItem('julia_attribution')) {
+        const existing = localStorage.getItem('julia_attribution');
+        if (hasUtm || !existing) {
             localStorage.setItem('julia_attribution', JSON.stringify(utm));
         }
     } catch (e) {}
@@ -130,7 +135,9 @@ const T = {
         s4: 'Belangrijk', s4d: 'Ik wil serieus aan de slag en zoek hulp om mijn doelen te behalen.',
         s5: 'Zeer belangrijk', s5d: 'Absolute prioriteit. Ik wil nu verandering. Ben gemotiveerd om direct te starten.',
         q6: 'Stel je zou nu in jezelf investeren, wat zou voor jou per week realistisch voelen?',
-        q6a: '€0 tot €40 per week', q6b: '€45 tot €70 per week', q6c: '€70 tot €100 per week', q6d: 'Geen idee, dat hoor ik graag in het gesprek',
+        q6a: '€0 tot €40 per week', q6b: '€45 tot €70 per week', q6c: '€70 tot €100 per week',
+        q6d: '€100 tot €150 per week', q6e: '€150 tot €200 per week', q6f: '€200+ per week, ik wil écht investeren',
+        q6g: 'Geen limiet, resultaat is wat telt', q6h: 'Geen idee, dat hoor ik graag in het gesprek',
         q7: 'Ben je bereid om tijd en geld te investeren om je transformatie waar te maken?',
         q7title: 'Ja, ik ben er klaar voor!',
         q7text: 'Ik wil investeren in mezelf en mijn gezondheid. Laten we dit samen doen!',
@@ -239,7 +246,9 @@ const T = {
         s4: 'Important', s4d: 'I want to get serious and am looking for help to reach my goals.',
         s5: 'Very important', s5d: "Absolute priority. I want change now. I'm motivated to start immediately.",
         q6: 'If you were to invest in yourself, what would feel realistic per week?',
-        q6a: '€0 to €40 per week', q6b: '€45 to €70 per week', q6c: '€70 to €100 per week', q6d: "Not sure, I'd like to discuss in the call",
+        q6a: '€0 to €40 per week', q6b: '€45 to €70 per week', q6c: '€70 to €100 per week',
+        q6d: '€100 to €150 per week', q6e: '€150 to €200 per week', q6f: '€200+ per week, I really want to invest',
+        q6g: 'No limit — results are what matters', q6h: "Not sure, I'd like to discuss in the call",
         q7: 'Are you willing to invest time and money to make your transformation happen?',
         q7title: "Yes, I'm ready!",
         q7text: 'I want to invest in myself and my health. Let\'s do this together!',
@@ -424,7 +433,7 @@ function applyTranslations(lang) {
     const optionMaps = [
         { step: 1, keys: ['q1a','q1b','q1c','q1d'] },
         { step: 2, keys: ['q2a','q2b','q2c','q2d'] },
-        { step: 6, keys: ['q6a','q6b','q6c','q6d'] },
+        { step: 6, keys: ['q6a','q6b','q6c','q6d','q6e','q6f','q6g','q6h'] },
     ];
     optionMaps.forEach(({ step, keys }) => {
         const cards = document.querySelectorAll(`[data-step="${step}"] .option-text`);
