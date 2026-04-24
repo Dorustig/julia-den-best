@@ -825,6 +825,9 @@ btnVerstuur.addEventListener('click', async () => {
     clearProgress();
     window.__lastLeadId = lead.id;
     document.getElementById('succesModal').classList.add('active');
+    // Speel de bedankt-video van Julia — van begin af aan (muted, autoplay).
+    // User ziet de 'Klik voor geluid' overlay en kan klikken voor geluid.
+    try { window.__aftercallVideoApi?.reset(); } catch(e) {}
     // Reset availability form state for repeat submissions
     const avForm = document.getElementById('availabilityForm');
     const avSuccess = document.getElementById('avSuccess');
@@ -1146,23 +1149,21 @@ applyTranslations(currentLang);
     update();
 })();
 
-// ===== WELKOMSTVIDEO — custom player =====
+// ===== CUSTOM VIDEO PLAYER — hergebruikt voor welkomstvideo + aftercall =====
 // Autoplay muted + "Klik voor geluid" overlay; geen fullscreen, geen PiP,
 // geen playback-speed. Eerste klik unmute, volgende klikken toggle play/pause.
-(function setupJuliaVideo() {
-    const video = document.getElementById('juliaVideo');
-    const player = document.getElementById('juliaVideoPlayer');
-    if (!video || !player) return;
-    const unmuteOverlay = document.getElementById('videoUnmuteOverlay');
-    const playBtn = document.getElementById('videoPlayBtn');
-    const muteBtn = document.getElementById('videoMuteBtn');
-    const progressFill = document.getElementById('videoProgressFill');
+function initCustomVideoPlayer(player, opts = {}) {
+    if (!player) return null;
+    const video = player.querySelector('video');
+    if (!video) return null;
+    const unmuteOverlay = player.querySelector('.video-unmute-overlay');
+    const playBtn = player.querySelector('.video-play-btn');
+    const muteBtn = player.querySelector('.video-mute-btn');
+    const progressFill = player.querySelector('.video-progress-fill');
 
     let hasUnmuted = false;
 
-    // Probeer autoplay (muted + playsinline is toegestaan door browsers)
     const tryPlay = () => video.play().catch(() => {/* geblokkeerd — user klikt zelf */});
-    tryPlay();
 
     function unmute() {
         video.muted = false;
@@ -1176,59 +1177,61 @@ applyTranslations(currentLang);
         player.classList.remove('unmuted');
     }
 
-    // Klik ergens op de player:
-    //   • 1e keer: unmute + start spelen
-    //   • daarna: toggle play/pause
-    // Klikken op mute-/play-knop worden door hun eigen handlers afgehandeld.
     player.addEventListener('click', (e) => {
         if (e.target.closest('.video-mute-btn') || e.target.closest('.video-play-btn')) return;
-        if (!hasUnmuted) {
-            unmute();
-            tryPlay();
-            return;
-        }
+        if (!hasUnmuted) { unmute(); tryPlay(); return; }
         if (video.paused || video.ended) tryPlay();
         else video.pause();
     });
-
     muteBtn?.addEventListener('click', (e) => {
         e.stopPropagation();
-        if (video.muted) unmute();
-        else doMute();
+        if (video.muted) unmute(); else doMute();
     });
-
     playBtn?.addEventListener('click', (e) => {
         e.stopPropagation();
         if (!hasUnmuted) unmute();
         if (video.paused || video.ended) tryPlay();
         else video.pause();
     });
-
-    // Verhinder dubbelklik → fullscreen (extra defensie boven disablePictureInPicture +
-    // controlsList, omdat sommige browsers het nog steeds toelaten via dbl-click)
     video.addEventListener('dblclick', (e) => e.preventDefault());
 
-    const endedCta = document.getElementById('videoEndedCta');
-    function revealEndedCta() {
-        if (!endedCta || endedCta.classList.contains('revealed')) return;
-        endedCta.hidden = false;
-        endedCta.classList.add('revealed');
-    }
+    // Optionele ended-CTA knop (alleen voor de welkomstvideo)
+    const endedCta = opts.endedCtaId ? document.getElementById(opts.endedCtaId) : null;
 
     video.addEventListener('play',  () => { player.classList.add('playing');  player.classList.remove('paused','ended'); });
     video.addEventListener('pause', () => { player.classList.remove('playing'); player.classList.add('paused'); });
     video.addEventListener('ended', () => {
         player.classList.remove('playing');
         player.classList.add('ended');
-        revealEndedCta();
+        if (endedCta && !endedCta.classList.contains('revealed')) {
+            endedCta.hidden = false;
+            endedCta.classList.add('revealed');
+        }
     });
     video.addEventListener('timeupdate', () => {
         if (!video.duration || !progressFill) return;
         progressFill.style.width = (video.currentTime / video.duration * 100) + '%';
     });
 
-    // Eerste user-interactie met de pagina mag ook unmute triggeren (sommige
-    // browsers forceren user-gesture voor unmute — scrolling telt niet als
-    // gesture, klikken wel)
-    // Al gedekt door de player.click boven.
-})();
+    if (opts.autoplay) tryPlay();
+
+    // Publieke API — modal-open handlers kunnen replay triggeren
+    return {
+        root: player,
+        video,
+        tryPlay,
+        reset: () => { try { video.currentTime = 0; } catch(e){} tryPlay(); }
+    };
+}
+
+// Welkomstvideo: autoplay direct, 'Vul het formulier in'-knop bij ended
+const juliaHomeVideoApi = initCustomVideoPlayer(
+    document.getElementById('juliaVideoPlayer'),
+    { autoplay: true, endedCtaId: 'videoEndedCta' }
+);
+// Aftercall-video: wordt getriggerd bij modal-open (via form submission)
+const aftercallVideoApi = initCustomVideoPlayer(
+    document.getElementById('aftercallVideoPlayer'),
+    { autoplay: false }
+);
+window.__aftercallVideoApi = aftercallVideoApi;

@@ -416,6 +416,19 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', Georgia, serif; font-weight: 7
     0% { opacity: 0; transform: translateY(18px) scale(0.9); }
     100% { opacity: 1; transform: translateY(0) scale(1); }
 }
+
+/* Aftercall video in de succes-modal — iets kleinere frame passend bij modal */
+.aftercall-video-player {
+    max-width: 100%;
+    margin: 0 auto 24px;
+    border-radius: 18px;
+    border-width: 2px;
+    box-shadow: 0 12px 36px rgba(233,30,140,0.18);
+}
+.aftercall-video-player .video-mute-btn { width: 36px; height: 36px; top: 10px; right: 10px; }
+.aftercall-video-player .video-play-btn { width: 66px; height: 66px; }
+.aftercall-video-player .video-unmute-overlay { padding-bottom: 36px; }
+.aftercall-video-player .video-unmute-badge { font-size: 13px; padding: 9px 16px; }
 @media (max-width: 640px) {
     .welcome-video-section { padding: 56px 0 40px; }
     .welcome-video-intro { margin-bottom: 24px; }

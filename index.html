@@ -217,7 +217,7 @@
     }
     </script>
 
-    <link rel="stylesheet" href="style.css?v=20260424d">
+    <link rel="stylesheet" href="style.css?v=20260424e">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -1309,6 +1309,58 @@
         <div class="modal-content almost-done-modal">
             <button class="modal-close-x" id="successCloseX" aria-label="Sluiten">×</button>
 
+            <!-- Bedankt-video van Julia, speelt automatisch (muted) wanneer modal opent -->
+            <div class="welcome-video-player aftercall-video-player" id="aftercallVideoPlayer">
+                <video
+                    id="aftercallVideo"
+                    class="welcome-video"
+                    muted
+                    playsinline
+                    webkit-playsinline="true"
+                    x5-playsinline="true"
+                    preload="auto"
+                    poster="/videos/julia-aftercall-poster.jpg"
+                    controlsList="nodownload nofullscreen noplaybackrate noremoteplayback"
+                    disablePictureInPicture
+                    disableRemotePlayback
+                    aria-label="Bedankt-boodschap van Julia Besten"
+                >
+                    <source src="/videos/julia-aftercall.mp4?v=1" type="video/mp4" media="(min-width: 720px)">
+                    <source src="/videos/julia-aftercall-720.mp4?v=1" type="video/mp4">
+                </video>
+                <div class="video-unmute-overlay">
+                    <div class="video-unmute-badge">
+                        <span class="video-unmute-icon" aria-hidden="true">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M11 5 6 9H2v6h4l5 4z"/>
+                                <line x1="23" y1="9" x2="17" y2="15"/>
+                                <line x1="17" y1="9" x2="23" y2="15"/>
+                            </svg>
+                        </span>
+                        <span>Klik voor geluid</span>
+                    </div>
+                </div>
+                <button class="video-play-btn" aria-label="Afspelen" type="button">
+                    <svg width="34" height="34" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                </button>
+                <button class="video-mute-btn" aria-label="Geluid aan of uit" type="button">
+                    <span class="icon-muted" aria-hidden="true">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M11 5 6 9H2v6h4l5 4z"/>
+                            <line x1="23" y1="9" x2="17" y2="15"/>
+                            <line x1="17" y1="9" x2="23" y2="15"/>
+                        </svg>
+                    </span>
+                    <span class="icon-unmuted" aria-hidden="true">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M11 5 6 9H2v6h4l5 4z"/>
+                            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                        </svg>
+                    </span>
+                </button>
+                <div class="video-progress-bar"><div class="video-progress-fill"></div></div>
+            </div>
+
             <div class="almost-done-badge">
                 <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="10" fill="#10B981"/><path d="M6 10l3 3 5-6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 <span>Gelukt!</span>
@@ -1368,6 +1420,6 @@
         </div>
     </div>
 
-    <script src="script.js?v=20260424d"></script>
+    <script src="script.js?v=20260424e"></script>
 </body>
 </html>
