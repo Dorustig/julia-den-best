@@ -217,7 +217,7 @@
     }
     </script>
 
-    <link rel="stylesheet" href="style.css?v=20260424a">
+    <link rel="stylesheet" href="style.css?v=20260424b">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -520,6 +520,35 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- WELKOMST VIDEO — een persoonlijke boodschap van Julia vóór het formulier -->
+    <section class="welcome-video-section">
+        <div class="container">
+            <div class="welcome-video-intro">
+                <span class="welcome-video-badge">💖 Een boodschap van Julia</span>
+                <h2>Hey meid, leuk dat je er bent!</h2>
+                <p>Ik neem je in 2 minuten mee in wat je kan verwachten. Bekijk 'm even af, dan vul je hieronder het formulier in.</p>
+            </div>
+            <div class="welcome-video-frame">
+                <video
+                    controls
+                    preload="metadata"
+                    playsinline
+                    poster="/videos/julia-home-poster.jpg"
+                    class="welcome-video"
+                    aria-label="Welkomstvideo van Julia Besten"
+                >
+                    <source src="/videos/julia-home.mp4" type="video/mp4" media="(min-width: 720px)">
+                    <source src="/videos/julia-home-720.mp4" type="video/mp4">
+                    Je browser ondersteunt geen video. <a href="#vragenlijst">Ga direct naar het formulier →</a>
+                </video>
+            </div>
+            <div class="welcome-video-cta">
+                <p class="welcome-cta-text">Klaar? Vul hieronder het formulier in — mijn team en ik nemen snel contact met je op.</p>
+                <div class="welcome-arrow" aria-hidden="true">↓</div>
             </div>
         </div>
     </section>
@@ -1293,6 +1322,6 @@
         </div>
     </div>
 
-    <script src="script.js?v=20260424a"></script>
+    <script src="script.js?v=20260424b"></script>
 </body>
 </html>

@@ -183,6 +183,7 @@ const MIME = {
   '.webp': 'image/webp', '.gif': 'image/gif', '.woff2': 'font/woff2',
   '.txt': 'text/plain', '.xml': 'application/xml',
   '.md': 'text/markdown; charset=utf-8',
+  '.mp4': 'video/mp4', '.webm': 'video/webm',
 };
 
 // ===== HELPERS =====

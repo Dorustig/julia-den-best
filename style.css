@@ -269,6 +269,53 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', Georgia, serif; font-weight: 7
 .guarantee-content h3 { font-size: 20px; margin-bottom: 4px; color: #065F46; }
 .guarantee-content p { font-size: 14px; color: #047857; line-height: 1.6; }
 
+/* ===== WELKOMSTVIDEO SECTION ===== */
+.welcome-video-section {
+    padding: 80px 0 56px;
+    background: linear-gradient(180deg, var(--white) 0%, var(--pink-soft) 60%, var(--pink-bg) 100%);
+    position: relative;
+}
+.welcome-video-intro { text-align: center; max-width: 680px; margin: 0 auto 36px; padding: 0 20px; }
+.welcome-video-badge {
+    display: inline-block; background: var(--white); color: var(--pink);
+    padding: 8px 20px; border-radius: 50px; font-size: 14px; font-weight: 600;
+    margin-bottom: 18px; box-shadow: 0 2px 12px rgba(233,30,140,0.1);
+    border: 1px solid var(--pink-light);
+}
+.welcome-video-intro h2 {
+    font-size: clamp(26px, 4vw, 40px); color: var(--text);
+    margin-bottom: 14px; font-weight: 800; line-height: 1.15;
+}
+.welcome-video-intro p { color: var(--gray-text); font-size: 17px; line-height: 1.6; margin: 0; }
+.welcome-video-frame {
+    max-width: 920px; margin: 0 auto;
+    border-radius: 24px; overflow: hidden;
+    box-shadow: 0 24px 60px rgba(233,30,140,0.22), 0 8px 20px rgba(0,0,0,0.08);
+    border: 3px solid var(--white);
+    background: #000;
+    position: relative;
+}
+.welcome-video { display: block; width: 100%; height: auto; aspect-ratio: 16/9; background: #000; }
+.welcome-video-cta { text-align: center; padding: 36px 20px 0; max-width: 620px; margin: 0 auto; }
+.welcome-cta-text { font-size: 18px; font-weight: 600; color: var(--text); margin: 0 0 12px; line-height: 1.5; }
+.welcome-arrow {
+    display: inline-block; font-size: 42px; color: var(--pink);
+    font-weight: 700; animation: welcomeBounce 1.8s ease-in-out infinite;
+    line-height: 1;
+}
+@keyframes welcomeBounce {
+    0%, 100% { transform: translateY(0); opacity: 0.85; }
+    50% { transform: translateY(10px); opacity: 1; }
+}
+@media (max-width: 640px) {
+    .welcome-video-section { padding: 56px 0 40px; }
+    .welcome-video-intro { margin-bottom: 24px; }
+    .welcome-video-intro p { font-size: 15px; }
+    .welcome-video-frame { border-width: 2px; border-radius: 18px; margin: 0 16px; box-shadow: 0 12px 36px rgba(233,30,140,0.18); }
+    .welcome-cta-text { font-size: 16px; }
+    .welcome-arrow { font-size: 36px; }
+}
+
 /* ===== QUIZ SECTION ===== */
 .quiz-section { padding: 80px 0; background: var(--pink-bg); }
 .quiz-wrapper {
