@@ -1208,9 +1208,20 @@ applyTranslations(currentLang);
     // controlsList, omdat sommige browsers het nog steeds toelaten via dbl-click)
     video.addEventListener('dblclick', (e) => e.preventDefault());
 
+    const endedCta = document.getElementById('videoEndedCta');
+    function revealEndedCta() {
+        if (!endedCta || endedCta.classList.contains('revealed')) return;
+        endedCta.hidden = false;
+        endedCta.classList.add('revealed');
+    }
+
     video.addEventListener('play',  () => { player.classList.add('playing');  player.classList.remove('paused','ended'); });
     video.addEventListener('pause', () => { player.classList.remove('playing'); player.classList.add('paused'); });
-    video.addEventListener('ended', () => { player.classList.remove('playing'); player.classList.add('ended'); });
+    video.addEventListener('ended', () => {
+        player.classList.remove('playing');
+        player.classList.add('ended');
+        revealEndedCta();
+    });
     video.addEventListener('timeupdate', () => {
         if (!video.duration || !progressFill) return;
         progressFill.style.width = (video.currentTime / video.duration * 100) + '%';

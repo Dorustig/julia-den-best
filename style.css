@@ -399,6 +399,23 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', Georgia, serif; font-weight: 7
     0%, 100% { transform: translateY(0); opacity: 0.85; }
     50% { transform: translateY(10px); opacity: 1; }
 }
+/* "Vul het formulier in" knop — verschijnt pas als de video is afgelopen */
+.video-ended-cta {
+    display: none;
+    margin-top: 20px;
+    align-items: center;
+    justify-content: center;
+    padding: 18px 36px;
+    font-size: 17px;
+}
+.video-ended-cta.revealed {
+    display: inline-flex;
+    animation: videoCtaReveal 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+@keyframes videoCtaReveal {
+    0% { opacity: 0; transform: translateY(18px) scale(0.9); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+}
 @media (max-width: 640px) {
     .welcome-video-section { padding: 56px 0 40px; }
     .welcome-video-intro { margin-bottom: 24px; }
