@@ -1907,6 +1907,48 @@ const server = http.createServer(async (req, res) => {
     const p = paths[0];
     const ext = path.extname(p).toLowerCase();
     const contentType = MIME[ext] || 'application/octet-stream';
+    const isMedia = /^\.(mp4|webm|mov|mp3|m4a|wav|ogg|jpg|jpeg|png|webp|gif|svg)$/.test(ext);
+
+    // Video/audio/image: stream met byte-range support + lange cache, géén gzip.
+    // Dit is essentieel voor snelle video playback — browsers kunnen zo direct
+    // beginnen te streamen in plaats van te wachten tot het hele bestand binnen is.
+    if (isMedia) {
+      fs.stat(p, (statErr, stat) => {
+        if (statErr || !stat.isFile()) return tryServe(paths.slice(1));
+        const size = stat.size;
+        const range = req.headers.range;
+        const baseHeaders = {
+          'Content-Type': contentType,
+          'Accept-Ranges': 'bytes',
+          'Cache-Control': 'public, max-age=31536000, immutable',
+          'Last-Modified': stat.mtime.toUTCString(),
+        };
+
+        if (range) {
+          // Parse "bytes=start-end"
+          const m = /bytes=(\d*)-(\d*)/.exec(range);
+          let start = m && m[1] ? parseInt(m[1], 10) : 0;
+          let end = m && m[2] ? parseInt(m[2], 10) : size - 1;
+          if (isNaN(start) || isNaN(end) || start > end || end >= size) {
+            res.writeHead(416, { 'Content-Range': `bytes */${size}` });
+            return res.end();
+          }
+          const chunkSize = end - start + 1;
+          res.writeHead(206, {
+            ...baseHeaders,
+            'Content-Range': `bytes ${start}-${end}/${size}`,
+            'Content-Length': chunkSize,
+          });
+          fs.createReadStream(p, { start, end }).pipe(res);
+        } else {
+          res.writeHead(200, { ...baseHeaders, 'Content-Length': size });
+          fs.createReadStream(p).pipe(res);
+        }
+      });
+      return;
+    }
+
+    // Alles anders (HTML, CSS, JS, MD, ...): lezen in geheugen, evt. gzippen.
     fs.readFile(p, (err, data) => {
       if (err) return tryServe(paths.slice(1));
       const headers = { 'Content-Type': contentType };
