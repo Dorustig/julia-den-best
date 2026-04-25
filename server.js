@@ -1766,8 +1766,16 @@ const server = http.createServer(async (req, res) => {
         }
       } catch (e) { /* file bestaat nog niet — 0 klikken */ }
 
-      // 2. Leads per bron + status
-      const leads = readLeads();
+      // 2. Leads per bron + status — gebruik Supabase als canonical store,
+      //    val terug op file wanneer Supabase offline is. Zelfde bron als
+      //    de admin-leads-lijst, dus cijfers matchen.
+      let leads;
+      if (supabaseHelper.isEnabled()) {
+        const sbLeads = await supabaseHelper.listLeads();
+        leads = sbLeads || readLeads();
+      } else {
+        leads = readLeads();
+      }
       const leadsBySource = {};
       for (const l of leads) {
         const src = (l.bron || 'direct').toLowerCase().trim() || 'direct';
