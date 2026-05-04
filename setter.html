@@ -9,24 +9,32 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💖</text></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
             --pink: #E91E8C;
+            --pink-deep: #BE185D;
             --pink-light: #F472B6;
             --pink-soft: #FDF2F8;
-            --pink-bg: #FFF5F9;
+            --pink-bg: #FFF8FB;
+            --pink-glow: rgba(233, 30, 140, 0.12);
             --green: #10B981;
+            --green-soft: #ECFDF5;
             --orange: #F59E0B;
             --red: #EF4444;
             --text: #1F2937;
+            --text-mid: #4B5563;
             --text-light: #6B7280;
-            --gray-bg: #F9FAFB;
-            --gray-border: #E5E7EB;
+            --text-faint: #9CA3AF;
+            --gray-bg: #FAFAFB;
+            --gray-border: #ECEEF1;
             --code-bg: #FDF6FB;
-            --shadow-card: 0 2px 12px rgba(0,0,0,0.06);
-            --radius: 14px;
-            --radius-sm: 10px;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
+            --shadow-card: 0 4px 24px rgba(31,41,55,0.06), 0 1px 3px rgba(31,41,55,0.04);
+            --shadow-elevated: 0 12px 40px rgba(31,41,55,0.08), 0 2px 8px rgba(31,41,55,0.04);
+            --radius: 16px;
+            --radius-sm: 12px;
+            --radius-xs: 8px;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html { scroll-behavior: smooth; }
@@ -34,43 +42,48 @@
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
             color: var(--text);
             background: var(--pink-bg);
-            line-height: 1.6;
+            line-height: 1.65;
             -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
+        kbd { background: var(--gray-bg); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 0.85em; border: 1px solid var(--gray-border); }
 
+        /* ===== Top bar ===== */
         .topbar {
             position: sticky; top: 0; z-index: 100;
-            background: white;
+            background: rgba(255,255,255,0.92);
+            backdrop-filter: saturate(180%) blur(12px);
+            -webkit-backdrop-filter: saturate(180%) blur(12px);
             border-bottom: 1px solid var(--gray-border);
             padding: 14px 24px;
             display: flex; align-items: center; justify-content: space-between;
             gap: 16px;
         }
         .topbar-brand {
-            display: flex; align-items: center; gap: 12px;
+            display: flex; align-items: center; gap: 10px;
             font-weight: 700; font-size: 16px;
         }
-        .topbar-brand .dot { color: var(--pink); font-size: 22px; }
-        .topbar-actions { display: flex; gap: 12px; align-items: center; }
+        .topbar-brand .dot { color: var(--pink); font-size: 22px; line-height: 1; }
+        .topbar-actions { display: flex; gap: 10px; align-items: center; }
         .btn {
             display: inline-flex; align-items: center; gap: 8px;
             padding: 8px 16px;
-            border-radius: 22px;
+            border-radius: 24px;
             font-size: 14px; font-weight: 600;
             text-decoration: none;
             border: 1px solid var(--gray-border);
             background: white;
             color: var(--text);
             cursor: pointer;
-            transition: all 0.15s;
+            transition: all 0.18s cubic-bezier(0.4,0,0.2,1);
         }
-        .btn:hover { background: var(--gray-bg); border-color: var(--pink-light); color: var(--pink); }
+        .btn:hover { background: var(--pink-soft); border-color: var(--pink-light); color: var(--pink); }
 
+        /* ===== Layout ===== */
         .layout {
             display: grid;
             grid-template-columns: 280px 1fr;
-            gap: 0;
-            max-width: 1400px;
+            max-width: 1480px;
             margin: 0 auto;
         }
         .sidebar {
@@ -78,306 +91,349 @@
             top: 64px;
             height: calc(100vh - 64px);
             overflow-y: auto;
-            padding: 24px 16px;
+            padding: 28px 14px;
             border-right: 1px solid var(--gray-border);
             background: white;
         }
         .sidebar h4 {
             font-size: 11px; font-weight: 700;
-            text-transform: uppercase; letter-spacing: 0.06em;
+            text-transform: uppercase; letter-spacing: 0.08em;
             color: var(--text-light);
-            padding: 16px 12px 8px;
+            padding: 18px 14px 10px;
         }
         .sidebar a {
-            display: block;
-            padding: 9px 12px;
-            color: var(--text);
+            display: flex; align-items: center;
+            padding: 10px 14px;
+            color: var(--text-mid);
             text-decoration: none;
-            border-radius: var(--radius-sm);
+            border-radius: var(--radius-xs);
             font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 2px;
             transition: all 0.15s;
         }
         .sidebar a:hover { background: var(--pink-soft); color: var(--pink); }
-        .sidebar a.active { background: var(--pink-soft); color: var(--pink); font-weight: 600; }
+        .sidebar a.active {
+            background: linear-gradient(135deg, var(--pink-soft), white);
+            color: var(--pink);
+            font-weight: 700;
+            box-shadow: inset 3px 0 0 var(--pink);
+        }
         .sidebar a .num {
-            display: inline-block;
-            width: 22px; text-align: center;
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 22px; height: 22px; border-radius: 50%;
+            background: var(--pink-soft);
             color: var(--pink); font-weight: 700;
-            margin-right: 6px;
+            font-size: 11px;
+            margin-right: 10px;
+            transition: all 0.15s;
+        }
+        .sidebar a:hover .num, .sidebar a.active .num {
+            background: var(--pink);
+            color: white;
         }
 
+        /* ===== Main content ===== */
         .main {
-            padding: 32px 48px 80px;
-            max-width: 920px;
+            padding: 48px 56px 100px;
+            max-width: 980px;
         }
         .main h1 {
             font-family: 'Playfair Display', serif;
-            font-size: clamp(28px, 4vw, 42px);
-            font-weight: 700;
-            color: var(--pink);
-            margin-bottom: 6px;
-            line-height: 1.1;
+            font-size: clamp(32px, 4.5vw, 48px);
+            font-weight: 800;
+            color: var(--pink-deep);
+            margin-bottom: 8px;
+            line-height: 1.05;
+            letter-spacing: -0.02em;
         }
         .main h1 .subtle {
+            display: block;
             font-family: 'Inter', sans-serif;
-            font-size: 14px;
+            font-size: 15px;
             font-weight: 500;
             color: var(--text-light);
-            display: block;
-            margin-top: 8px;
+            margin-top: 12px;
+            line-height: 1.5;
+            max-width: 600px;
         }
         .main h2 {
             font-family: 'Playfair Display', serif;
-            font-size: 28px;
+            font-size: 30px;
             font-weight: 700;
             color: var(--text);
-            margin: 56px 0 16px;
-            padding-bottom: 12px;
+            margin: 72px 0 16px;
+            padding-bottom: 16px;
             border-bottom: 2px solid var(--pink-soft);
-            scroll-margin-top: 80px;
+            scroll-margin-top: 84px;
+            letter-spacing: -0.015em;
+            display: flex; align-items: center; gap: 14px;
         }
         .main h2 .badge {
-            display: inline-block;
-            background: var(--pink);
+            display: inline-flex; align-items: center; justify-content: center;
+            background: linear-gradient(135deg, var(--pink), var(--pink-light));
             color: white;
             font-family: 'Inter', sans-serif;
-            font-size: 13px;
-            font-weight: 700;
-            padding: 4px 12px;
+            font-size: 14px;
+            font-weight: 800;
+            width: 38px; height: 38px;
             border-radius: 12px;
-            margin-right: 12px;
-            vertical-align: middle;
+            box-shadow: 0 6px 18px var(--pink-glow);
+            flex-shrink: 0;
         }
         .main h3 {
             font-size: 19px;
             font-weight: 700;
-            margin: 28px 0 10px;
+            margin: 32px 0 12px;
             color: var(--text);
+            letter-spacing: -0.005em;
         }
         .main h4 {
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 700;
-            margin: 18px 0 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin: 20px 0 8px;
             color: var(--pink);
         }
-        .main p { margin: 12px 0; color: var(--text); font-size: 15px; line-height: 1.7; }
-        .main ul, .main ol { margin: 12px 0 12px 22px; }
-        .main li { margin: 6px 0; }
+        .main p { margin: 12px 0; color: var(--text-mid); font-size: 15.5px; line-height: 1.75; }
+        .main ul, .main ol { margin: 12px 0 12px 24px; }
+        .main li { margin: 6px 0; color: var(--text-mid); }
         .main strong { color: var(--text); font-weight: 700; }
+        .main a { color: var(--pink); text-decoration: underline; text-underline-offset: 2px; }
 
+        /* ===== Hero card ===== */
         .hero-card {
-            background: linear-gradient(135deg, var(--pink-soft) 0%, white 100%);
+            background: linear-gradient(135deg, white 0%, var(--pink-soft) 100%);
             border: 1px solid var(--pink-light);
             border-radius: var(--radius);
-            padding: 24px;
-            margin: 24px 0 16px;
+            padding: 28px;
+            margin: 28px 0 16px;
             box-shadow: var(--shadow-card);
         }
         .hero-card h3 { margin-top: 0; font-size: 17px; }
-        .hero-card .checklist { margin: 16px 0 0; list-style: none; padding: 0; }
+        .hero-card .checklist { margin: 18px 0 0; list-style: none; padding: 0; }
         .hero-card .checklist li {
-            display: flex; align-items: flex-start; gap: 12px;
-            padding: 10px 0;
+            display: flex; align-items: flex-start; gap: 16px;
+            padding: 12px 0;
             border-bottom: 1px dashed var(--gray-border);
-            font-size: 14px;
+            font-size: 14.5px;
         }
         .hero-card .checklist li:last-child { border-bottom: none; }
         .hero-card .checklist .time {
-            color: var(--pink); font-weight: 700;
-            min-width: 90px; font-size: 13px;
+            color: var(--pink);
+            font-weight: 800;
+            min-width: 100px;
+            font-size: 13px;
+            letter-spacing: 0.02em;
         }
 
+        /* ===== Script box ===== */
         .script {
-            background: var(--code-bg);
+            background: white;
             border: 1px solid var(--pink-soft);
             border-left: 4px solid var(--pink);
             border-radius: var(--radius-sm);
-            padding: 16px 18px;
-            margin: 14px 0;
+            padding: 18px 20px;
+            margin: 16px 0;
             font-size: 14.5px;
             line-height: 1.7;
             position: relative;
             color: var(--text);
+            box-shadow: var(--shadow-sm);
         }
         .script .label {
             display: block;
             font-size: 11px;
-            font-weight: 700;
+            font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 0.06em;
+            letter-spacing: 0.08em;
             color: var(--pink);
-            margin-bottom: 8px;
+            margin-bottom: 10px;
         }
         .script .text {
             white-space: pre-wrap;
-            font-size: 15px;
-            line-height: 1.7;
+            font-size: 15.5px;
+            line-height: 1.75;
+            color: var(--text);
         }
         .script .copy-btn {
             position: absolute;
-            top: 12px; right: 12px;
-            background: white;
+            top: 14px; right: 14px;
+            background: var(--pink-soft);
             border: 1px solid var(--pink-light);
             color: var(--pink);
             font-size: 12px; font-weight: 700;
-            padding: 5px 12px;
+            padding: 6px 14px;
             border-radius: 8px;
             cursor: pointer;
             transition: all 0.15s;
         }
-        .script .copy-btn:hover { background: var(--pink); color: white; }
+        .script .copy-btn:hover { background: var(--pink); color: white; border-color: var(--pink); }
         .script .copy-btn.copied { background: var(--green); border-color: var(--green); color: white; }
 
+        /* ===== Callouts ===== */
         .callout {
             border-radius: var(--radius-sm);
-            padding: 14px 18px;
-            margin: 16px 0;
-            font-size: 14px;
-            line-height: 1.65;
+            padding: 18px 22px;
+            margin: 18px 0;
+            font-size: 14.5px;
+            line-height: 1.7;
             border-left: 4px solid;
+            box-shadow: var(--shadow-sm);
         }
-        .callout strong { display: block; margin-bottom: 4px; }
-        .callout-tip { background: #ECFDF5; border-color: var(--green); color: #065F46; }
+        .callout strong { display: block; margin-bottom: 4px; font-size: 15px; }
+        .callout-tip { background: var(--green-soft); border-color: var(--green); color: #065F46; }
         .callout-warn { background: #FFFBEB; border-color: var(--orange); color: #92400E; }
         .callout-danger { background: #FEF2F2; border-color: var(--red); color: #991B1B; }
-        .callout-info { background: var(--pink-soft); border-color: var(--pink); color: #831843; }
+        .callout-info { background: var(--pink-soft); border-color: var(--pink); color: var(--pink-deep); }
 
-        /* Spinnenweb styling — vertical decision tree */
-        .web {
-            background: white;
-            border: 1px solid var(--gray-border);
-            border-radius: var(--radius);
-            padding: 24px 20px;
-            margin: 18px 0;
-            box-shadow: var(--shadow-card);
-        }
-        .web-section {
-            margin: 12px 0;
-            padding: 14px 16px;
-            background: var(--pink-soft);
-            border-left: 3px solid var(--pink);
-            border-radius: 8px;
-            position: relative;
-        }
-        .web-section.her {
-            background: #F3F4F6;
-            border-left-color: #9CA3AF;
-        }
-        .web-section .label {
-            display: inline-block;
-            font-size: 10px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            background: var(--pink);
-            color: white;
-            padding: 2px 8px;
-            border-radius: 4px;
-            margin-bottom: 8px;
-            vertical-align: middle;
-        }
-        .web-section.her .label {
-            background: #6B7280;
-        }
-        .web-section .text {
-            font-size: 14.5px;
-            line-height: 1.6;
-            color: var(--text);
-        }
-        .web-section.her .text { font-style: italic; }
-        .web-branches {
-            margin-left: 28px;
-            padding-left: 18px;
-            border-left: 2px dashed var(--pink-light);
-            margin-top: 8px;
-            margin-bottom: 8px;
-        }
-        @media (max-width: 720px) {
-            .web-branches { margin-left: 12px; padding-left: 14px; }
-        }
-
+        /* ===== Tables ===== */
         table {
             width: 100%;
             border-collapse: collapse;
-            margin: 16px 0;
+            margin: 18px 0;
             background: white;
             border-radius: var(--radius-sm);
             overflow: hidden;
             box-shadow: var(--shadow-card);
-            font-size: 14px;
+            font-size: 14.5px;
         }
-        th { background: var(--pink-soft); color: var(--pink); padding: 12px; text-align: left; font-weight: 700; font-size: 13px; }
-        td { padding: 12px; border-top: 1px solid var(--gray-border); vertical-align: top; }
+        th { background: var(--pink-soft); color: var(--pink-deep); padding: 14px 16px; text-align: left; font-weight: 700; font-size: 13px; }
+        td { padding: 14px 16px; border-top: 1px solid var(--gray-border); vertical-align: top; color: var(--text-mid); }
         td strong { color: var(--text); }
 
-        .steps {
-            counter-reset: step;
-            list-style: none;
-            padding: 0;
-            margin: 16px 0;
-        }
+        /* ===== Steps ===== */
+        .steps { counter-reset: step; list-style: none; padding: 0; margin: 18px 0; }
         .steps li {
             counter-increment: step;
             position: relative;
-            padding-left: 50px;
-            margin-bottom: 16px;
+            padding-left: 56px;
+            margin-bottom: 18px;
+            font-size: 15px;
         }
         .steps li::before {
             content: counter(step);
             position: absolute;
             left: 0; top: 0;
-            width: 34px; height: 34px;
+            width: 38px; height: 38px;
             background: linear-gradient(135deg, var(--pink), var(--pink-light));
             color: white;
-            font-weight: 700;
+            font-weight: 800;
             border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
-            font-size: 14px;
+            font-size: 15px;
+            box-shadow: 0 6px 18px var(--pink-glow);
         }
 
+        /* ===== Links grid ===== */
         .links-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 12px;
-            margin: 18px 0;
+            gap: 14px;
+            margin: 20px 0;
         }
         .link-card {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            padding: 16px;
+            display: flex; flex-direction: column; gap: 6px;
+            padding: 18px;
             background: white;
             border: 1px solid var(--gray-border);
             border-radius: var(--radius-sm);
             text-decoration: none;
             color: var(--text);
-            transition: all 0.15s;
+            transition: all 0.18s;
+            box-shadow: var(--shadow-sm);
         }
         .link-card:hover { border-color: var(--pink); transform: translateY(-2px); box-shadow: var(--shadow-card); }
         .link-card .name { font-weight: 700; color: var(--pink); }
         .link-card .desc { font-size: 13px; color: var(--text-light); }
 
+        /* ===== Next-step button ===== */
         .next-step {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 14px 18px;
+            display: flex; align-items: center; gap: 14px;
+            padding: 16px 22px;
             background: white;
             border: 2px solid var(--pink-light);
             border-radius: var(--radius-sm);
-            margin: 28px 0 0;
-            text-decoration: none;
+            margin: 32px 0 0;
+            text-decoration: none !important;
             color: var(--text);
-            font-weight: 600;
-            transition: all 0.15s;
+            font-weight: 700;
+            font-size: 15px;
+            transition: all 0.2s;
+            box-shadow: var(--shadow-sm);
         }
         .next-step:hover {
             background: var(--pink-soft);
             transform: translateX(4px);
             border-color: var(--pink);
+            box-shadow: var(--shadow-card);
         }
         .next-step .arrow { font-size: 22px; color: var(--pink); margin-left: auto; }
 
+        /* ===== Mermaid flowchart container ===== */
+        .flow-wrap {
+            background: white;
+            border: 1px solid var(--gray-border);
+            border-radius: var(--radius);
+            padding: 28px 18px;
+            margin: 18px 0;
+            box-shadow: var(--shadow-card);
+            overflow-x: auto;
+        }
+        .flow-wrap pre.mermaid {
+            margin: 0; padding: 0;
+            background: transparent;
+            text-align: center;
+            font-family: 'Inter', sans-serif;
+            min-height: 200px;
+        }
+        .flow-wrap pre.mermaid svg { max-width: 100%; height: auto; }
+        .flow-title {
+            font-size: 13px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--pink);
+            margin-bottom: 4px;
+        }
+
+        /* ===== Pad-card ===== */
+        .pad-card {
+            background: white;
+            border: 1px solid var(--gray-border);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin: 18px 0 28px;
+            box-shadow: var(--shadow-card);
+        }
+        .pad-card .pad-header {
+            display: flex; align-items: center; gap: 14px;
+            padding-bottom: 16px;
+            margin-bottom: 16px;
+            border-bottom: 1px solid var(--gray-border);
+        }
+        .pad-card .pad-emoji {
+            font-size: 28px;
+            width: 48px; height: 48px;
+            background: var(--pink-soft);
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .pad-card .pad-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text);
+            margin: 0;
+        }
+        .pad-card .pad-meta {
+            font-size: 13px;
+            color: var(--text-light);
+            margin-top: 2px;
+        }
+
+        /* ===== Mobile ===== */
         .menu-toggle { display: none; }
         @media (max-width: 920px) {
             .layout { grid-template-columns: 1fr; }
@@ -399,19 +455,17 @@
                 padding: 8px 12px; border-radius: 22px;
                 cursor: pointer; color: var(--text);
             }
-            .main { padding: 24px 20px 60px; }
-            .main h1 { font-size: 28px; }
-            .main h2 { font-size: 22px; margin-top: 40px; }
+            .main { padding: 28px 20px 64px; }
+            .main h1 { font-size: 30px; }
+            .main h2 { font-size: 24px; margin-top: 48px; }
+            .main h2 .badge { width: 32px; height: 32px; font-size: 13px; }
             .backdrop {
-                display: none;
-                position: fixed; inset: 0;
+                display: none; position: fixed; inset: 0;
                 background: rgba(0,0,0,0.4); z-index: 150;
             }
             .backdrop.show { display: block; }
         }
-        @media (min-width: 921px) {
-            .menu-toggle { display: none; }
-        }
+        @media (min-width: 921px) { .menu-toggle { display: none; } }
     </style>
 </head>
 <body>
@@ -419,7 +473,7 @@
 <header class="topbar">
     <div style="display:flex; align-items:center; gap:12px;">
         <button class="menu-toggle" id="menuToggle" aria-label="Open menu">☰ Menu</button>
-        <div class="topbar-brand"><span class="dot">💖</span> Julia's Setter Playbook</div>
+        <div class="topbar-brand"><span class="dot">💖</span> Setter Playbook</div>
     </div>
     <div class="topbar-actions">
         <a href="https://www.instagram.com/direct/inbox/" target="_blank" class="btn">📩 IG DM's</a>
@@ -452,7 +506,7 @@
     <main class="main">
 
         <h1>Welkom in mijn Setter Playbook
-            <span class="subtle">Stap voor stap. Van eerste DM naar gesprek met mij. Alles uitgeschreven, klaar om te kopiëren.</span>
+            <span class="subtle">Stap voor stap. Van eerste DM naar gesprek met mij. Alles uitgeschreven, klaar om te kopiëren. En een visueel spinnenweb om elke reactie te kunnen lezen.</span>
         </h1>
 
         <div class="callout callout-info">
@@ -461,22 +515,22 @@
         </div>
 
         <div class="callout callout-danger">
-            <strong>🚫 Belangrijke regels in DM</strong>
-            Geen prijzen noemen. Nooit. Ook niet als ze er expliciet naar vraagt. Prijzen komen pas op de closing call met mij apart. Het gesprek dat we hier inplannen is een vrijblijvende kennismaking, geen sales pitch.
+            <strong>🚫 Belangrijk: nooit prijzen in DM</strong>
+            Ook niet in het kennismakingsgesprek. Prijzen komen pas in een aparte closing call met mij. Het 15-minutengesprek is een vrijblijvende kennismaking, geen sales pitch.
         </div>
 
         <!-- ============== START ============== -->
         <section id="start">
-            <h2>★ Voor je begint vandaag</h2>
+            <h2><span class="badge">★</span> Voor je begint vandaag</h2>
 
             <div class="hero-card">
                 <h3>Mijn dag in 4 blokjes</h3>
-                <p style="margin:8px 0 4px; font-size:14px;">Ik werk in vaste blokken. Niet de hele dag tussendoor DM's doen. Dat werkt niet.</p>
+                <p style="margin:8px 0 4px; font-size:14.5px;">Ik werk in vaste blokken. Niet de hele dag tussendoor. Dat werkt niet.</p>
                 <ul class="checklist">
                     <li><span class="time">9:00 tot 10:00</span><span><strong>Voice memo's</strong> sturen naar nieuwe volgers van afgelopen 24 uur. Max 15 stuks.</span></li>
                     <li><span class="time">10:00 tot 12:00</span><span><strong>Antwoorden behandelen</strong> en richting de call duwen.</span></li>
                     <li><span class="time">13:00 tot 14:00</span><span><strong>Reminders sturen</strong> voor calls van vandaag of morgen.</span></li>
-                    <li><span class="time">16:00 tot 17:00</span><span><strong>Follow-ups</strong> na calls. En passief liken bij dames die stil zijn.</span></li>
+                    <li><span class="time">16:00 tot 17:00</span><span><strong>Follow-ups</strong> na calls en passief liken bij dames die stil zijn.</span></li>
                 </ul>
             </div>
 
@@ -500,23 +554,23 @@
 
             <p>Mijn eerste contact. Geen tekst. Geen lange uitleg. Een korte voice memo voelt alsof een vriendin haar iets stuurt.</p>
 
-            <h3>📝 Wat ik inspreek</h3>
+            <h4>Wat ik inspreek</h4>
             <div class="script">
                 <span class="label">Voice memo (8 tot 12 seconden)</span>
                 <div class="text">"Heyy [naam]! Leuk dat je mij volgt 💕 Ben je al lang bezig met fitness of wil je nog beginnen?"</div>
                 <button class="copy-btn" onclick="copyText(this, 'Heyy [naam]! Leuk dat je mij volgt 💕 Ben je al lang bezig met fitness of wil je nog beginnen?')">Kopiëer</button>
             </div>
 
-            <h3>🎤 Hoe ik 'm inspreek</h3>
+            <h4>Hoe ik 'm inspreek</h4>
             <ul>
                 <li>Glimlach tijdens het inspreken. Je hoort het.</li>
                 <li>Rustig tempo. Niet gehaast.</li>
                 <li>8 tot 12 seconden. Korter mag, langer niet.</li>
                 <li>Gebruik haar voornaam uit haar bio.</li>
-                <li>Geen naam? Begin met "Heyy lieverd!" of "Hey jij!".</li>
+                <li>Geen naam? "Heyy lieverd!" of "Hey jij!".</li>
             </ul>
 
-            <h3>⏰ Wanneer ik 'm stuur</h3>
+            <h4>Wanneer ik 'm stuur</h4>
             <ul>
                 <li>Binnen 24 uur na nieuwe volger.</li>
                 <li>Tussen 9:00 en 11:00 of tussen 19:00 en 21:00.</li>
@@ -526,7 +580,7 @@
 
             <div class="callout callout-danger">
                 <strong>Niet doen in deze eerste DM</strong>
-                Geen Calendly link. Geen prijzen. Geen aanbod. Geen vragen over haar lichaam of foto's. Eén ding maar. Eén antwoord krijgen.
+                Geen Calendly link. Geen prijzen. Geen aanbod. Geen vragen over haar lichaam of foto's. Eén ding maar: één antwoord krijgen.
             </div>
 
             <a href="#stap2" class="next-step">
@@ -548,12 +602,12 @@
                     <tr>
                         <td>🟢 <strong>Beginner</strong></td>
                         <td><em>"Wil graag beginnen" / "Ben net begonnen"</em></td>
-                        <td>Heeft motivatie, geen plan. Kort en motiverend doorvragen.</td>
+                        <td>Heeft motivatie, geen plan.</td>
                     </tr>
                     <tr>
                         <td>🟡 <strong>Frustratie</strong></td>
                         <td><em>"Al een tijd bezig maar lukt niet"</em></td>
-                        <td>Mijn beste pad. Pijn al aanwezig. Klaar voor verandering.</td>
+                        <td>Mijn beste pad. Pijn al aanwezig.</td>
                     </tr>
                     <tr>
                         <td>🔵 <strong>Performer</strong></td>
@@ -563,7 +617,7 @@
                     <tr>
                         <td>⚪ <strong>Stil</strong></td>
                         <td>(geen reactie)</td>
-                        <td>Geen DM-spam. Like een paar posts. Probeer over 14 dagen opnieuw.</td>
+                        <td>Geen DM-spam. Probeer over 14 dagen opnieuw.</td>
                     </tr>
                 </tbody>
             </table>
@@ -577,253 +631,272 @@
         <section id="stap3">
             <h2><span class="badge">3</span> Het Spinnenweb</h2>
 
-            <p>Hier staat elk mogelijk antwoord plus mijn vervolgvraag. Volg het pad dat zij koos in Stap 2 en zigzag van vraag naar vraag tot ik haar pijn én haar doel ken. Dan pas vraag ik de call (Stap 4).</p>
+            <p>De volledige beslisboom van DM tot kennismakingsgesprek. Volg het pad dat zij koos in Stap 2 en zigzag van vraag naar vraag tot ik haar pijn én haar doel ken. Dan pas pivot ik naar de call.</p>
 
             <div class="callout callout-info">
                 <strong>De universele volgorde</strong>
                 Wat speelt er nu? → Hoe lang al? → Wat heb je geprobeerd? → Waar wil je naartoe? → Wat zou je nodig hebben?
-                Daarna pas: <em>"Ik zou je hierbij kunnen helpen, zullen we anders bellen om te kijken of ik wat voor jou kan betekenen?"</em>
+                <br><br>Daarna pas: <em>"Ik zou je hierbij kunnen helpen, zullen we anders bellen om te kijken of ik wat voor jou kan betekenen?"</em>
             </div>
 
-            <!-- ===== SPIDER WEB - PAD GROEN (BEGINNER) ===== -->
-            <h3>🟢 Pad 1. Zij wil nog beginnen</h3>
+            <!-- ===== OVERZICHT ===== -->
+            <h3>📍 Het hele plaatje</h3>
+            <div class="flow-wrap">
+                <div class="flow-title">Van DM tot klant</div>
+                <pre class="mermaid">
+flowchart TD
+    Start([Nieuwe volger op IG]):::startNode
+    VM[/"Voice memo:<br>'Ben je al lang bezig met fitness<br>of wil je nog beginnen?'"/]:::dmNode
+    Start --> VM
+    VM --> Antwoord{Antwoord?}:::decisionNode
+    Antwoord -->|"Wil beginnen"| Beginner[🟢 Beginner pad]:::padNode
+    Antwoord -->|"Lukt niet"| Frustratie[🟡 Frustratie pad]:::padNode
+    Antwoord -->|"Sport al"| Performer[🔵 Performer pad]:::padNode
+    Antwoord -->|"Stil"| Stil[⚪ Wachten en liken]:::padNode
+    Beginner --> Pivot
+    Frustratie --> Pivot
+    Performer --> PerformerCheck{Klant fit?}:::decisionNode
+    PerformerCheck -->|Ja| Pivot
+    PerformerCheck -->|Nee| Loslaten[Warm afsluiten]:::endNode
+    Pivot[/"Ik zou je hierbij<br>kunnen helpen<br>Zullen we anders bellen?"/]:::dmNode
+    Pivot --> JaCall{Ze zegt ja?}:::decisionNode
+    JaCall -->|Ja| Calendly[Stuur Calendly link]:::actionNode
+    JaCall -->|Twijfel| FollowUp[Mag ik je morgen nudgen?]:::actionNode
+    JaCall -->|Nee| Sluit[Warm afsluiten]:::endNode
+    FollowUp --> JaCall
+    Calendly --> Reminder[Reminder protocol<br>24u, 1u, 15min]:::actionNode
+    Reminder --> Call[15 min<br>kennismakingsgesprek]:::callNode
+    Call --> NaCall{Match?}:::decisionNode
+    NaCall -->|Ja| Closing[Boek 2e gesprek<br>= closing call met Julia]:::successNode
+    NaCall -->|Twijfel| Nadenk[24u voice memo follow-up]:::actionNode
+    NaCall -->|Nee| Nurture[30 dagen herkans-lijst]:::endNode
 
-            <div class="web">
-                <div class="web-section her">
-                    <span class="label">Zij zegt</span>
-                    <div class="text">"Nog niet echt, ik wil graag beginnen"</div>
+    classDef startNode fill:#FDF2F8,stroke:#E91E8C,stroke-width:2px,color:#831843
+    classDef dmNode fill:#FFF,stroke:#F472B6,stroke-width:2px,color:#1F2937
+    classDef padNode fill:#FDF2F8,stroke:#E91E8C,stroke-width:2px,color:#831843,font-weight:bold
+    classDef decisionNode fill:#FEF3C7,stroke:#F59E0B,stroke-width:2px,color:#92400E
+    classDef actionNode fill:#FFF,stroke:#9CA3AF,stroke-width:1.5px,color:#4B5563
+    classDef callNode fill:#E91E8C,stroke:#BE185D,stroke-width:2px,color:#FFF,font-weight:bold
+    classDef successNode fill:#10B981,stroke:#059669,stroke-width:2px,color:#FFF,font-weight:bold
+    classDef endNode fill:#F3F4F6,stroke:#9CA3AF,stroke-width:1.5px,color:#6B7280
+                </pre>
+            </div>
+
+            <!-- ===== PAD GROEN: BEGINNER ===== -->
+            <div class="pad-card">
+                <div class="pad-header">
+                    <div class="pad-emoji">🟢</div>
+                    <div>
+                        <h3 class="pad-title" style="margin:0;">Pad 1. Zij wil nog beginnen</h3>
+                        <div class="pad-meta">"Wil graag beginnen" · "Ben net begonnen" · "Weet niet hoe"</div>
+                    </div>
                 </div>
 
-                <div class="web-section">
-                    <span class="label">Ik antwoord</span>
+                <div class="flow-wrap">
+                    <pre class="mermaid">
+flowchart TD
+    Z1[/"Zij: Wil graag beginnen"/]:::her
+    Z1 --> J1[/"Ik: Tof! Wat is jouw grootste doel?<br>Afvallen, billen of lekker in je vel?"/]:::ik
+    J1 --> SubDoel{Welk doel?}:::dec
+    SubDoel -->|Afvallen| A1[/"Ik: Helder! En hoe ziet jouw<br>situatie er nu uit qua eten en bewegen?"/]:::ik
+    SubDoel -->|Billen| B1[/"Ik: Yes! Train je al,<br>of ga je nog beginnen?"/]:::ik
+    SubDoel -->|Lekker in vel| V1[/"Ik: Wat zou er anders moeten zijn<br>om dat gevoel echt te hebben?"/]:::ik
+    A1 --> Need[/"Ik: Wat zou je nodig hebben<br>om er deze keer wel te komen?"/]:::ik
+    B1 --> Need
+    V1 --> Need
+    Need --> Pivot[/"Ik zou je hierbij kunnen helpen 💕<br>Zullen we anders bellen?"/]:::pivot
+
+    classDef her fill:#F3F4F6,stroke:#6B7280,stroke-width:1.5px,color:#1F2937,font-style:italic
+    classDef ik fill:#FFF,stroke:#F472B6,stroke-width:2px,color:#1F2937
+    classDef dec fill:#FEF3C7,stroke:#F59E0B,stroke-width:2px,color:#92400E
+    classDef pivot fill:#E91E8C,stroke:#BE185D,stroke-width:2px,color:#FFF,font-weight:bold
+                    </pre>
+                </div>
+
+                <h4>Scripts om te kopiëren</h4>
+                <div class="script">
+                    <span class="label">Eerste reactie</span>
                     <div class="text">"Tof dat je dat zegt 💕 Wat is jouw grootste doel? Afvallen, billen aankomen of gewoon lekker in je vel zitten?"</div>
                     <button class="copy-btn" onclick="copyText(this, 'Tof dat je dat zegt 💕 Wat is jouw grootste doel? Afvallen, billen aankomen of gewoon lekker in je vel zitten?')">Kopiëer</button>
                 </div>
-
-                <div class="web-branches">
-
-                    <div class="web-section her">
-                        <span class="label">Zegt: Afvallen</span>
-                        <div class="text">"Afvallen, ik wil graag een paar kilo's eraf"</div>
-                    </div>
-                    <div class="web-section">
-                        <span class="label">Ik antwoord</span>
-                        <div class="text">"Helder! En hoe ziet jouw situatie er nu uit qua eten en bewegen?"</div>
-                        <button class="copy-btn" onclick="copyText(this, 'Helder! En hoe ziet jouw situatie er nu uit qua eten en bewegen?')">Kopiëer</button>
-                    </div>
-                    <div class="web-branches">
-                        <div class="web-section her">
-                            <span class="label">Zij vertelt</span>
-                            <div class="text">(haar eet- en sportroutine)</div>
-                        </div>
-                        <div class="web-section">
-                            <span class="label">Ik vraag dieper</span>
-                            <div class="text">"Wat zou je nodig hebben om er deze keer wel te komen?"</div>
-                            <button class="copy-btn" onclick="copyText(this, 'Wat zou je nodig hebben om er deze keer wel te komen?')">Kopiëer</button>
-                        </div>
-                        <div class="web-section">
-                            <span class="label">Daarna pivot ik</span>
-                            <div class="text">"Ik zou je hierbij kunnen helpen 💕 Zullen we anders bellen om te kijken of ik wat voor jou kan betekenen?"</div>
-                            <button class="copy-btn" onclick="copyText(this, 'Ik zou je hierbij kunnen helpen 💕 Zullen we anders bellen om te kijken of ik wat voor jou kan betekenen?')">Kopiëer</button>
-                        </div>
-                    </div>
-
-                    <div class="web-section her">
-                        <span class="label">Zegt: Billen</span>
-                        <div class="text">"Ik wil graag mijn billen laten groeien"</div>
-                    </div>
-                    <div class="web-section">
-                        <span class="label">Ik antwoord</span>
-                        <div class="text">"Yes! 💕 Train je al, of ga je nog beginnen?"</div>
-                        <button class="copy-btn" onclick="copyText(this, 'Yes! 💕 Train je al, of ga je nog beginnen?')">Kopiëer</button>
-                    </div>
-                    <div class="web-branches">
-                        <div class="web-section">
-                            <span class="label">Vervolg</span>
-                            <div class="text">"En wat zou je nodig hebben om er deze keer écht resultaat in te zien?"</div>
-                            <button class="copy-btn" onclick="copyText(this, 'En wat zou je nodig hebben om er deze keer écht resultaat in te zien?')">Kopiëer</button>
-                        </div>
-                        <div class="web-section">
-                            <span class="label">Daarna pivot ik</span>
-                            <div class="text">"Ik zou je hierbij kunnen helpen 💕 Zullen we anders bellen om te kijken of ik wat voor jou kan betekenen?"</div>
-                            <button class="copy-btn" onclick="copyText(this, 'Ik zou je hierbij kunnen helpen 💕 Zullen we anders bellen om te kijken of ik wat voor jou kan betekenen?')">Kopiëer</button>
-                        </div>
-                    </div>
-
-                    <div class="web-section her">
-                        <span class="label">Zegt: Lekker in mijn vel</span>
-                        <div class="text">"Gewoon lekkerder in mijn vel zitten"</div>
-                    </div>
-                    <div class="web-section">
-                        <span class="label">Ik antwoord</span>
-                        <div class="text">"Daar kan ik je helemaal in volgen 💕 Wat zou er voor jou anders moeten zijn om dat gevoel echt te hebben?"</div>
-                        <button class="copy-btn" onclick="copyText(this, 'Daar kan ik je helemaal in volgen 💕 Wat zou er voor jou anders moeten zijn om dat gevoel echt te hebben?')">Kopiëer</button>
-                    </div>
-                    <div class="web-branches">
-                        <div class="web-section">
-                            <span class="label">Daarna pivot ik</span>
-                            <div class="text">"Ik zou je hierbij kunnen helpen 💕 Zullen we anders bellen om te kijken of ik wat voor jou kan betekenen?"</div>
-                            <button class="copy-btn" onclick="copyText(this, 'Ik zou je hierbij kunnen helpen 💕 Zullen we anders bellen om te kijken of ik wat voor jou kan betekenen?')">Kopiëer</button>
-                        </div>
-                    </div>
-
+                <div class="script">
+                    <span class="label">Bij Afvallen</span>
+                    <div class="text">"Helder! En hoe ziet jouw situatie er nu uit qua eten en bewegen?"</div>
+                    <button class="copy-btn" onclick="copyText(this, 'Helder! En hoe ziet jouw situatie er nu uit qua eten en bewegen?')">Kopiëer</button>
+                </div>
+                <div class="script">
+                    <span class="label">Bij Billen</span>
+                    <div class="text">"Yes! 💕 Train je al, of ga je nog beginnen?"</div>
+                    <button class="copy-btn" onclick="copyText(this, 'Yes! 💕 Train je al, of ga je nog beginnen?')">Kopiëer</button>
+                </div>
+                <div class="script">
+                    <span class="label">Bij Lekker in mijn vel</span>
+                    <div class="text">"Daar kan ik je helemaal in volgen 💕 Wat zou er voor jou anders moeten zijn om dat gevoel echt te hebben?"</div>
+                    <button class="copy-btn" onclick="copyText(this, 'Daar kan ik je helemaal in volgen 💕 Wat zou er voor jou anders moeten zijn om dat gevoel echt te hebben?')">Kopiëer</button>
+                </div>
+                <div class="script">
+                    <span class="label">Doorvraag (universeel)</span>
+                    <div class="text">"En wat zou je nodig hebben om er deze keer wel te komen?"</div>
+                    <button class="copy-btn" onclick="copyText(this, 'En wat zou je nodig hebben om er deze keer wel te komen?')">Kopiëer</button>
+                </div>
+                <div class="script">
+                    <span class="label">Pivot</span>
+                    <div class="text">"Ik zou je hierbij kunnen helpen 💕 Zullen we anders bellen om te kijken of ik wat voor jou kan betekenen?"</div>
+                    <button class="copy-btn" onclick="copyText(this, 'Ik zou je hierbij kunnen helpen 💕 Zullen we anders bellen om te kijken of ik wat voor jou kan betekenen?')">Kopiëer</button>
                 </div>
             </div>
 
-            <!-- ===== SPIDER WEB - PAD GEEL (FRUSTRATIE) ===== -->
-            <h3>🟡 Pad 2. Zij sport al wat maar lukt niet</h3>
-
-            <div class="web">
-                <div class="web-section her">
-                    <span class="label">Zij zegt</span>
-                    <div class="text">"Ja al een tijd, maar ik kom niet vooruit"</div>
+            <!-- ===== PAD GEEL: FRUSTRATIE ===== -->
+            <div class="pad-card">
+                <div class="pad-header">
+                    <div class="pad-emoji">🟡</div>
+                    <div>
+                        <h3 class="pad-title" style="margin:0;">Pad 2. Zij sport al wat maar lukt niet</h3>
+                        <div class="pad-meta">"Al een tijd bezig" · "Geen resultaat" · "Probeer al van alles" · Mijn beste pad</div>
+                    </div>
                 </div>
 
-                <div class="web-section">
-                    <span class="label">Ik antwoord</span>
+                <div class="flow-wrap">
+                    <pre class="mermaid">
+flowchart TD
+    Z1[/"Zij: Al een tijd bezig<br>maar kom niet vooruit"/]:::her
+    Z1 --> J1[/"Ik: Ohh dat snap ik echt 💕<br>Waar loop je nu het meeste tegenaan?"/]:::ik
+    J1 --> Type{Wat is haar pijn?}:::dec
+    Type -->|Geen resultaat| R1[/"Ik: Hoe lang<br>ben je hier al mee bezig?"/]:::ik
+    Type -->|Geen consistentie| C1[/"Ik: Heel herkenbaar<br>Wat is meestal het moment<br>dat je terugvalt?"/]:::ik
+    Type -->|Weet niet wat te doen| W1[/"Ik: Wat heb je<br>tot nu toe geprobeerd?"/]:::ik
+    R1 --> R2[/"Ik: Wat heb je tot nu toe geprobeerd?"/]:::ik
+    R2 --> Goal[/"Ik: Waar wil je naartoe?<br>Wat zou er over een paar maanden<br>anders moeten zijn?"/]:::ik
+    C1 --> Need
+    W1 --> Goal
+    Goal --> Need[/"Ik: Wat zou je nodig hebben<br>om er deze keer wel te komen?"/]:::ik
+    Need --> Pivot[/"Ik zou je hierbij kunnen helpen 💕<br>Zullen we anders bellen?"/]:::pivot
+
+    classDef her fill:#F3F4F6,stroke:#6B7280,stroke-width:1.5px,color:#1F2937,font-style:italic
+    classDef ik fill:#FFF,stroke:#F472B6,stroke-width:2px,color:#1F2937
+    classDef dec fill:#FEF3C7,stroke:#F59E0B,stroke-width:2px,color:#92400E
+    classDef pivot fill:#E91E8C,stroke:#BE185D,stroke-width:2px,color:#FFF,font-weight:bold
+                    </pre>
+                </div>
+
+                <h4>Scripts om te kopiëren</h4>
+                <div class="script">
+                    <span class="label">Eerste reactie (universeel)</span>
                     <div class="text">"Ohh dat snap ik echt 💕 Waar loop je nu het meeste tegenaan?"</div>
                     <button class="copy-btn" onclick="copyText(this, 'Ohh dat snap ik echt 💕 Waar loop je nu het meeste tegenaan?')">Kopiëer</button>
                 </div>
-
-                <div class="web-branches">
-
-                    <div class="web-section her">
-                        <span class="label">Zegt: Geen resultaat</span>
-                        <div class="text">"Ik val niet af / mijn billen groeien niet / ik blijf op hetzelfde gewicht"</div>
-                    </div>
-                    <div class="web-section">
-                        <span class="label">Ik vraag dieper</span>
-                        <div class="text">"En hoe lang ben je hier al mee bezig?"</div>
-                        <button class="copy-btn" onclick="copyText(this, 'En hoe lang ben je hier al mee bezig?')">Kopiëer</button>
-                    </div>
-                    <div class="web-section">
-                        <span class="label">Daarna</span>
-                        <div class="text">"Wat heb je tot nu toe geprobeerd?"</div>
-                        <button class="copy-btn" onclick="copyText(this, 'Wat heb je tot nu toe geprobeerd?')">Kopiëer</button>
-                    </div>
-                    <div class="web-section">
-                        <span class="label">Daarna</span>
-                        <div class="text">"En waar wil je naartoe? Wat zou er over een paar maanden anders moeten zijn?"</div>
-                        <button class="copy-btn" onclick="copyText(this, 'En waar wil je naartoe? Wat zou er over een paar maanden anders moeten zijn?')">Kopiëer</button>
-                    </div>
-                    <div class="web-section">
-                        <span class="label">Daarna</span>
-                        <div class="text">"Wat zou je nodig hebben om er deze keer wel te komen?"</div>
-                        <button class="copy-btn" onclick="copyText(this, 'Wat zou je nodig hebben om er deze keer wel te komen?')">Kopiëer</button>
-                    </div>
-                    <div class="web-section">
-                        <span class="label">Pivot</span>
-                        <div class="text">"Ik zou je hierbij kunnen helpen 💕 Zullen we anders bellen om te kijken of ik wat voor jou kan betekenen?"</div>
-                        <button class="copy-btn" onclick="copyText(this, 'Ik zou je hierbij kunnen helpen 💕 Zullen we anders bellen om te kijken of ik wat voor jou kan betekenen?')">Kopiëer</button>
-                    </div>
-
-                    <div class="web-section her">
-                        <span class="label">Zegt: Geen consistentie</span>
-                        <div class="text">"Ik begin steeds wel maar val terug" / "Ik kan het niet volhouden"</div>
-                    </div>
-                    <div class="web-section">
-                        <span class="label">Ik antwoord</span>
-                        <div class="text">"Heel herkenbaar. Wat is meestal het moment dat je terugvalt?"</div>
-                        <button class="copy-btn" onclick="copyText(this, 'Heel herkenbaar. Wat is meestal het moment dat je terugvalt?')">Kopiëer</button>
-                    </div>
-                    <div class="web-section">
-                        <span class="label">Daarna</span>
-                        <div class="text">"En wat zou je nodig hebben om er deze keer wel doorheen te komen?"</div>
-                        <button class="copy-btn" onclick="copyText(this, 'En wat zou je nodig hebben om er deze keer wel doorheen te komen?')">Kopiëer</button>
-                    </div>
-                    <div class="web-section">
-                        <span class="label">Pivot</span>
-                        <div class="text">"Ik zou je hierbij kunnen helpen 💕 Zullen we anders bellen om te kijken of ik wat voor jou kan betekenen?"</div>
-                        <button class="copy-btn" onclick="copyText(this, 'Ik zou je hierbij kunnen helpen 💕 Zullen we anders bellen om te kijken of ik wat voor jou kan betekenen?')">Kopiëer</button>
-                    </div>
-
-                    <div class="web-section her">
-                        <span class="label">Zegt: Ik weet niet wat ik moet doen</span>
-                        <div class="text">"Ik probeer van alles maar weet niet meer wat klopt"</div>
-                    </div>
-                    <div class="web-section">
-                        <span class="label">Ik antwoord</span>
-                        <div class="text">"Ik snap dat helemaal. Wat heb je tot nu toe allemaal geprobeerd?"</div>
-                        <button class="copy-btn" onclick="copyText(this, 'Ik snap dat helemaal. Wat heb je tot nu toe allemaal geprobeerd?')">Kopiëer</button>
-                    </div>
-                    <div class="web-section">
-                        <span class="label">Daarna</span>
-                        <div class="text">"Waar zou je willen staan over een paar maanden?"</div>
-                        <button class="copy-btn" onclick="copyText(this, 'Waar zou je willen staan over een paar maanden?')">Kopiëer</button>
-                    </div>
-                    <div class="web-section">
-                        <span class="label">Pivot</span>
-                        <div class="text">"Ik zou je hierbij kunnen helpen 💕 Zullen we anders bellen om te kijken of ik wat voor jou kan betekenen?"</div>
-                        <button class="copy-btn" onclick="copyText(this, 'Ik zou je hierbij kunnen helpen 💕 Zullen we anders bellen om te kijken of ik wat voor jou kan betekenen?')">Kopiëer</button>
-                    </div>
-
+                <div class="script">
+                    <span class="label">Bij geen resultaat</span>
+                    <div class="text">"En hoe lang ben je hier al mee bezig?"</div>
+                    <button class="copy-btn" onclick="copyText(this, 'En hoe lang ben je hier al mee bezig?')">Kopiëer</button>
+                </div>
+                <div class="script">
+                    <span class="label">Bij geen consistentie</span>
+                    <div class="text">"Heel herkenbaar. Wat is meestal het moment dat je terugvalt?"</div>
+                    <button class="copy-btn" onclick="copyText(this, 'Heel herkenbaar. Wat is meestal het moment dat je terugvalt?')">Kopiëer</button>
+                </div>
+                <div class="script">
+                    <span class="label">Doorvragen op aanpak</span>
+                    <div class="text">"Wat heb je tot nu toe geprobeerd?"</div>
+                    <button class="copy-btn" onclick="copyText(this, 'Wat heb je tot nu toe geprobeerd?')">Kopiëer</button>
+                </div>
+                <div class="script">
+                    <span class="label">Doorvragen op doel</span>
+                    <div class="text">"En waar wil je naartoe? Wat zou er over een paar maanden anders moeten zijn?"</div>
+                    <button class="copy-btn" onclick="copyText(this, 'En waar wil je naartoe? Wat zou er over een paar maanden anders moeten zijn?')">Kopiëer</button>
+                </div>
+                <div class="script">
+                    <span class="label">Doorvragen op behoefte</span>
+                    <div class="text">"Wat zou je nodig hebben om er deze keer wel te komen?"</div>
+                    <button class="copy-btn" onclick="copyText(this, 'Wat zou je nodig hebben om er deze keer wel te komen?')">Kopiëer</button>
+                </div>
+                <div class="script">
+                    <span class="label">Pivot</span>
+                    <div class="text">"Ik zou je hierbij kunnen helpen 💕 Zullen we anders bellen om te kijken of ik wat voor jou kan betekenen?"</div>
+                    <button class="copy-btn" onclick="copyText(this, 'Ik zou je hierbij kunnen helpen 💕 Zullen we anders bellen om te kijken of ik wat voor jou kan betekenen?')">Kopiëer</button>
                 </div>
             </div>
 
-            <!-- ===== SPIDER WEB - PAD BLAUW (PERFORMER) ===== -->
-            <h3>🔵 Pad 3. Zij sport al lang en fanatiek</h3>
-
-            <div class="web">
-                <div class="web-section her">
-                    <span class="label">Zij zegt</span>
-                    <div class="text">"Ja al jaren, ik sport 5x per week"</div>
+            <!-- ===== PAD BLAUW: PERFORMER ===== -->
+            <div class="pad-card">
+                <div class="pad-header">
+                    <div class="pad-emoji">🔵</div>
+                    <div>
+                        <h3 class="pad-title" style="margin:0;">Pad 3. Zij sport al lang en fanatiek</h3>
+                        <div class="pad-meta">"Sport al jaren" · "5x per week" · "Het gaat goed" · Vaak geen klant</div>
+                    </div>
                 </div>
 
-                <div class="web-section">
-                    <span class="label">Ik antwoord</span>
+                <div class="flow-wrap">
+                    <pre class="mermaid">
+flowchart TD
+    Z1[/"Zij: Ja al jaren bezig<br>sport 5x per week"/]:::her
+    Z1 --> J1[/"Ik: Tof! Waar loop je nu tegenaan?<br>Kracht, vorm of consistentie?"/]:::ik
+    J1 --> Type{Reactie?}:::dec
+    Type -->|"Niks, gaat top"| Eind[/"Ik: Wat tof om te horen 💕<br>Heel veel succes!<br>Geen klant"/]:::eind
+    Type -->|"Wel iets specifieks"| S1[/"Ik: Hoe lang train je<br>hier al specifiek aan?"/]:::ik
+    S1 --> S2[/"Ik: Wat zou er volgens jou<br>veranderen waardoor je<br>wel doorbreekt?"/]:::ik
+    S2 --> Pivot[/"Ik zou je hierbij kunnen helpen 💕<br>Zullen we anders bellen?"/]:::pivot
+
+    classDef her fill:#F3F4F6,stroke:#6B7280,stroke-width:1.5px,color:#1F2937,font-style:italic
+    classDef ik fill:#FFF,stroke:#F472B6,stroke-width:2px,color:#1F2937
+    classDef dec fill:#FEF3C7,stroke:#F59E0B,stroke-width:2px,color:#92400E
+    classDef pivot fill:#E91E8C,stroke:#BE185D,stroke-width:2px,color:#FFF,font-weight:bold
+    classDef eind fill:#F3F4F6,stroke:#9CA3AF,stroke-width:1.5px,color:#6B7280
+                    </pre>
+                </div>
+
+                <h4>Scripts om te kopiëren</h4>
+                <div class="script">
+                    <span class="label">Eerste reactie</span>
                     <div class="text">"Tof! Waar loop je nu tegenaan? Kracht, vorm of consistentie?"</div>
                     <button class="copy-btn" onclick="copyText(this, 'Tof! Waar loop je nu tegenaan? Kracht, vorm of consistentie?')">Kopiëer</button>
                 </div>
+                <div class="script">
+                    <span class="label">Bij niks tegenaan (warm afsluiten)</span>
+                    <div class="text">"Wat tof om te horen 💕 Heel veel succes en blijf het volhouden! Als ik ooit iets voor je kan betekenen weet je me te vinden."</div>
+                    <button class="copy-btn" onclick="copyText(this, 'Wat tof om te horen 💕 Heel veel succes en blijf het volhouden! Als ik ooit iets voor je kan betekenen weet je me te vinden.')">Kopiëer</button>
+                </div>
+                <div class="script">
+                    <span class="label">Bij specifieke pijn</span>
+                    <div class="text">"Hoe lang train je hier al specifiek aan?"</div>
+                    <button class="copy-btn" onclick="copyText(this, 'Hoe lang train je hier al specifiek aan?')">Kopiëer</button>
+                </div>
+                <div class="script">
+                    <span class="label">Doorvragen op oplossing</span>
+                    <div class="text">"Wat zou er volgens jou veranderen waardoor je wel doorbreekt?"</div>
+                    <button class="copy-btn" onclick="copyText(this, 'Wat zou er volgens jou veranderen waardoor je wel doorbreekt?')">Kopiëer</button>
+                </div>
+                <div class="script">
+                    <span class="label">Pivot</span>
+                    <div class="text">"Ik zou je hierbij kunnen helpen 💕 Zullen we anders bellen om te kijken of ik wat voor jou kan betekenen?"</div>
+                    <button class="copy-btn" onclick="copyText(this, 'Ik zou je hierbij kunnen helpen 💕 Zullen we anders bellen om te kijken of ik wat voor jou kan betekenen?')">Kopiëer</button>
+                </div>
 
-                <div class="web-branches">
-
-                    <div class="web-section her">
-                        <span class="label">Zegt: Niks, het gaat top</span>
-                        <div class="text">"Eigenlijk niks, het gaat goed"</div>
-                    </div>
-                    <div class="web-section">
-                        <span class="label">Ik sluit warm af</span>
-                        <div class="text">"Wat tof om te horen 💕 Heel veel succes en blijf het volhouden! Als ik ooit iets voor je kan betekenen weet je me te vinden."</div>
-                        <button class="copy-btn" onclick="copyText(this, 'Wat tof om te horen 💕 Heel veel succes en blijf het volhouden! Als ik ooit iets voor je kan betekenen weet je me te vinden.')">Kopiëer</button>
-                    </div>
-                    <div class="callout callout-warn" style="margin-left: 32px;">
-                        <strong>Niet pushen</strong>
-                        Geen klant. Like haar laatste 2 posts en sluit het gesprek af.
-                    </div>
-
-                    <div class="web-section her">
-                        <span class="label">Zegt: Wel iets specifieks</span>
-                        <div class="text">"Mijn billen groeien niet meer / ik wil het laatste 5%"</div>
-                    </div>
-                    <div class="web-section">
-                        <span class="label">Ik vraag dieper</span>
-                        <div class="text">"Hoe lang train je hier al specifiek aan?"</div>
-                        <button class="copy-btn" onclick="copyText(this, 'Hoe lang train je hier al specifiek aan?')">Kopiëer</button>
-                    </div>
-                    <div class="web-section">
-                        <span class="label">Daarna</span>
-                        <div class="text">"Wat zou er volgens jou veranderen waardoor je wel doorbreekt?"</div>
-                        <button class="copy-btn" onclick="copyText(this, 'Wat zou er volgens jou veranderen waardoor je wel doorbreekt?')">Kopiëer</button>
-                    </div>
-                    <div class="web-section">
-                        <span class="label">Pivot</span>
-                        <div class="text">"Ik zou je hierbij kunnen helpen 💕 Zullen we anders bellen om te kijken of ik wat voor jou kan betekenen?"</div>
-                        <button class="copy-btn" onclick="copyText(this, 'Ik zou je hierbij kunnen helpen 💕 Zullen we anders bellen om te kijken of ik wat voor jou kan betekenen?')">Kopiëer</button>
-                    </div>
-
+                <div class="callout callout-warn">
+                    <strong>Pas op</strong>
+                    Bij Performer pad. Zegt ze dat alles top gaat? Niet pushen. Like 1 of 2 posts en sluit het gesprek af.
                 </div>
             </div>
 
-            <!-- ===== PAD WIT (STILTE) ===== -->
-            <h3>⚪ Pad 4. Zij reageert niet</h3>
-            <ol>
-                <li>Wacht 3 dagen.</li>
-                <li>Like 1 of 2 recente posts.</li>
-                <li>Bekijk haar laatste stories.</li>
-                <li>Wacht weer 3 dagen.</li>
-                <li>Stuur een nieuwe voice memo. Niet over coaching. Reageer op iets uit haar story: <em>"Hee jij! Dit deed me aan jou denken. Hoe gaat het met je?"</em></li>
-                <li>Nog steeds niks? Loslaten en focussen op nieuwe volgers.</li>
-            </ol>
+            <!-- ===== PAD WIT (STIL) ===== -->
+            <div class="pad-card">
+                <div class="pad-header">
+                    <div class="pad-emoji">⚪</div>
+                    <div>
+                        <h3 class="pad-title" style="margin:0;">Pad 4. Zij reageert niet</h3>
+                        <div class="pad-meta">Geen DM-spam. Wachten en passief liken.</div>
+                    </div>
+                </div>
+                <ol>
+                    <li>Wacht 3 dagen.</li>
+                    <li>Like 1 of 2 recente posts.</li>
+                    <li>Bekijk haar laatste stories.</li>
+                    <li>Wacht weer 3 dagen.</li>
+                    <li>Stuur een nieuwe voice memo. Niet over coaching: <em>"Hee jij! Dit deed me aan jou denken. Hoe gaat het met je?"</em></li>
+                    <li>Nog steeds niks? Loslaten en focussen op nieuwe volgers.</li>
+                </ol>
+            </div>
 
             <a href="#stap4" class="next-step">
                 Pivot gedaan? Door naar Stap 4 <span class="arrow">→</span>
@@ -834,13 +907,13 @@
         <section id="stap4">
             <h2><span class="badge">4</span> Vraag de call</h2>
 
-            <p>Ik heb haar pijn en haar doel gehoord. De pivot heb ik in het spinnenweb al gedaan. Nu komt haar reactie. Hier vang ik elke mogelijke reactie op.</p>
+            <p>Ik heb haar pijn en haar doel gehoord. De pivot heb ik in het spinnenweb al gedaan. Nu komt haar reactie.</p>
 
-            <h3>📋 Hoe zij kan reageren op de pivot</h3>
+            <h3>Hoe zij kan reageren</h3>
 
             <table>
                 <thead>
-                    <tr><th style="width:35%">Wat zij zegt</th><th>Wat ik antwoord</th></tr>
+                    <tr><th style="width:38%">Wat zij zegt</th><th>Wat ik antwoord</th></tr>
                 </thead>
                 <tbody>
                     <tr>
@@ -857,15 +930,15 @@
                     </tr>
                     <tr>
                         <td>💸 <em>"Wat kost het?"</em></td>
-                        <td>"Eerlijk, ik praat in DM nooit over prijzen. Het hangt echt af van wat past bij jou. Daarom hebben we eerst die 15 minuutjes."</td>
+                        <td>"Eerlijk, ik praat in DM nooit over prijzen. Daarom hebben we eerst die 15 minuutjes."</td>
                     </tr>
                     <tr>
                         <td>📦 <em>"Wat bied je dan aan?"</em></td>
-                        <td>"Dat leg ik liever uit als ik weet wat jij precies nodig hebt. Daarom de korte call, niks meer dan dat 💕"</td>
+                        <td>"Dat leg ik liever uit als ik weet wat jij precies nodig hebt. Daarom de korte call 💕"</td>
                     </tr>
                     <tr>
                         <td>❌ <em>"Nee dank je, niet nu"</em></td>
-                        <td>"Helemaal goed 💕 Als je later toch wil sparren weet je me te vinden. Succes met alles!"</td>
+                        <td>"Helemaal goed 💕 Als je later toch wil sparren weet je me te vinden!"</td>
                     </tr>
                     <tr>
                         <td>🤐 (geen reactie)</td>
@@ -874,14 +947,14 @@
                 </tbody>
             </table>
 
-            <h3>📝 Klemmende vraag-en-antwoord scripts</h3>
+            <h3>Klemmende scripts</h3>
             <div class="script">
-                <span class="label">Reactie op "wat kost het"</span>
+                <span class="label">Op "wat kost het"</span>
                 <div class="text">"Eerlijk, ik praat in DM nooit over prijzen. Het hangt echt af van wat past bij jou. Daarom hebben we eerst die 15 minuutjes 💕"</div>
                 <button class="copy-btn" onclick="copyText(this, 'Eerlijk, ik praat in DM nooit over prijzen. Het hangt echt af van wat past bij jou. Daarom hebben we eerst die 15 minuutjes 💕')">Kopiëer</button>
             </div>
             <div class="script">
-                <span class="label">Reactie op "wat bied je aan"</span>
+                <span class="label">Op "wat bied je aan"</span>
                 <div class="text">"Dat leg ik liever uit als ik weet wat jij precies nodig hebt. Daarom de korte call, niks meer dan dat 💕"</div>
                 <button class="copy-btn" onclick="copyText(this, 'Dat leg ik liever uit als ik weet wat jij precies nodig hebt. Daarom de korte call, niks meer dan dat 💕')">Kopiëer</button>
             </div>
@@ -895,21 +968,17 @@
         <section id="stap5">
             <h2><span class="badge">5</span> Plan de call in</h2>
 
-            <p>Yes, ze wil. Ik maak het zo simpel mogelijk. Eén link.</p>
+            <p>Ze wil. Ik maak het zo simpel mogelijk. Eén link.</p>
 
-            <h3>📝 Stuur de Calendly link</h3>
             <div class="script">
-                <span class="label">DM bij ja</span>
+                <span class="label">Stuur Calendly link</span>
                 <div class="text">"Yes! 💕 Plan hieronder een tijd die jou uitkomt: calendly.com/juliabesten/kennismakingsgesprek-julia-besten
 
 Stuur even door welke dag je hebt geboekt, dan zet ik er een notitie bij."</div>
                 <button class="copy-btn" onclick="copyText(this, 'Yes! 💕 Plan hieronder een tijd die jou uitkomt: calendly.com/juliabesten/kennismakingsgesprek-julia-besten\n\nStuur even door welke dag je hebt geboekt, dan zet ik er een notitie bij.')">Kopiëer</button>
             </div>
-
-            <h3>📝 Vraag haar nummer</h3>
-            <p>Calendly vraagt al naar nummer. Zelf nog 1 keer vragen via WhatsApp werkt goud.</p>
             <div class="script">
-                <span class="label">DM zodra ze geboekt heeft</span>
+                <span class="label">Vraag haar nummer (zodra geboekt)</span>
                 <div class="text">"Top dat je [dag] hebt geboekt 🌸 Stuur even je nummer door, dan stuur ik je vooraf nog wat info via WhatsApp."</div>
                 <button class="copy-btn" onclick="copyText(this, 'Top dat je [dag] hebt geboekt 🌸 Stuur even je nummer door, dan stuur ik je vooraf nog wat info via WhatsApp.')">Kopiëer</button>
             </div>
@@ -923,7 +992,7 @@ Stuur even door welke dag je hebt geboekt, dan zet ik er een notitie bij."</div>
         <section id="stap6">
             <h2><span class="badge">6</span> Stuur reminders</h2>
 
-            <p>Tussen boeking en gesprek zit vaak 1 tot 5 dagen. In die tijd vergeten dames hun afspraak. Daarom 4 reminders.</p>
+            <p>Tussen boeking en gesprek vergeten dames hun afspraak. Vier reminders.</p>
 
             <table>
                 <thead>
@@ -937,9 +1006,8 @@ Stuur even door welke dag je hebt geboekt, dan zet ik er een notitie bij."</div>
                 </tbody>
             </table>
 
-            <h3>📝 Direct na boeking</h3>
             <div class="script">
-                <span class="label">WhatsApp 1</span>
+                <span class="label">Direct na boeking</span>
                 <div class="text">"Hee [naam]! Top dat je [dag] om [tijd] hebt geboekt 💕
 
 Voor ik je spreek wil ik 1 ding van je weten. Wat is op dit moment het belangrijkste dat je uit het gesprek wil halen?
@@ -947,17 +1015,13 @@ Voor ik je spreek wil ik 1 ding van je weten. Wat is op dit moment het belangrij
 Korte zin is genoeg. Tot [dag]!"</div>
                 <button class="copy-btn" onclick="copyText(this, 'Hee [naam]! Top dat je [dag] om [tijd] hebt geboekt 💕\n\nVoor ik je spreek wil ik 1 ding van je weten. Wat is op dit moment het belangrijkste dat je uit het gesprek wil halen?\n\nKorte zin is genoeg. Tot [dag]!')">Kopiëer</button>
             </div>
-
-            <h3>📝 24 uur ervoor</h3>
             <div class="script">
-                <span class="label">WhatsApp 2</span>
+                <span class="label">24 uur ervoor</span>
                 <div class="text">"Hee [naam]! Morgen om [tijd] zien we elkaar 🌸 Hier de Zoom link alvast: [link]. Tot morgen!"</div>
                 <button class="copy-btn" onclick="copyText(this, 'Hee [naam]! Morgen om [tijd] zien we elkaar 🌸 Hier de Zoom link alvast: [link]. Tot morgen!')">Kopiëer</button>
             </div>
-
-            <h3>📝 1 uur ervoor</h3>
             <div class="script">
-                <span class="label">WhatsApp 3</span>
+                <span class="label">1 uur ervoor</span>
                 <div class="text">"Hee [naam], over een uurtje! Hier de link: [link] 💕"</div>
                 <button class="copy-btn" onclick="copyText(this, 'Hee [naam], over een uurtje! Hier de link: [link] 💕')">Kopiëer</button>
             </div>
@@ -969,21 +1033,30 @@ Korte zin is genoeg. Tot [dag]!"</div>
 
         <!-- ============== 7. HET GESPREK ============== -->
         <section id="stap7">
-            <h2><span class="badge">7</span> Het kennismakingsgesprek (15 min)</h2>
+            <h2><span class="badge">7</span> Het kennismakingsgesprek</h2>
 
             <div class="callout callout-danger">
                 <strong>🚫 Geen aanbod, geen prijzen, geen close</strong>
-                Dit gesprek is voor verbinding en kwalificatie. Aanbod en prijzen komen pas in een aparte closing call met mij. Op deze 15 minuutjes vraag ik door, luister ik, en spreek ik een vervolgstap af. Niets meer.
+                Dit gesprek is voor verbinding en kwalificatie. Het echte aanbod en prijzen komen pas in een aparte tweede call. Op deze 15 minuutjes vraag ik door, luister ik, en spreek ik een vervolgstap af.
             </div>
 
-            <ol class="steps">
-                <li><strong>Frame (2 min)</strong>. Ik vertel kort hoe het gesprek gaat.</li>
-                <li><strong>Discovery (10 min)</strong>. Ik stel vragen. Ik luister 80%.</li>
-                <li><strong>Spiegelen (2 min)</strong>. Ik vat samen wat ik hoor in haar eigen woorden.</li>
-                <li><strong>Vervolgstap (1 min)</strong>. Ik nodig haar uit voor een verdiepingsgesprek met mij.</li>
-            </ol>
+            <div class="flow-wrap">
+                <div class="flow-title">Het 15-minutengesprek</div>
+                <pre class="mermaid">
+flowchart TD
+    Open([Hé, super leuk om je te zien!]):::start
+    Open --> Frame[/"Frame: 2 min<br>'Ik ga vooral vragen stellen<br>aan het eind kijken we<br>of het klikt'"/]:::stap
+    Frame --> Discovery[/"Discovery: 10 min<br>7 open vragen<br>luister 80%, praat 20%"/]:::stap
+    Discovery --> Spiegel[/"Spiegel: 2 min<br>Vat samen in haar woorden<br>laat de gap zien"/]:::stap
+    Spiegel --> Volg[/"Vervolgstap: 1 min<br>Nodig uit voor 2e gesprek<br>= closing call"/]:::eind
 
-            <h3>📝 1. Frame</h3>
+    classDef start fill:#FDF2F8,stroke:#E91E8C,stroke-width:2px,color:#831843,font-weight:bold
+    classDef stap fill:#FFF,stroke:#F472B6,stroke-width:2px,color:#1F2937
+    classDef eind fill:#10B981,stroke:#059669,stroke-width:2px,color:#FFF,font-weight:bold
+                </pre>
+            </div>
+
+            <h3>Frame (2 min)</h3>
             <div class="script">
                 <span class="label">Opening</span>
                 <div class="text">"Hé [naam], super leuk om je te zien! 💕 Ik vertel kort hoe deze 15 minuutjes gaan.
@@ -994,18 +1067,19 @@ Aan het eind kijken we samen of het klikt en zo ja wat een logische vervolgstap 
                 <button class="copy-btn" onclick="copyText(this, 'Hé [naam], super leuk om je te zien! 💕 Ik vertel kort hoe deze 15 minuutjes gaan.\n\nIk ga vooral vragen stellen om jou goed te leren kennen. Waar je staat, waar je naartoe wil, en wat tot nu toe in de weg zat.\n\nAan het eind kijken we samen of het klikt en zo ja wat een logische vervolgstap zou zijn. Geen druk en geen verkooppraatje. Klinkt dat goed?')">Kopiëer</button>
             </div>
 
-            <h3>📝 2. Discovery vragen (in deze volgorde)</h3>
+            <h3>Discovery (10 min)</h3>
+            <p>Stel deze vragen 1 voor 1. Luister 80%, praat 20%. Schrijf háár woorden mee.</p>
             <ol>
                 <li>"Vertel eens, wat speelt er nu in jouw leven op het gebied van fitness?"</li>
                 <li>"Hoe lang loop je hier al tegenaan?"</li>
                 <li>"Wat heb je al geprobeerd?"</li>
                 <li>"Waarom denk je dat het tot nu toe niet lukte?"</li>
-                <li>"Waar wil je naartoe? Wat zou er over een paar maanden anders moeten zijn dat je denkt: ja dit is gelukt?"</li>
+                <li>"Waar wil je naartoe? Wat zou er over een paar maanden anders moeten zijn?"</li>
                 <li>"En als het wél lukt, wat betekent dat voor jou?"</li>
                 <li>"Wat zou je nodig hebben om er deze keer wel te komen?"</li>
             </ol>
 
-            <h3>📝 3. Spiegel terug</h3>
+            <h3>Spiegel terug (2 min)</h3>
             <div class="script">
                 <span class="label">Wat ik zeg</span>
                 <div class="text">"Oké, dus wat ik hoor is [vat in 2 of 3 zinnen samen wat zij zei, gebruik HAAR woorden].
@@ -1014,9 +1088,9 @@ Wat ik denk dat het verschil maakt is dat je goede info hebt, maar dat het ontbr
                 <button class="copy-btn" onclick="copyText(this, 'Oké, dus wat ik hoor is [vat in 2 of 3 zinnen samen wat zij zei, gebruik HAAR woorden].\n\nWat ik denk dat het verschil maakt is dat je goede info hebt, maar dat het ontbreekt aan structuur en iemand die je vasthoudt. En dat is precies wat ik doe.')">Kopiëer</button>
             </div>
 
-            <h3>📝 4. Nodig uit voor vervolggesprek</h3>
+            <h3>Vervolgstap (1 min)</h3>
             <div class="script">
-                <span class="label">Vervolgstap (geen prijs, geen close)</span>
+                <span class="label">Uitnodiging voor 2e gesprek</span>
                 <div class="text">"Ik denk dat ik je écht zou kunnen helpen. Wat ik graag wil doen is een tweede gesprek inplannen waarin ik je laat zien hoe ik dat zou aanpakken bij jou specifiek. Geen druk, je zegt aan het eind ja of nee.
 
 Heb je deze of volgende week een rustig moment voor een uurtje?"</div>
@@ -1038,11 +1112,6 @@ Heb je deze of volgende week een rustig moment voor een uurtje?"</div>
             <h2><span class="badge">8</span> Na het kennismakingsgesprek</h2>
 
             <h3>✅ Tweede gesprek geboekt</h3>
-            <ol>
-                <li>Direct na de call de Calendly link voor het uurtje sturen.</li>
-                <li>Bedank-bericht via WhatsApp.</li>
-                <li>Reminders zoals in Stap 6 (24u, 1u, 15min ervoor).</li>
-            </ol>
             <div class="script">
                 <span class="label">Direct na het gesprek</span>
                 <div class="text">"Wat tof om je gesproken te hebben [naam] 💕 Hier de link voor ons vervolggesprek: [calendly link uitgebreide call]
@@ -1089,52 +1158,46 @@ Pak een rustig moment uit, dan nemen we er ruim de tijd voor."</div>
             </a>
         </section>
 
-        <!-- ============== BEZWAREN IN DM ============== -->
+        <!-- ============== BEZWAREN ============== -->
         <section id="bezwaren">
             <h2>🛡️ Bezwaren in DM</h2>
 
-            <p>Wat zij in DM zegt en wat ik antwoord. <strong>Nooit prijzen noemen. Nooit een aanbod doen.</strong> Ik leid alles terug naar het kennismakingsgesprek.</p>
+            <p>Wat zij in DM zegt en wat ik antwoord. <strong>Nooit prijzen, nooit aanbod.</strong> Ik leid alles terug naar het kennismakingsgesprek.</p>
 
             <h3>💸 "Wat kost het?"</h3>
             <div class="script">
-                <span class="label">Mijn antwoord</span>
                 <div class="text">"Eerlijk, ik praat in DM nooit over prijzen. Het hangt echt af van wat past bij jou. Daarom hebben we eerst die 15 minuutjes 💕"</div>
                 <button class="copy-btn" onclick="copyText(this, 'Eerlijk, ik praat in DM nooit over prijzen. Het hangt echt af van wat past bij jou. Daarom hebben we eerst die 15 minuutjes 💕')">Kopiëer</button>
             </div>
 
             <h3>📦 "Wat bied je aan?"</h3>
             <div class="script">
-                <span class="label">Mijn antwoord</span>
                 <div class="text">"Dat leg ik liever uit als ik weet wat jij precies nodig hebt. Daarom de korte call, niks meer dan dat 💕"</div>
                 <button class="copy-btn" onclick="copyText(this, 'Dat leg ik liever uit als ik weet wat jij precies nodig hebt. Daarom de korte call, niks meer dan dat 💕')">Kopiëer</button>
             </div>
 
             <h3>⏰ "Ik heb geen tijd"</h3>
             <div class="script">
-                <span class="label">Mijn antwoord</span>
                 <div class="text">"Snap ik. Maar even, 15 minuutjes maar. Geen verkooppraatje, gewoon kijken of ik je echt kan helpen 💕"</div>
                 <button class="copy-btn" onclick="copyText(this, 'Snap ik. Maar even, 15 minuutjes maar. Geen verkooppraatje, gewoon kijken of ik je echt kan helpen 💕')">Kopiëer</button>
             </div>
 
             <h3>🤷 "Ik weet niet of het werkt voor mij"</h3>
             <div class="script">
-                <span class="label">Mijn antwoord</span>
-                <div class="text">"Dat snap ik. Maar dat is precies waarom we het gesprek doen. Ik hoor van jou wat je nodig hebt en dan kijken we samen of ik je kan helpen of niet. Heel laagdrempelig 💕"</div>
-                <button class="copy-btn" onclick="copyText(this, 'Dat snap ik. Maar dat is precies waarom we het gesprek doen. Ik hoor van jou wat je nodig hebt en dan kijken we samen of ik je kan helpen of niet. Heel laagdrempelig 💕')">Kopiëer</button>
+                <div class="text">"Dat snap ik. Maar dat is precies waarom we het gesprek doen. Ik hoor van jou wat je nodig hebt en dan kijken we samen of ik je kan helpen of niet 💕"</div>
+                <button class="copy-btn" onclick="copyText(this, 'Dat snap ik. Maar dat is precies waarom we het gesprek doen. Ik hoor van jou wat je nodig hebt en dan kijken we samen of ik je kan helpen of niet 💕')">Kopiëer</button>
             </div>
 
             <h3>🤔 "Ik moet eerst nadenken"</h3>
             <div class="script">
-                <span class="label">Mijn antwoord</span>
                 <div class="text">"Helemaal goed. Mag ik je morgen even appen? Anders verliezen we het uit het oog 💕"</div>
                 <button class="copy-btn" onclick="copyText(this, 'Helemaal goed. Mag ik je morgen even appen? Anders verliezen we het uit het oog 💕')">Kopiëer</button>
             </div>
 
             <h3>👫 "Ik moet met mijn partner overleggen"</h3>
             <div class="script">
-                <span class="label">Mijn antwoord</span>
-                <div class="text">"Logisch! Maar dit gesprek is gewoon een vrijblijvende kennismaking, niets bindend. Plan 'm gerust in en daarna kan je samen overleggen 💕"</div>
-                <button class="copy-btn" onclick="copyText(this, 'Logisch! Maar dit gesprek is gewoon een vrijblijvende kennismaking, niets bindend. Plan \'m gerust in en daarna kan je samen overleggen 💕')">Kopiëer</button>
+                <div class="text">"Logisch! Maar dit gesprek is een vrijblijvende kennismaking, niets bindend. Plan 'm gerust in en daarna kan je samen overleggen 💕"</div>
+                <button class="copy-btn" onclick="copyText(this, 'Logisch! Maar dit gesprek is een vrijblijvende kennismaking, niets bindend. Plan \'m gerust in en daarna kan je samen overleggen 💕')">Kopiëer</button>
             </div>
 
             <div class="callout callout-tip">
@@ -1174,13 +1237,9 @@ Pak een rustig moment uit, dan nemen we er ruim de tijd voor."</div>
 
             <h3>Wat als ze geen geld heeft maar wel motivatie?</h3>
             <p><em>"Eerlijk, dit is misschien het verkeerde moment. Volg me wel. Ik deel elke week gratis tips. Als je situatie verandert weet je me te vinden 💕"</em></p>
-            <p>(Toch nog 15 min gesprek aanbieden? Mag, maar verspil niet teveel tijd. Sommige hebben echt 0 budget en dan komt er nooit een ja.)</p>
 
             <h3>Wat als ze om een gratis proefweek vraagt?</h3>
             <p><em>"Bedankt voor je vraag. Maar nee. Ik werk persoonlijk met heel beperkte plekken. Een vrijblijvend gesprek is wel wat ik aanbied. Daar voor in?"</em></p>
-
-            <h3>Wat als ze al ooit gesproken hebben en nu terug komt?</h3>
-            <p><em>"Hee [naam]! Wat tof dat je terug komt 💕 Wat is er nu anders dan toen we elkaar laatst spraken?"</em></p>
         </section>
 
         <!-- ============== TOOLS ============== -->
@@ -1210,7 +1269,7 @@ Pak een rustig moment uit, dan nemen we er ruim de tijd voor."</div>
                 </a>
             </div>
 
-            <h3>📋 Wat ik in mijn tracker bijhoud</h3>
+            <h3>Wat ik in mijn tracker bijhoud</h3>
             <ul>
                 <li>Naam plus IG handle</li>
                 <li>Datum eerste voice memo</li>
@@ -1241,7 +1300,7 @@ Pak een rustig moment uit, dan nemen we er ruim de tijd voor."</div>
                 </tbody>
             </table>
 
-            <h3>🔍 Als 1 cijfer onder doel zit</h3>
+            <h3>Als 1 cijfer onder doel zit</h3>
             <ul>
                 <li><strong>Reply rate onder 30%</strong>. Voice memo werkt niet. Test andere openzin.</li>
                 <li><strong>Calls geboekt onder 5</strong>. Te vroeg of te laat pivoten. Reset op Stap 3.</li>
@@ -1250,11 +1309,37 @@ Pak een rustig moment uit, dan nemen we er ruim de tijd voor."</div>
             </ul>
         </section>
 
-        <p style="margin-top: 64px; text-align: center; color: var(--text-light); font-size: 13px;">
-            💕 Julia's Setter Playbook · Versie 1.2
+        <p style="margin-top: 72px; text-align: center; color: var(--text-light); font-size: 13px;">
+            💕 Julia's Setter Playbook · Versie 2.0
         </p>
     </main>
 </div>
+
+<script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({
+        startOnLoad: true,
+        theme: 'base',
+        themeVariables: {
+            fontFamily: 'Inter, system-ui, sans-serif',
+            primaryColor: '#FFF',
+            primaryTextColor: '#1F2937',
+            primaryBorderColor: '#F472B6',
+            lineColor: '#F472B6',
+            secondaryColor: '#FDF2F8',
+            tertiaryColor: '#FFF',
+            background: '#FFF'
+        },
+        flowchart: {
+            curve: 'basis',
+            padding: 12,
+            nodeSpacing: 38,
+            rankSpacing: 44,
+            useMaxWidth: true,
+            htmlLabels: true
+        }
+    });
+</script>
 
 <script>
 function copyText(btn, text) {
