@@ -81,15 +81,11 @@ const ADMIN_PASS = process.env.ADMIN_PASS || 'Deurenzijncool123';
 // Tweede admin: Julia (coach zelf). Krijgt dezelfde rechten als Dorus.
 const ADMIN_USER_2 = process.env.ADMIN_USER_2 || 'Julia';
 const ADMIN_PASS_2 = process.env.ADMIN_PASS_2 || '#Cheesy123';
-// Derde admin: Kim (appointment setter). Zelfde rechten — ziet alle leads.
-const ADMIN_USER_3 = process.env.ADMIN_USER_3 || 'Kim01hendriks@gmail.com';
-const ADMIN_PASS_3 = process.env.ADMIN_PASS_3 || '#CalvinsSaus321';
 
-// Lijst van toegestane (user, pass) combinaties — alle drie hebben admin rechten.
+// Lijst van toegestane (user, pass) combinaties. Alleen Dorus en Julia.
 const ADMIN_CREDENTIALS = [
   { user: ADMIN_USER,   pass: ADMIN_PASS },
   { user: ADMIN_USER_2, pass: ADMIN_PASS_2 },
-  { user: ADMIN_USER_3, pass: ADMIN_PASS_3 },
 ];
 
 // Session secret used to sign cookies. Generated once and persisted to the
@@ -370,7 +366,7 @@ const server = http.createServer(async (req, res) => {
     try { creds = JSON.parse(await readBody(req)); }
     catch { return jsonRes(res, 400, { error: 'Invalid JSON' }); }
     // Trim — defensive against clients that send a trailing newline/space.
-    // Username case-insensitive zodat email-style logins (Kim) niet struikelen
+    // Username case-insensitive zodat email-style logins niet struikelen
     // over hoofdletters. Wachtwoord blijft case-sensitive.
     const user = String(creds.username || '').trim().toLowerCase();
     const pass = String(creds.password || '').trim();
@@ -1963,7 +1959,7 @@ const server = http.createServer(async (req, res) => {
     pathname === `/${COACH_SLUG}/` ||
     pathname === `/${COACH_SLUG}.html`;
 
-  // Setter playbook — geheim playbook voor Julia/Kim om iemand te appointment-setten.
+  // Setter playbook — geheim playbook voor Julia om iemand te appointment-setten.
   // Login-protected zodat alleen team toegang heeft. Pretty URL /setter, en directe
   // /setter.html ook als alias voor backward compat.
   const isSetterSlug =
@@ -1979,6 +1975,13 @@ const server = http.createServer(async (req, res) => {
     pathname === '/debate' ||
     pathname === '/debate/' ||
     pathname === '/debate.html';
+
+  // Antwoorden — admin-only cheat sheet met DM-antwoorden op bezwaren.
+  // Login-protected (zelfde gate als setter playbook).
+  const isAntwoordenSlug =
+    pathname === '/antwoorden' ||
+    pathname === '/antwoorden/' ||
+    pathname === '/antwoorden.html';
 
   // Klant routes — pretty URLs that map to real HTML files
   const klantRouteMap = {
@@ -2007,6 +2010,8 @@ const server = http.createServer(async (req, res) => {
     filePath = getSession(req) ? '/setter.html' : '/login.html';
   } else if (isDebateSlug) {
     filePath = getSession(req) ? '/debate.html' : '/login.html';
+  } else if (isAntwoordenSlug) {
+    filePath = getSession(req) ? '/antwoorden.html' : '/login.html';
   } else if (klantRouteMap[pathname]) {
     filePath = klantRouteMap[pathname];
   } else {

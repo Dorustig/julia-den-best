@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#E91E8C">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Antwoorden in DM · Julia Besten</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💬</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --pink: #E91E8C;
+            --pink-deep: #BE185D;
+            --pink-light: #F472B6;
+            --pink-soft: #FDF2F8;
+            --pink-bg: #FFF8FB;
+            --pink-glow: rgba(233, 30, 140, 0.12);
+            --green: #10B981;
+            --green-soft: #ECFDF5;
+            --orange: #F59E0B;
+            --red: #EF4444;
+            --text: #1F2937;
+            --text-mid: #4B5563;
+            --text-light: #6B7280;
+            --text-faint: #9CA3AF;
+            --gray-bg: #FAFAFB;
+            --gray-border: #ECEEF1;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
+            --shadow-card: 0 4px 24px rgba(31,41,55,0.06), 0 1px 3px rgba(31,41,55,0.04);
+            --shadow-elevated: 0 12px 40px rgba(31,41,55,0.08), 0 2px 8px rgba(31,41,55,0.04);
+            --radius: 16px;
+            --radius-sm: 12px;
+            --radius-xs: 8px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            color: var(--text);
+            background: var(--pink-bg);
+            line-height: 1.65;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* ===== Top bar ===== */
+        .topbar {
+            position: sticky; top: 0; z-index: 100;
+            background: rgba(255,255,255,0.92);
+            backdrop-filter: saturate(180%) blur(12px);
+            -webkit-backdrop-filter: saturate(180%) blur(12px);
+            border-bottom: 1px solid var(--gray-border);
+            padding: 14px 24px;
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 16px;
+        }
+        .topbar-brand {
+            display: flex; align-items: center; gap: 10px;
+            font-weight: 700; font-size: 16px;
+        }
+        .topbar-brand .dot { color: var(--pink); font-size: 22px; line-height: 1; }
+        .topbar-actions { display: flex; gap: 10px; align-items: center; }
+        .btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 8px 16px;
+            border-radius: 24px;
+            font-size: 14px; font-weight: 600;
+            text-decoration: none;
+            border: 1px solid var(--gray-border);
+            background: white;
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.18s cubic-bezier(0.4,0,0.2,1);
+        }
+        .btn:hover { background: var(--pink-soft); border-color: var(--pink-light); color: var(--pink); }
+
+        /* ===== Layout ===== */
+        .layout {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            max-width: 1480px;
+            margin: 0 auto;
+        }
+        .sidebar {
+            position: sticky;
+            top: 64px;
+            height: calc(100vh - 64px);
+            overflow-y: auto;
+            padding: 28px 14px;
+            border-right: 1px solid var(--gray-border);
+            background: white;
+        }
+        .sidebar h4 {
+            font-size: 11px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.08em;
+            color: var(--text-light);
+            padding: 18px 14px 10px;
+        }
+        .sidebar a {
+            display: flex; align-items: center;
+            padding: 10px 14px;
+            color: var(--text-mid);
+            text-decoration: none;
+            border-radius: var(--radius-xs);
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 2px;
+            transition: all 0.15s;
+        }
+        .sidebar a:hover { background: var(--pink-soft); color: var(--pink); }
+        .sidebar a.active {
+            background: linear-gradient(135deg, var(--pink-soft), white);
+            color: var(--pink);
+            font-weight: 700;
+            box-shadow: inset 3px 0 0 var(--pink);
+        }
+        .sidebar a .num {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 22px; height: 22px; border-radius: 50%;
+            background: var(--pink-soft);
+            color: var(--pink); font-weight: 700;
+            font-size: 11px;
+            margin-right: 10px;
+            transition: all 0.15s;
+        }
+        .sidebar a:hover .num, .sidebar a.active .num {
+            background: var(--pink);
+            color: white;
+        }
+
+        /* ===== Main content ===== */
+        .main {
+            padding: 48px 56px 100px;
+            max-width: 980px;
+        }
+        .main h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(32px, 4.5vw, 48px);
+            font-weight: 800;
+            color: var(--pink-deep);
+            margin-bottom: 8px;
+            line-height: 1.05;
+            letter-spacing: -0.02em;
+        }
+        .main h1 .subtle {
+            display: block;
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-light);
+            margin-top: 12px;
+            line-height: 1.5;
+            max-width: 640px;
+        }
+        .main h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text);
+            margin: 56px 0 14px;
+            padding-bottom: 14px;
+            border-bottom: 2px solid var(--pink-soft);
+            scroll-margin-top: 84px;
+            letter-spacing: -0.015em;
+            display: flex; align-items: center; gap: 14px;
+        }
+        .main h2 .badge {
+            display: inline-flex; align-items: center; justify-content: center;
+            background: linear-gradient(135deg, var(--pink), var(--pink-light));
+            color: white;
+            font-size: 14px;
+            font-weight: 800;
+            width: 36px; height: 36px;
+            border-radius: 12px;
+            box-shadow: 0 6px 18px var(--pink-glow);
+            flex-shrink: 0;
+        }
+        .main p { margin: 12px 0; color: var(--text-mid); font-size: 15.5px; line-height: 1.75; }
+        .main strong { color: var(--text); font-weight: 700; }
+        .main a { color: var(--pink); text-decoration: underline; text-underline-offset: 2px; }
+
+        /* ===== Callouts ===== */
+        .callout {
+            border-radius: var(--radius-sm);
+            padding: 18px 22px;
+            margin: 18px 0;
+            font-size: 14.5px;
+            line-height: 1.7;
+            border-left: 4px solid;
+            box-shadow: var(--shadow-sm);
+        }
+        .callout strong { display: block; margin-bottom: 4px; font-size: 15px; }
+        .callout-tip { background: var(--green-soft); border-color: var(--green); color: #065F46; }
+        .callout-warn { background: #FFFBEB; border-color: var(--orange); color: #92400E; }
+        .callout-danger { background: #FEF2F2; border-color: var(--red); color: #991B1B; }
+        .callout-info { background: var(--pink-soft); border-color: var(--pink); color: var(--pink-deep); }
+
+        /* ===== Q&A Card ===== */
+        .qa {
+            background: white;
+            border: 1px solid var(--gray-border);
+            border-radius: var(--radius);
+            margin: 18px 0 22px;
+            box-shadow: var(--shadow-card);
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+        .qa:hover { box-shadow: var(--shadow-elevated); }
+        .qa-question {
+            display: flex; align-items: flex-start; gap: 14px;
+            padding: 20px 24px;
+            background: linear-gradient(135deg, white 0%, var(--pink-soft) 100%);
+            border-bottom: 1px solid var(--gray-border);
+        }
+        .qa-question .icon {
+            font-size: 22px;
+            width: 44px; height: 44px;
+            background: white;
+            border: 1px solid var(--pink-light);
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: var(--shadow-sm);
+            flex-shrink: 0;
+        }
+        .qa-question .q-text {
+            flex: 1;
+            min-width: 0;
+        }
+        .qa-question .q-label {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--pink);
+            margin-bottom: 4px;
+        }
+        .qa-question .q-text strong {
+            display: block;
+            font-family: 'Playfair Display', serif;
+            font-size: 19px;
+            font-weight: 700;
+            color: var(--text);
+            line-height: 1.3;
+            font-style: italic;
+        }
+        .qa-question .q-text .context {
+            margin-top: 6px;
+            font-size: 13px;
+            color: var(--text-light);
+            font-weight: 500;
+            line-height: 1.5;
+        }
+        .qa-answer {
+            padding: 20px 24px;
+            position: relative;
+        }
+        .qa-answer .a-label {
+            display: block;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--green);
+            margin-bottom: 10px;
+        }
+        .qa-answer .a-text {
+            white-space: pre-wrap;
+            font-size: 15.5px;
+            line-height: 1.75;
+            color: var(--text);
+            padding: 16px 18px;
+            background: var(--gray-bg);
+            border-left: 4px solid var(--green);
+            border-radius: var(--radius-xs);
+        }
+        .qa-answer .copy-btn {
+            position: absolute;
+            top: 16px; right: 18px;
+            background: var(--pink-soft);
+            border: 1px solid var(--pink-light);
+            color: var(--pink);
+            font-size: 12px; font-weight: 700;
+            padding: 6px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .qa-answer .copy-btn:hover { background: var(--pink); color: white; border-color: var(--pink); }
+        .qa-answer .copy-btn.copied { background: var(--green); border-color: var(--green); color: white; }
+        .qa-tip {
+            margin: 14px 0 0;
+            padding: 12px 16px;
+            background: var(--pink-soft);
+            border-radius: var(--radius-xs);
+            font-size: 13.5px;
+            color: var(--pink-deep);
+            border-left: 3px solid var(--pink);
+            line-height: 1.6;
+        }
+        .qa-tip strong { color: var(--pink-deep); display: inline; font-size: 13.5px; }
+
+        /* ===== Tag pills ===== */
+        .tag {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-right: 6px;
+        }
+        .tag-soft { background: var(--green-soft); color: #065F46; }
+        .tag-firm { background: #FFFBEB; color: #92400E; }
+        .tag-key { background: var(--pink-soft); color: var(--pink-deep); }
+
+        /* ===== Mobile ===== */
+        .menu-toggle { display: none; }
+        @media (max-width: 920px) {
+            .layout { grid-template-columns: 1fr; }
+            .sidebar {
+                position: fixed;
+                top: 0; left: 0;
+                width: 280px; height: 100vh;
+                z-index: 200;
+                transform: translateX(-100%);
+                transition: transform 0.25s ease;
+                box-shadow: 4px 0 20px rgba(0,0,0,0.1);
+            }
+            .sidebar.open { transform: translateX(0); }
+            .menu-toggle {
+                display: inline-flex;
+                align-items: center; gap: 6px;
+                font-size: 14px; font-weight: 600;
+                background: none; border: 1px solid var(--gray-border);
+                padding: 8px 12px; border-radius: 22px;
+                cursor: pointer; color: var(--text);
+            }
+            .main { padding: 28px 20px 64px; }
+            .main h1 { font-size: 30px; }
+            .main h2 { font-size: 22px; margin-top: 40px; }
+            .main h2 .badge { width: 32px; height: 32px; font-size: 13px; }
+            .qa-question { flex-direction: column; gap: 10px; }
+            .qa-answer .copy-btn { position: static; margin-top: 10px; }
+            .backdrop {
+                display: none; position: fixed; inset: 0;
+                background: rgba(0,0,0,0.4); z-index: 150;
+            }
+            .backdrop.show { display: block; }
+        }
+        @media (min-width: 921px) { .menu-toggle { display: none; } }
+    </style>
+</head>
+<body>
+
+<header class="topbar">
+    <div style="display:flex; align-items:center; gap:12px;">
+        <button class="menu-toggle" id="menuToggle" aria-label="Open menu">☰ Menu</button>
+        <div class="topbar-brand"><span class="dot">💬</span> Antwoorden in DM</div>
+    </div>
+    <div class="topbar-actions">
+        <a href="/setter" class="btn">📝 Setter</a>
+        <a href="/debate" class="btn">🎯 Debate</a>
+        <button class="btn" onclick="logout()">Uitloggen</button>
+    </div>
+</header>
+
+<div class="backdrop" id="backdrop"></div>
+
+<div class="layout">
+
+    <aside class="sidebar" id="sidebar">
+        <h4>De gouden 2</h4>
+        <a href="#alles-top"><span class="num">★</span> "Alles gaat top"</a>
+        <a href="#wat-kost"><span class="num">★</span> "Wat kost het?"</a>
+
+        <h4>Bezwaren</h4>
+        <a href="#geen-tijd">Geen tijd</a>
+        <a href="#geen-geld">Geen geld nu</a>
+        <a href="#nadenken">Moet nog nadenken</a>
+        <a href="#partner">Eerst overleggen</a>
+        <a href="#zelf-proberen">Eerst zelf proberen</a>
+
+        <h4>Twijfels</h4>
+        <a href="#werkt-het">Werkt het echt?</a>
+        <a href="#geen-discipline">Geen discipline</a>
+        <a href="#al-eerder">Al eerder mislukt</a>
+
+        <h4>Praktisch</h4>
+        <a href="#hoe-lang">Hoe lang duurt het?</a>
+        <a href="#online">Online of fysiek?</a>
+        <a href="#vakantie">Tijdens vakantie?</a>
+
+        <h4>Hulp</h4>
+        <a href="#regels">De regels onthouden</a>
+    </aside>
+
+    <main class="main">
+
+        <h1>Antwoorden in DM
+            <span class="subtle">Slimme reacties op de meest voorkomende vragen en bezwaren. Allemaal in mijn ik-voice. Klik kopiëren en plak het in de DM.</span>
+        </h1>
+
+        <div class="callout callout-danger">
+            <strong>🚫 De 3 regels die altijd gelden</strong>
+            1. Geen prijzen in DM. Niet half. Niet rond. Niet per maand. Nooit.<br>
+            2. Geen call zonder ingevuld formulier op <a href="https://www.juliabesten.nl/#vragenlijst" target="_blank">juliabesten.nl/#vragenlijst</a>.<br>
+            3. Stop na 2 follow-ups. Daarna laat je haar gaan.
+        </div>
+
+        <!-- ============== ALLES TOP ============== -->
+        <section id="alles-top">
+            <h2><span class="badge">★</span> "Alles gaat top"</h2>
+
+            <p>Soms zegt iemand dat alles goed gaat. Niet pushen. Niet weglopen. Eén zachte vervolgvraag.</p>
+
+            <div class="qa">
+                <div class="qa-question">
+                    <div class="icon">😊</div>
+                    <div class="q-text">
+                        <div class="q-label">Zij zegt</div>
+                        <strong>"Het gaat eigenlijk best goed met me, alles loopt"</strong>
+                        <div class="context">Hoor ik vaak. Niet pushen. Niet beledigend reageren. Vragen of er nog iets is waar ik haar bij kan helpen.</div>
+                    </div>
+                </div>
+                <div class="qa-answer">
+                    <span class="a-label">💕 Mijn antwoord</span>
+                    <div class="a-text">"Wat tof om te horen 💕 Is er nog iets waar ik je eventueel bij zou kunnen helpen?"</div>
+                    <button class="copy-btn" onclick="copyText(this, 'Wat tof om te horen 💕 Is er nog iets waar ik je eventueel bij zou kunnen helpen?')">Kopiëer</button>
+                    <div class="qa-tip">
+                        <strong>Waarom dit werkt.</strong> Ik geef haar de ruimte om iets te delen wat ze niet uit zichzelf zou zeggen. Veel vrouwen zeggen "het gaat goed" automatisch. De vervolgvraag opent de deur opnieuw zonder druk.
+                    </div>
+                </div>
+            </div>
+
+            <div class="callout callout-tip">
+                <strong>💡 Wat als ze niets noemt?</strong>
+                Niets. Lik haar volgende post. Reageer over 2 weken op haar story. Niet pushen. Soms is "het gaat goed" écht zo en dat is helemaal prima.
+            </div>
+        </section>
+
+        <!-- ============== WAT KOST HET ============== -->
+        <section id="wat-kost">
+            <h2><span class="badge">★</span> "Wat kost het?"</h2>
+
+            <p>De vraag die je gegarandeerd krijgt. Geen prijs. Niet eens een richting. Bruggetje naar het gesprek.</p>
+
+            <div class="callout callout-danger">
+                <strong>⚠️ Verleiding weerstaan</strong>
+                Je wilt antwoorden om "transparant" te zijn. Niet doen. Een prijs in DM zonder context schrikt af, kwalificeert niets, en haalt mij uit het gesprek.
+            </div>
+
+            <div class="qa">
+                <div class="qa-question">
+                    <div class="icon">💸</div>
+                    <div class="q-text">
+                        <div class="q-label">Zij vraagt</div>
+                        <strong>"Wat kost het?"</strong>
+                        <div class="context">Vroeg of laat krijg je deze. Mijn antwoord brengt het gesprek terug naar haar situatie.</div>
+                    </div>
+                </div>
+                <div class="qa-answer">
+                    <span class="a-label">💕 Mijn antwoord</span>
+                    <div class="a-text">"Begrijp je vraag enorm 💕 Alleen dat verschilt enorm wat je wilt. En uiteraard vroeg of ik je überhaupt kan helpen. Vandaar het gesprek."</div>
+                    <button class="copy-btn" onclick="copyText(this, 'Begrijp je vraag enorm 💕 Alleen dat verschilt enorm wat je wilt. En uiteraard vroeg of ik je überhaupt kan helpen. Vandaar het gesprek.')">Kopiëer</button>
+                    <div class="qa-tip">
+                        <strong>Waarom dit werkt.</strong> Ik valideer haar vraag. Ik leg uit dat een prijs zonder context geen waarde heeft. En ik draai het terug naar de logica van het gesprek. Dat is precies waarom we eerst kwalificeren.
+                    </div>
+                </div>
+            </div>
+
+            <h3 style="margin-top:24px; font-size:17px; font-weight:700;">Vraagt ze 2 keer door?</h3>
+            <div class="qa">
+                <div class="qa-question">
+                    <div class="icon">🔁</div>
+                    <div class="q-text">
+                        <div class="q-label">Zij houdt vol</div>
+                        <strong>"Maar geef gewoon een richting?"</strong>
+                        <div class="context">Soms blijft ze aandringen. Blijf rustig. Dezelfde lijn. Push haar zacht naar het formulier.</div>
+                    </div>
+                </div>
+                <div class="qa-answer">
+                    <span class="a-label">💕 Mijn antwoord</span>
+                    <div class="a-text">"Ik snap dat je wil weten waar je aan toe bent 💕 Daarom doe ik altijd eerst een korte vragenlijst en kort gesprek. Pas dan weet ik wat bij jou past en wat het waard is. Vul je 'm hier even in: juliabesten.nl/#vragenlijst"</div>
+                    <button class="copy-btn" onclick="copyText(this, 'Ik snap dat je wil weten waar je aan toe bent 💕 Daarom doe ik altijd eerst een korte vragenlijst en kort gesprek. Pas dan weet ik wat bij jou past en wat het waard is. Vul je hem hier even in: juliabesten.nl/#vragenlijst')">Kopiëer</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============== GEEN TIJD ============== -->
+        <section id="geen-tijd">
+            <h2><span class="badge">⏰</span> "Ik heb geen tijd"</h2>
+
+            <div class="qa">
+                <div class="qa-question">
+                    <div class="icon">⏰</div>
+                    <div class="q-text">
+                        <div class="q-label">Zij zegt</div>
+                        <strong>"Ik heb het super druk, ik heb echt geen tijd om te trainen"</strong>
+                    </div>
+                </div>
+                <div class="qa-answer">
+                    <span class="a-label">💕 Mijn antwoord</span>
+                    <div class="a-text">"Snap ik echt 💕 Daarom werk ik met schema's van 30 tot 45 minuten. Wat zou jij gemiddeld per week aan jezelf willen geven?"</div>
+                    <button class="copy-btn" onclick="copyText(this, 'Snap ik echt 💕 Daarom werk ik met schema\'s van 30 tot 45 minuten. Wat zou jij gemiddeld per week aan jezelf willen geven?')">Kopiëer</button>
+                    <div class="qa-tip">
+                        <strong>Doel.</strong> Bezwaar erkennen. Oplossing tonen. Vraag terugleggen om commitment te peilen.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============== GEEN GELD ============== -->
+        <section id="geen-geld">
+            <h2><span class="badge">💸</span> "Ik heb nu geen geld"</h2>
+
+            <div class="qa">
+                <div class="qa-question">
+                    <div class="icon">💸</div>
+                    <div class="q-text">
+                        <div class="q-label">Zij zegt</div>
+                        <strong>"Ik wil heel graag maar ik heb het er nu niet voor"</strong>
+                    </div>
+                </div>
+                <div class="qa-answer">
+                    <span class="a-label">💕 Mijn antwoord</span>
+                    <div class="a-text">"Snap ik volledig 💕 Belangrijkste vraag is of het echt iets is waar je op een dag voor wil gaan. Vul de vragenlijst in als dat zo is. Dan kijken we samen wat past en wanneer."</div>
+                    <button class="copy-btn" onclick="copyText(this, 'Snap ik volledig 💕 Belangrijkste vraag is of het echt iets is waar je op een dag voor wil gaan. Vul de vragenlijst in als dat zo is. Dan kijken we samen wat past en wanneer.')">Kopiëer</button>
+                    <div class="qa-tip">
+                        <strong>Niet</strong> overhalen om geld te lenen. Wel ruimte geven om later terug te komen.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============== NADENKEN ============== -->
+        <section id="nadenken">
+            <h2><span class="badge">🤔</span> "Ik moet er nog over nadenken"</h2>
+
+            <div class="qa">
+                <div class="qa-question">
+                    <div class="icon">🤔</div>
+                    <div class="q-text">
+                        <div class="q-label">Zij zegt</div>
+                        <strong>"Ik denk er even over na, ik laat het je weten"</strong>
+                    </div>
+                </div>
+                <div class="qa-answer">
+                    <span class="a-label">💕 Mijn antwoord</span>
+                    <div class="a-text">"Helemaal goed 💕 Wat is voor jou nu de grootste twijfel? Dan kan ik dat misschien wegnemen. Of de vragenlijst helpt vaak ook om het scherp te krijgen voor jezelf."</div>
+                    <button class="copy-btn" onclick="copyText(this, 'Helemaal goed 💕 Wat is voor jou nu de grootste twijfel? Dan kan ik dat misschien wegnemen. Of de vragenlijst helpt vaak ook om het scherp te krijgen voor jezelf.')">Kopiëer</button>
+                    <div class="qa-tip">
+                        <strong>Doel.</strong> De échte twijfel boven water krijgen. Niet "denken" maar concreet bezwaar.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============== PARTNER ============== -->
+        <section id="partner">
+            <h2><span class="badge">👥</span> "Ik moet eerst overleggen"</h2>
+
+            <div class="qa">
+                <div class="qa-question">
+                    <div class="icon">👥</div>
+                    <div class="q-text">
+                        <div class="q-label">Zij zegt</div>
+                        <strong>"Ik moet het eerst even met mijn vriend bespreken"</strong>
+                    </div>
+                </div>
+                <div class="qa-answer">
+                    <span class="a-label">💕 Mijn antwoord</span>
+                    <div class="a-text">"Logisch 💕 Wat zou jij zelf het liefste willen als het puur aan jou lag? En wat denk je dat hij ervan vindt?"</div>
+                    <button class="copy-btn" onclick="copyText(this, 'Logisch 💕 Wat zou jij zelf het liefste willen als het puur aan jou lag? En wat denk je dat hij ervan vindt?')">Kopiëer</button>
+                    <div class="qa-tip">
+                        <strong>Doel.</strong> Erachter komen of ze zelf ja zou zeggen. De partner is vaak een excuus, niet een blokkade.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============== ZELF PROBEREN ============== -->
+        <section id="zelf-proberen">
+            <h2><span class="badge">💪</span> "Ik wil het eerst zelf proberen"</h2>
+
+            <div class="qa">
+                <div class="qa-question">
+                    <div class="icon">💪</div>
+                    <div class="q-text">
+                        <div class="q-label">Zij zegt</div>
+                        <strong>"Ik wil het eerst zelf proberen voordat ik hulp inschakel"</strong>
+                    </div>
+                </div>
+                <div class="qa-answer">
+                    <span class="a-label">💕 Mijn antwoord</span>
+                    <div class="a-text">"Helemaal eerlijk antwoord 💕 Mag ik vragen wat je dan zelf hebt geprobeerd tot nu toe en hoe dat ging?"</div>
+                    <button class="copy-btn" onclick="copyText(this, 'Helemaal eerlijk antwoord 💕 Mag ik vragen wat je dan zelf hebt geprobeerd tot nu toe en hoe dat ging?')">Kopiëer</button>
+                    <div class="qa-tip">
+                        <strong>Doel.</strong> Vaak heeft ze al gefaald in eigen pogingen. Daar zit de pijn. Niet pushen. Doorvragen.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============== WERKT HET ============== -->
+        <section id="werkt-het">
+            <h2><span class="badge">❓</span> "Werkt het echt?"</h2>
+
+            <div class="qa">
+                <div class="qa-question">
+                    <div class="icon">❓</div>
+                    <div class="q-text">
+                        <div class="q-label">Zij vraagt</div>
+                        <strong>"Hoe weet ik dat het bij mij ook gaat werken?"</strong>
+                    </div>
+                </div>
+                <div class="qa-answer">
+                    <span class="a-label">💕 Mijn antwoord</span>
+                    <div class="a-text">"Eerlijk antwoord. Het werkt niet voor iedereen 💕 Daarom doe ik eerst de vragenlijst en een gesprek. Als het niet bij je past zeg ik dat ook. Wat is voor jou nu het belangrijkste resultaat dat je wil zien?"</div>
+                    <button class="copy-btn" onclick="copyText(this, 'Eerlijk antwoord. Het werkt niet voor iedereen 💕 Daarom doe ik eerst de vragenlijst en een gesprek. Als het niet bij je past zeg ik dat ook. Wat is voor jou nu het belangrijkste resultaat dat je wil zien?')">Kopiëer</button>
+                    <div class="qa-tip">
+                        <strong>Doel.</strong> Eerlijkheid wekt vertrouwen. Liever een eerlijke grens dan een grote belofte.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============== GEEN DISCIPLINE ============== -->
+        <section id="geen-discipline">
+            <h2><span class="badge">🌀</span> "Ik heb geen discipline"</h2>
+
+            <div class="qa">
+                <div class="qa-question">
+                    <div class="icon">🌀</div>
+                    <div class="q-text">
+                        <div class="q-label">Zij zegt</div>
+                        <strong>"Ik heb echt geen discipline, ik val telkens terug"</strong>
+                    </div>
+                </div>
+                <div class="qa-answer">
+                    <span class="a-label">💕 Mijn antwoord</span>
+                    <div class="a-text">"Dat hoor ik zo vaak 💕 Discipline is ook niet de oplossing. Structuur en iemand die je vasthoudt wel. Wat hield je tot nu toe het meeste tegen?"</div>
+                    <button class="copy-btn" onclick="copyText(this, 'Dat hoor ik zo vaak 💕 Discipline is ook niet de oplossing. Structuur en iemand die je vasthoudt wel. Wat hield je tot nu toe het meeste tegen?')">Kopiëer</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============== AL EERDER MISLUKT ============== -->
+        <section id="al-eerder">
+            <h2><span class="badge">📉</span> "Ik heb al van alles geprobeerd"</h2>
+
+            <div class="qa">
+                <div class="qa-question">
+                    <div class="icon">📉</div>
+                    <div class="q-text">
+                        <div class="q-label">Zij zegt</div>
+                        <strong>"Ik heb al verschillende dingen geprobeerd en het lukt nooit"</strong>
+                    </div>
+                </div>
+                <div class="qa-answer">
+                    <span class="a-label">💕 Mijn antwoord</span>
+                    <div class="a-text">"Frustrerend 💕 Mag ik vragen wat je hebt geprobeerd en wat er telkens fout ging? Vaak zit het niet in jou maar in de aanpak."</div>
+                    <button class="copy-btn" onclick="copyText(this, 'Frustrerend 💕 Mag ik vragen wat je hebt geprobeerd en wat er telkens fout ging? Vaak zit het niet in jou maar in de aanpak.')">Kopiëer</button>
+                    <div class="qa-tip">
+                        <strong>Doel.</strong> Schuld weghalen bij haar. Probleem leggen bij de methode. Goud voor doorvragen.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============== HOE LANG ============== -->
+        <section id="hoe-lang">
+            <h2><span class="badge">📅</span> "Hoe lang duurt het programma?"</h2>
+
+            <div class="qa">
+                <div class="qa-question">
+                    <div class="icon">📅</div>
+                    <div class="q-text">
+                        <div class="q-label">Zij vraagt</div>
+                        <strong>"Hoe lang is het programma?"</strong>
+                    </div>
+                </div>
+                <div class="qa-answer">
+                    <span class="a-label">💕 Mijn antwoord</span>
+                    <div class="a-text">"Het basisprogramma is 16 weken intensief 💕 Maar dat is afhankelijk van waar jij staat en wat je wilt bereiken. Vandaar dat we eerst kijken of het past."</div>
+                    <button class="copy-btn" onclick="copyText(this, 'Het basisprogramma is 16 weken intensief 💕 Maar dat is afhankelijk van waar jij staat en wat je wilt bereiken. Vandaar dat we eerst kijken of het past.')">Kopiëer</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============== ONLINE ============== -->
+        <section id="online">
+            <h2><span class="badge">💻</span> "Is het online of fysiek?"</h2>
+
+            <div class="qa">
+                <div class="qa-question">
+                    <div class="icon">💻</div>
+                    <div class="q-text">
+                        <div class="q-label">Zij vraagt</div>
+                        <strong>"Is het online of moet ik bij jou langskomen?"</strong>
+                    </div>
+                </div>
+                <div class="qa-answer">
+                    <span class="a-label">💕 Mijn antwoord</span>
+                    <div class="a-text">"Het is volledig online 💕 Ik werk met dames door heel Nederland en België. Train je thuis of in jouw eigen sportschool. Ik begeleid dagelijks."</div>
+                    <button class="copy-btn" onclick="copyText(this, 'Het is volledig online 💕 Ik werk met dames door heel Nederland en België. Train je thuis of in jouw eigen sportschool. Ik begeleid dagelijks.')">Kopiëer</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============== VAKANTIE ============== -->
+        <section id="vakantie">
+            <h2><span class="badge">🏖️</span> "Ik ga binnenkort op vakantie"</h2>
+
+            <div class="qa">
+                <div class="qa-question">
+                    <div class="icon">🏖️</div>
+                    <div class="q-text">
+                        <div class="q-label">Zij zegt</div>
+                        <strong>"Ik ga over een paar weken op vakantie, dan kan ik niet beginnen"</strong>
+                    </div>
+                </div>
+                <div class="qa-answer">
+                    <span class="a-label">💕 Mijn antwoord</span>
+                    <div class="a-text">"Dat is juist een leuk moment om te starten 💕 Vakantie pauzeren we de training of passen we 'm aan. We werken zelfs vaak naar je vakantie toe. Wanneer ga je?"</div>
+                    <button class="copy-btn" onclick="copyText(this, 'Dat is juist een leuk moment om te starten 💕 Vakantie pauzeren we de training of passen we hem aan. We werken zelfs vaak naar je vakantie toe. Wanneer ga je?')">Kopiëer</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============== REGELS ============== -->
+        <section id="regels">
+            <h2><span class="badge">📌</span> De regels die ik in mijn hoofd hou</h2>
+
+            <div class="callout callout-info">
+                <strong>1. Geen prijzen in DM. Echt nooit.</strong>
+                Ook niet rond, ook niet "ergens tussen", ook niet half. Iedere keer terug naar de logica van het gesprek.
+            </div>
+
+            <div class="callout callout-info">
+                <strong>2. Geen call zonder formulier.</strong>
+                Het formulier op <a href="https://www.juliabesten.nl/#vragenlijst" target="_blank">juliabesten.nl/#vragenlijst</a> is de poort. Wie het niet invult is niet klaar.
+            </div>
+
+            <div class="callout callout-info">
+                <strong>3. Eerst valideren, dan vragen, dan brug.</strong>
+                Bezwaar erkennen <span class="tag tag-soft">tof</span>. Kort doorvragen <span class="tag tag-key">scherp</span>. Naar het formulier of de call <span class="tag tag-firm">brug</span>.
+            </div>
+
+            <div class="callout callout-info">
+                <strong>4. Stop als ze stil blijft.</strong>
+                Max 2 follow-ups. Daarna laat ik haar gaan. Over 14 dagen kan ik weer reageren op een story of post.
+            </div>
+
+            <div class="callout callout-info">
+                <strong>5. Kort houden.</strong>
+                Geen tekstmuren. Korte zinnen. Punten als pauzes. Voice memo waar het kan.
+            </div>
+
+            <div class="callout callout-tip">
+                <strong>💡 Bij twijfel</strong>
+                Als ik niet weet wat ik moet zeggen. Stuur ik een vraag. Geen statement. Vragen geven het gesprek terug aan haar en vertellen mij wat ze écht denkt.
+            </div>
+        </section>
+
+        <p style="margin-top: 72px; text-align: center; color: var(--text-light); font-size: 13px;">
+            💬 Antwoorden in DM · Versie 1.0 · Voor Julia
+        </p>
+    </main>
+</div>
+
+<script>
+function copyText(btn, text) {
+    navigator.clipboard.writeText(text).then(() => {
+        const originalText = btn.textContent;
+        btn.textContent = '✓ Gekopieerd';
+        btn.classList.add('copied');
+        setTimeout(() => {
+            btn.textContent = originalText;
+            btn.classList.remove('copied');
+        }, 1800);
+    }).catch(err => {
+        alert('Kopiëren mislukt. Selecteer de tekst handmatig.');
+    });
+}
+
+async function logout() {
+    try { await fetch('/api/logout', { method: 'POST' }); } catch (e) {}
+    window.location.href = '/portal-j8k3m9q2x7p5v4';
+}
+
+const menuToggle = document.getElementById('menuToggle');
+const sidebar = document.getElementById('sidebar');
+const backdrop = document.getElementById('backdrop');
+function closeMenu() {
+    sidebar.classList.remove('open');
+    backdrop.classList.remove('show');
+}
+menuToggle?.addEventListener('click', () => {
+    sidebar.classList.toggle('open');
+    backdrop.classList.toggle('show');
+});
+backdrop?.addEventListener('click', closeMenu);
+sidebar?.querySelectorAll('a').forEach(link => link.addEventListener('click', closeMenu));
+
+const sections = document.querySelectorAll('section[id]');
+const navLinks = sidebar.querySelectorAll('a');
+function setActiveLink() {
+    let current = '';
+    sections.forEach(section => {
+        const top = section.getBoundingClientRect().top;
+        if (top < 200) current = section.id;
+    });
+    navLinks.forEach(link => {
+        link.classList.toggle('active', link.getAttribute('href') === '#' + current);
+    });
+}
+window.addEventListener('scroll', setActiveLink, { passive: true });
+setActiveLink();
+</script>
+</body>
+</html>
