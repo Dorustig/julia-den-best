@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#E91E8C">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Debate · Maximaal calls · Julia Besten</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎯</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --pink: #E91E8C;
+            --pink-deep: #BE185D;
+            --pink-light: #F472B6;
+            --pink-soft: #FDF2F8;
+            --pink-bg: #FFF8FB;
+            --pink-glow: rgba(233, 30, 140, 0.12);
+            --green: #10B981;
+            --green-soft: #ECFDF5;
+            --orange: #F59E0B;
+            --red: #EF4444;
+            --text: #1F2937;
+            --text-mid: #4B5563;
+            --text-light: #6B7280;
+            --text-faint: #9CA3AF;
+            --gray-bg: #FAFAFB;
+            --gray-border: #ECEEF1;
+            --code-bg: #FDF6FB;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
+            --shadow-card: 0 4px 24px rgba(31,41,55,0.06), 0 1px 3px rgba(31,41,55,0.04);
+            --shadow-elevated: 0 12px 40px rgba(31,41,55,0.08), 0 2px 8px rgba(31,41,55,0.04);
+            --radius: 16px;
+            --radius-sm: 12px;
+            --radius-xs: 8px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            color: var(--text);
+            background: var(--pink-bg);
+            line-height: 1.65;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* ===== Top bar ===== */
+        .topbar {
+            position: sticky; top: 0; z-index: 100;
+            background: rgba(255,255,255,0.92);
+            backdrop-filter: saturate(180%) blur(12px);
+            -webkit-backdrop-filter: saturate(180%) blur(12px);
+            border-bottom: 1px solid var(--gray-border);
+            padding: 14px 24px;
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 16px;
+        }
+        .topbar-brand {
+            display: flex; align-items: center; gap: 10px;
+            font-weight: 700; font-size: 16px;
+        }
+        .topbar-brand .dot { color: var(--pink); font-size: 22px; line-height: 1; }
+        .topbar-actions { display: flex; gap: 10px; align-items: center; }
+        .btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 8px 16px;
+            border-radius: 24px;
+            font-size: 14px; font-weight: 600;
+            text-decoration: none;
+            border: 1px solid var(--gray-border);
+            background: white;
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.18s cubic-bezier(0.4,0,0.2,1);
+        }
+        .btn:hover { background: var(--pink-soft); border-color: var(--pink-light); color: var(--pink); }
+
+        /* ===== Layout ===== */
+        .layout {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            max-width: 1480px;
+            margin: 0 auto;
+        }
+        .sidebar {
+            position: sticky;
+            top: 64px;
+            height: calc(100vh - 64px);
+            overflow-y: auto;
+            padding: 28px 14px;
+            border-right: 1px solid var(--gray-border);
+            background: white;
+        }
+        .sidebar h4 {
+            font-size: 11px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.08em;
+            color: var(--text-light);
+            padding: 18px 14px 10px;
+        }
+        .sidebar a {
+            display: flex; align-items: center;
+            padding: 10px 14px;
+            color: var(--text-mid);
+            text-decoration: none;
+            border-radius: var(--radius-xs);
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 2px;
+            transition: all 0.15s;
+        }
+        .sidebar a:hover { background: var(--pink-soft); color: var(--pink); }
+        .sidebar a.active {
+            background: linear-gradient(135deg, var(--pink-soft), white);
+            color: var(--pink);
+            font-weight: 700;
+            box-shadow: inset 3px 0 0 var(--pink);
+        }
+        .sidebar a .num {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 22px; height: 22px; border-radius: 50%;
+            background: var(--pink-soft);
+            color: var(--pink); font-weight: 700;
+            font-size: 11px;
+            margin-right: 10px;
+            transition: all 0.15s;
+        }
+        .sidebar a:hover .num, .sidebar a.active .num {
+            background: var(--pink);
+            color: white;
+        }
+
+        /* ===== Main content ===== */
+        .main {
+            padding: 48px 56px 100px;
+            max-width: 980px;
+        }
+        .main h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(32px, 4.5vw, 48px);
+            font-weight: 800;
+            color: var(--pink-deep);
+            margin-bottom: 8px;
+            line-height: 1.05;
+            letter-spacing: -0.02em;
+        }
+        .main h1 .subtle {
+            display: block;
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-light);
+            margin-top: 12px;
+            line-height: 1.5;
+            max-width: 640px;
+        }
+        .main h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 30px;
+            font-weight: 700;
+            color: var(--text);
+            margin: 72px 0 16px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid var(--pink-soft);
+            scroll-margin-top: 84px;
+            letter-spacing: -0.015em;
+            display: flex; align-items: center; gap: 14px;
+        }
+        .main h2 .badge {
+            display: inline-flex; align-items: center; justify-content: center;
+            background: linear-gradient(135deg, var(--pink), var(--pink-light));
+            color: white;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            font-weight: 800;
+            width: 38px; height: 38px;
+            border-radius: 12px;
+            box-shadow: 0 6px 18px var(--pink-glow);
+            flex-shrink: 0;
+        }
+        .main h3 {
+            font-size: 19px;
+            font-weight: 700;
+            margin: 32px 0 12px;
+            color: var(--text);
+            letter-spacing: -0.005em;
+        }
+        .main h4 {
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin: 20px 0 8px;
+            color: var(--pink);
+        }
+        .main p { margin: 12px 0; color: var(--text-mid); font-size: 15.5px; line-height: 1.75; }
+        .main ul, .main ol { margin: 12px 0 12px 24px; }
+        .main li { margin: 6px 0; color: var(--text-mid); }
+        .main strong { color: var(--text); font-weight: 700; }
+        .main a { color: var(--pink); text-decoration: underline; text-underline-offset: 2px; }
+
+        /* ===== Hero card ===== */
+        .hero-card {
+            background: linear-gradient(135deg, white 0%, var(--pink-soft) 100%);
+            border: 1px solid var(--pink-light);
+            border-radius: var(--radius);
+            padding: 28px;
+            margin: 28px 0 16px;
+            box-shadow: var(--shadow-card);
+        }
+        .hero-card h3 { margin-top: 0; font-size: 17px; }
+
+        /* ===== Callouts ===== */
+        .callout {
+            border-radius: var(--radius-sm);
+            padding: 18px 22px;
+            margin: 18px 0;
+            font-size: 14.5px;
+            line-height: 1.7;
+            border-left: 4px solid;
+            box-shadow: var(--shadow-sm);
+        }
+        .callout strong { display: block; margin-bottom: 4px; font-size: 15px; }
+        .callout-tip { background: var(--green-soft); border-color: var(--green); color: #065F46; }
+        .callout-warn { background: #FFFBEB; border-color: var(--orange); color: #92400E; }
+        .callout-danger { background: #FEF2F2; border-color: var(--red); color: #991B1B; }
+        .callout-info { background: var(--pink-soft); border-color: var(--pink); color: var(--pink-deep); }
+
+        /* ===== Script box ===== */
+        .script {
+            background: white;
+            border: 1px solid var(--pink-soft);
+            border-left: 4px solid var(--pink);
+            border-radius: var(--radius-sm);
+            padding: 18px 20px;
+            margin: 16px 0;
+            font-size: 14.5px;
+            line-height: 1.7;
+            position: relative;
+            color: var(--text);
+            box-shadow: var(--shadow-sm);
+        }
+        .script .label {
+            display: block;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--pink);
+            margin-bottom: 10px;
+        }
+        .script .text {
+            white-space: pre-wrap;
+            font-size: 15.5px;
+            line-height: 1.75;
+            color: var(--text);
+        }
+        .script .copy-btn {
+            position: absolute;
+            top: 14px; right: 14px;
+            background: var(--pink-soft);
+            border: 1px solid var(--pink-light);
+            color: var(--pink);
+            font-size: 12px; font-weight: 700;
+            padding: 6px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .script .copy-btn:hover { background: var(--pink); color: white; border-color: var(--pink); }
+        .script .copy-btn.copied { background: var(--green); border-color: var(--green); color: white; }
+
+        /* ===== Tables ===== */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 18px 0;
+            background: white;
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            box-shadow: var(--shadow-card);
+            font-size: 14.5px;
+        }
+        th { background: var(--pink-soft); color: var(--pink-deep); padding: 14px 16px; text-align: left; font-weight: 700; font-size: 13px; }
+        td { padding: 14px 16px; border-top: 1px solid var(--gray-border); vertical-align: top; color: var(--text-mid); }
+        td strong { color: var(--text); }
+
+        /* ===== Steps ===== */
+        .steps { counter-reset: step; list-style: none; padding: 0; margin: 18px 0; }
+        .steps li {
+            counter-increment: step;
+            position: relative;
+            padding-left: 56px;
+            margin-bottom: 18px;
+            font-size: 15px;
+        }
+        .steps li::before {
+            content: counter(step);
+            position: absolute;
+            left: 0; top: 0;
+            width: 38px; height: 38px;
+            background: linear-gradient(135deg, var(--pink), var(--pink-light));
+            color: white;
+            font-weight: 800;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 15px;
+            box-shadow: 0 6px 18px var(--pink-glow);
+        }
+
+        /* ===== Mermaid flowchart container ===== */
+        .flow-wrap {
+            background: white;
+            border: 1px solid var(--gray-border);
+            border-radius: var(--radius);
+            padding: 28px 18px;
+            margin: 18px 0;
+            box-shadow: var(--shadow-card);
+            overflow-x: auto;
+        }
+        .flow-wrap pre.mermaid {
+            margin: 0; padding: 0;
+            background: transparent;
+            text-align: center;
+            font-family: 'Inter', sans-serif;
+            min-height: 200px;
+        }
+        .flow-wrap pre.mermaid svg { max-width: 100%; height: auto; }
+        .flow-title {
+            font-size: 13px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--pink);
+            margin-bottom: 4px;
+        }
+
+        /* ===== Stem-card (debate voice) ===== */
+        .stem {
+            background: white;
+            border: 1px solid var(--gray-border);
+            border-radius: var(--radius);
+            padding: 0;
+            margin: 22px 0 32px;
+            box-shadow: var(--shadow-card);
+            overflow: hidden;
+        }
+        .stem-head {
+            display: flex; align-items: center; gap: 16px;
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--gray-border);
+            background: linear-gradient(135deg, white 0%, var(--pink-soft) 100%);
+        }
+        .stem-emoji {
+            font-size: 30px;
+            width: 56px; height: 56px;
+            background: white;
+            border: 1px solid var(--pink-light);
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: var(--shadow-sm);
+            flex-shrink: 0;
+        }
+        .stem-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 21px;
+            font-weight: 700;
+            color: var(--text);
+            line-height: 1.2;
+            margin: 0;
+        }
+        .stem-tag {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-top: 4px;
+            font-weight: 500;
+        }
+        .stem-verdict {
+            margin-left: auto;
+            padding: 6px 14px;
+            border-radius: 24px;
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .stem-verdict.win { background: var(--green-soft); color: #065F46; border: 1px solid var(--green); }
+        .stem-verdict.partial { background: #FFFBEB; color: #92400E; border: 1px solid var(--orange); }
+        .stem-verdict.skip { background: #FEF2F2; color: #991B1B; border: 1px solid var(--red); }
+        .stem-body { padding: 20px 24px; }
+        .stem-quote {
+            font-style: italic;
+            color: var(--text-mid);
+            font-size: 15px;
+            border-left: 3px solid var(--pink);
+            padding-left: 14px;
+            margin: 8px 0 18px;
+        }
+        .stem-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 14px 0;
+        }
+        .stem-list {
+            background: var(--gray-bg);
+            border-radius: var(--radius-xs);
+            padding: 14px 14px 14px 32px;
+            font-size: 14px;
+        }
+        .stem-list.pros { background: var(--green-soft); }
+        .stem-list.cons { background: #FEF2F2; }
+        .stem-list h5 {
+            font-size: 11px; font-weight: 800;
+            text-transform: uppercase; letter-spacing: 0.08em;
+            margin: 0 0 8px -18px;
+        }
+        .stem-list.pros h5 { color: #065F46; }
+        .stem-list.cons h5 { color: #991B1B; }
+        .stem-list li { margin: 4px 0; font-size: 13.5px; line-height: 1.55; }
+        .stem-when {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            margin: 16px 0 4px;
+            font-size: 13.5px;
+        }
+        .stem-when div { padding: 12px 14px; border-radius: var(--radius-xs); }
+        .stem-when .yes { background: var(--green-soft); color: #065F46; }
+        .stem-when .no { background: #FEF2F2; color: #991B1B; }
+        .stem-when strong { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; font-weight: 800; }
+
+        /* ===== Winner-card ===== */
+        .winner {
+            background: linear-gradient(135deg, var(--pink) 0%, var(--pink-deep) 100%);
+            color: white;
+            border-radius: var(--radius);
+            padding: 28px;
+            margin: 24px 0 12px;
+            box-shadow: 0 20px 50px var(--pink-glow), var(--shadow-elevated);
+        }
+        .winner h3 {
+            color: white !important;
+            font-family: 'Playfair Display', serif;
+            font-size: 26px;
+            font-weight: 800;
+            margin: 0 0 10px;
+            letter-spacing: -0.01em;
+        }
+        .winner p { color: rgba(255,255,255,0.92); font-size: 15.5px; margin: 6px 0; }
+
+        /* ===== Principle cards ===== */
+        .principles {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 14px;
+            margin: 20px 0;
+        }
+        .princ-card {
+            background: white;
+            border: 1px solid var(--gray-border);
+            border-radius: var(--radius-sm);
+            padding: 18px 20px;
+            box-shadow: var(--shadow-sm);
+            position: relative;
+        }
+        .princ-card .num {
+            position: absolute;
+            top: -10px; left: 18px;
+            background: linear-gradient(135deg, var(--pink), var(--pink-light));
+            color: white;
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px; font-weight: 800;
+            box-shadow: 0 4px 12px var(--pink-glow);
+        }
+        .princ-card h4 {
+            margin: 8px 0 6px;
+            text-transform: none;
+            letter-spacing: -0.005em;
+            font-size: 16px;
+            color: var(--text);
+            font-weight: 700;
+        }
+        .princ-card p {
+            margin: 0;
+            font-size: 13.5px;
+            color: var(--text-mid);
+            line-height: 1.6;
+        }
+
+        /* ===== KPI grid ===== */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 14px;
+            margin: 20px 0;
+        }
+        .kpi-card {
+            background: white;
+            border: 1px solid var(--gray-border);
+            border-radius: var(--radius-sm);
+            padding: 18px;
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+        }
+        .kpi-card .label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-light); }
+        .kpi-card .num { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 800; color: var(--pink); margin: 4px 0; }
+        .kpi-card .desc { font-size: 12px; color: var(--text-mid); }
+
+        /* ===== Next-step button ===== */
+        .next-step {
+            display: flex; align-items: center; gap: 14px;
+            padding: 16px 22px;
+            background: white;
+            border: 2px solid var(--pink-light);
+            border-radius: var(--radius-sm);
+            margin: 32px 0 0;
+            text-decoration: none !important;
+            color: var(--text);
+            font-weight: 700;
+            font-size: 15px;
+            transition: all 0.2s;
+            box-shadow: var(--shadow-sm);
+        }
+        .next-step:hover {
+            background: var(--pink-soft);
+            transform: translateX(4px);
+            border-color: var(--pink);
+            box-shadow: var(--shadow-card);
+        }
+        .next-step .arrow { font-size: 22px; color: var(--pink); margin-left: auto; }
+
+        /* ===== Mobile ===== */
+        .menu-toggle { display: none; }
+        @media (max-width: 920px) {
+            .layout { grid-template-columns: 1fr; }
+            .sidebar {
+                position: fixed;
+                top: 0; left: 0;
+                width: 280px; height: 100vh;
+                z-index: 200;
+                transform: translateX(-100%);
+                transition: transform 0.25s ease;
+                box-shadow: 4px 0 20px rgba(0,0,0,0.1);
+            }
+            .sidebar.open { transform: translateX(0); }
+            .menu-toggle {
+                display: inline-flex;
+                align-items: center; gap: 6px;
+                font-size: 14px; font-weight: 600;
+                background: none; border: 1px solid var(--gray-border);
+                padding: 8px 12px; border-radius: 22px;
+                cursor: pointer; color: var(--text);
+            }
+            .main { padding: 28px 20px 64px; }
+            .main h1 { font-size: 30px; }
+            .main h2 { font-size: 24px; margin-top: 48px; }
+            .main h2 .badge { width: 32px; height: 32px; font-size: 13px; }
+            .stem-grid, .stem-when { grid-template-columns: 1fr; }
+            .backdrop {
+                display: none; position: fixed; inset: 0;
+                background: rgba(0,0,0,0.4); z-index: 150;
+            }
+            .backdrop.show { display: block; }
+        }
+        @media (min-width: 921px) { .menu-toggle { display: none; } }
+    </style>
+</head>
+<body>
+
+<header class="topbar">
+    <div style="display:flex; align-items:center; gap:12px;">
+        <button class="menu-toggle" id="menuToggle" aria-label="Open menu">☰ Menu</button>
+        <div class="topbar-brand"><span class="dot">🎯</span> Het Debat · Maximaal Calls</div>
+    </div>
+    <div class="topbar-actions">
+        <a href="/setter" class="btn">📝 Setter Playbook</a>
+        <button class="btn" onclick="logout()">Uitloggen</button>
+    </div>
+</header>
+
+<div class="backdrop" id="backdrop"></div>
+
+<div class="layout">
+
+    <aside class="sidebar" id="sidebar">
+        <h4>Het kader</h4>
+        <a href="#doel"><span class="num">★</span> Het doel</a>
+        <a href="#regel"><span class="num">!</span> De regel: form first</a>
+
+        <h4>Het debat · 6 stemmen</h4>
+        <a href="#stem1"><span class="num">1</span> De Volume Generaal</a>
+        <a href="#stem2"><span class="num">2</span> De Voice Memo Coach</a>
+        <a href="#stem3"><span class="num">3</span> De Story Antwoorder</a>
+        <a href="#stem4"><span class="num">4</span> De Content Magneet</a>
+        <a href="#stem5"><span class="num">5</span> De Schaarste Strategist</a>
+        <a href="#stem6"><span class="num">6</span> De Bewijs Detective</a>
+
+        <h4>De uitkomst</h4>
+        <a href="#winnaar"><span class="num">★</span> De hybride methode</a>
+        <a href="#scripts"><span class="num">$</span> De scripts</a>
+        <a href="#principes">7 principes</a>
+        <a href="#kpis">Onze KPIs</a>
+        <a href="#bottleneck">Wat als het stokt?</a>
+    </aside>
+
+    <main class="main">
+
+        <h1>Het Debat. Hoe halen we maximaal calls?
+            <span class="subtle">Een eerlijk debat tussen 6 strategieën. Elk met voor en tegen. De winnaar is een hybride aanpak die op de funnel-regels van Julia Besten gebouwd is.</span>
+        </h1>
+
+        <div class="callout callout-danger">
+            <strong>🚧 De harde regel</strong>
+            Niemand krijgt een gesprek voordat ze het formulier op <a href="https://www.juliabesten.nl/#vragenlijst" target="_blank">juliabesten.nl/#vragenlijst</a> hebben ingevuld. Het formulier kwalificeert. Het gesprek verbindt. Geen formulier? Geen call.
+        </div>
+
+        <!-- ============== HET DOEL ============== -->
+        <section id="doel">
+            <h2><span class="badge">★</span> Het doel</h2>
+
+            <p>Wij willen meer kennismakingsgesprekken. Niet meer DM's. Niet meer volgers. Calls. Een call is het moment waarop een vrouw écht overweegt om met mij te starten.</p>
+
+            <div class="hero-card">
+                <h3>De funnel in 1 zin</h3>
+                <p style="margin:8px 0 0; font-size:15px;">Instagram aandacht → DM gesprek → formulier op de site → kennismakingsgesprek → closing call → klant.</p>
+            </div>
+
+            <div class="flow-wrap">
+                <div class="flow-title">De volledige funnel</div>
+                <pre class="mermaid">
+flowchart LR
+    A[Instagram audience]:::startNode --> B[DM gesprek]:::dmNode
+    B --> C[Formulier juliabesten.nl]:::formNode
+    C --> D{Gekwalificeerd?}:::checkNode
+    D -->|Ja| E[Kennismakingsgesprek 15 min]:::callNode
+    D -->|Nee| F[Bedankt + warm houden]:::endNode
+    E --> G{Fit?}:::checkNode
+    G -->|Ja| H[Closing call apart]:::winNode
+    G -->|Nee| F
+    H --> I[Klant 💕]:::winNode
+
+    classDef startNode fill:#FDF2F8,stroke:#E91E8C,stroke-width:2px,color:#831843
+    classDef dmNode fill:#FFF,stroke:#F472B6,stroke-width:2px,color:#1F2937
+    classDef formNode fill:#FFFBEB,stroke:#F59E0B,stroke-width:2px,color:#92400E
+    classDef checkNode fill:#F3E8FF,stroke:#A855F7,stroke-width:2px,color:#581C87
+    classDef callNode fill:#FFF,stroke:#E91E8C,stroke-width:2px,color:#1F2937
+    classDef winNode fill:#ECFDF5,stroke:#10B981,stroke-width:2px,color:#065F46
+    classDef endNode fill:#F3F4F6,stroke:#9CA3AF,stroke-width:1.5px,color:#4B5563
+                </pre>
+            </div>
+
+            <p>Het formulier is het knooppunt. Wie het invult, neemt zichzelf serieus. Wie het overslaat, was nooit echt klaar. Dat is de filter die mijn agenda beschermt en mijn calls warm houdt.</p>
+        </section>
+
+        <!-- ============== DE REGEL ============== -->
+        <section id="regel">
+            <h2><span class="badge">!</span> De regel: form first</h2>
+
+            <p>Vroeger ging het van DM naar call. Nu staat er een poort tussen. Geen straf voor de prospect. Een filter voor mij.</p>
+
+            <h3>Waarom dit slimmer is</h3>
+            <ul>
+                <li><strong>Mijn tijd blijft heilig.</strong> Alleen vrouwen die een formulier invullen krijgen een gesprek. Geen tijd verspilen aan iemand die nog twijfelt.</li>
+                <li><strong>De call wordt warmer.</strong> Ik ken haar doel, frustratie en startpunt al voor we praten.</li>
+                <li><strong>Show-up rate stijgt.</strong> Wie investeert in een formulier komt eerder opdagen.</li>
+                <li><strong>Geen onnodige nee's in de DM.</strong> Het formulier zegt nee voor mij, niet ik.</li>
+            </ul>
+
+            <h3>Hoe het in de DM klinkt</h3>
+
+            <div class="script">
+                <span class="label">De form pitch in DM</span>
+                <div class="text">"Ik denk dat ik je hierbij echt kan helpen 💕
+
+Ik werk met een korte vragenlijst die ik altijd vooraf doorneem. Dan weet ik precies waar jij staat en of mijn programma écht bij je past.
+
+Hier vul je 'm in: juliabesten.nl/#vragenlijst
+
+Doe je 'm? Dan plan ik daarna een kort gesprek met je in 💖"</div>
+                <button class="copy-btn" onclick="copyText(this, 'Ik denk dat ik je hierbij echt kan helpen 💕\n\nIk werk met een korte vragenlijst die ik altijd vooraf doorneem. Dan weet ik precies waar jij staat en of mijn programma écht bij je past.\n\nHier vul je hem in: juliabesten.nl/#vragenlijst\n\nDoe je hem? Dan plan ik daarna een kort gesprek met je in 💖')">Kopiëer</button>
+            </div>
+
+            <div class="callout callout-tip">
+                <strong>💡 Frame is alles</strong>
+                Het formulier is geen drempel. Het is een korte voorbereiding. Verkoop de waarde. Niet de moeite.
+            </div>
+
+            <a href="#stem1" class="next-step">
+                Welke methode werkt het best? Door naar het debat <span class="arrow">→</span>
+            </a>
+        </section>
+
+        <!-- ============== STEM 1 ============== -->
+        <section id="stem1">
+            <h2><span class="badge">1</span> Stem 1. De Volume Generaal</h2>
+
+            <div class="stem">
+                <div class="stem-head">
+                    <div class="stem-emoji">📣</div>
+                    <div>
+                        <p class="stem-name">De Volume Generaal</p>
+                        <div class="stem-tag">"Hoe meer DM's, hoe meer calls."</div>
+                    </div>
+                    <div class="stem-verdict skip">Verlies</div>
+                </div>
+                <div class="stem-body">
+                    <p class="stem-quote">"Spreek 50 voice memo's per dag in en stuur ze blind naar elk profiel met meer dan 100 volgers. Numbers game. Iemand zegt altijd ja."</p>
+
+                    <div class="stem-grid">
+                        <div class="stem-list pros">
+                            <h5>✅ Pro</h5>
+                            <ul>
+                                <li>Schaalbaar in pure aantallen.</li>
+                                <li>Lage drempel om te starten.</li>
+                                <li>Kim kan dit onbewerkt overnemen.</li>
+                            </ul>
+                        </div>
+                        <div class="stem-list cons">
+                            <h5>❌ Con</h5>
+                            <ul>
+                                <li>Conversie keldert. 1 op 200.</li>
+                                <li>Voelt spammy. Brand schade.</li>
+                                <li>Instagram stempelt het als spam. Account in shadow ban.</li>
+                                <li>Vermoeiend werk zonder resultaat.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="stem-when">
+                        <div class="yes"><strong>Wel inzetten als</strong> nooit. Niet bij een merk dat op vertrouwen draait.</div>
+                        <div class="no"><strong>Niet inzetten</strong> bij premium positionering. Bij Julia is dit een no-go.</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============== STEM 2 ============== -->
+        <section id="stem2">
+            <h2><span class="badge">2</span> Stem 2. De Voice Memo Coach</h2>
+
+            <div class="stem">
+                <div class="stem-head">
+                    <div class="stem-emoji">🎙️</div>
+                    <div>
+                        <p class="stem-name">De Voice Memo Coach</p>
+                        <div class="stem-tag">"Stem verkoopt. Tekst niet."</div>
+                    </div>
+                    <div class="stem-verdict win">Winnaar</div>
+                </div>
+                <div class="stem-body">
+                    <p class="stem-quote">"Een korte voice memo voelt als een vriendin. Een tekstmuur voelt als een verkoper. Stuur 10 tot 15 voice memo's per dag. Alleen aan dames die mijn content liken of nieuwe volgers."</p>
+
+                    <div class="stem-grid">
+                        <div class="stem-list pros">
+                            <h5>✅ Pro</h5>
+                            <ul>
+                                <li>Reply rate boven 50%.</li>
+                                <li>Onschaalbaar voelt = exclusief voelt.</li>
+                                <li>Toon en glimlach komen door.</li>
+                                <li>Werkt op zowel beginners als frustraties.</li>
+                            </ul>
+                        </div>
+                        <div class="stem-list cons">
+                            <h5>❌ Con</h5>
+                            <ul>
+                                <li>Tijd intensief.</li>
+                                <li>Niet voor elke setter natuurlijk.</li>
+                                <li>Vereist energie en discipline.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="stem-when">
+                        <div class="yes"><strong>Wel inzetten als</strong> dagelijkse basis. Dit is altijd het eerste contact.</div>
+                        <div class="no"><strong>Niet inzetten</strong> als toon stress is. Even resetten dan.</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============== STEM 3 ============== -->
+        <section id="stem3">
+            <h2><span class="badge">3</span> Stem 3. De Story Antwoorder</h2>
+
+            <div class="stem">
+                <div class="stem-head">
+                    <div class="stem-emoji">📲</div>
+                    <div>
+                        <p class="stem-name">De Story Antwoorder</p>
+                        <div class="stem-tag">"De warmste leads geven zelf het signaal."</div>
+                    </div>
+                    <div class="stem-verdict win">Winnaar</div>
+                </div>
+                <div class="stem-body">
+                    <p class="stem-quote">"Plaats een poll. Stel een vraag. Iemand antwoordt op je story. Dat is goud. Daar is geen koud bericht voor nodig. Volg op met een persoonlijke voice memo."</p>
+
+                    <div class="stem-grid">
+                        <div class="stem-list pros">
+                            <h5>✅ Pro</h5>
+                            <ul>
+                                <li>Hoogste conversie van alle methodes.</li>
+                                <li>Lead heeft zelf de eerste stap gezet.</li>
+                                <li>Voelt natuurlijk. Niet pushy.</li>
+                                <li>Geeft Julia inhoud om over te praten.</li>
+                            </ul>
+                        </div>
+                        <div class="stem-list cons">
+                            <h5>❌ Con</h5>
+                            <ul>
+                                <li>Vereist consistente stories.</li>
+                                <li>Volume hangt af van content output.</li>
+                                <li>Werkt alleen als de stories ook converteren.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="stem-when">
+                        <div class="yes"><strong>Wel inzetten</strong> elke dag. Polls. Vragen. Tikkertje stickers.</div>
+                        <div class="no"><strong>Niet inzetten</strong> bij stories zonder duidelijke vraag.</div>
+                    </div>
+
+                    <h4 style="margin-top:18px;">Voorbeeld stories die respons trekken</h4>
+                    <ul>
+                        <li>Poll: <em>"Krachttraining of cardio voor billen 🍑"</em>.</li>
+                        <li>Vraag: <em>"Wat houdt je tegen om écht te starten?"</em>.</li>
+                        <li>Tikkertje: <em>"Schaal van 1 tot 10. Hoe tevreden ben je over je lichaam?"</em>.</li>
+                        <li>Behind-the-scenes: <em>"Klantje X is van [start] naar [eind]. Vraag haar verhaal hier."</em>.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============== STEM 4 ============== -->
+        <section id="stem4">
+            <h2><span class="badge">4</span> Stem 4. De Content Magneet</h2>
+
+            <div class="stem">
+                <div class="stem-head">
+                    <div class="stem-emoji">🧲</div>
+                    <div>
+                        <p class="stem-name">De Content Magneet</p>
+                        <div class="stem-tag">"Laat de content het werk doen."</div>
+                    </div>
+                    <div class="stem-verdict win">Winnaar</div>
+                </div>
+                <div class="stem-body">
+                    <p class="stem-quote">"Een sterke transformatiepost trekt vanzelf comments en DM's. Klantcase met before en after. Reel met dagelijkse routine. Caption met een vraag of CTA. Mensen schrijven jou. Niet andersom."</p>
+
+                    <div class="stem-grid">
+                        <div class="stem-list pros">
+                            <h5>✅ Pro</h5>
+                            <ul>
+                                <li>Schaalt zonder extra werk.</li>
+                                <li>Lead is al opgewarmd.</li>
+                                <li>Bouwt brand op.</li>
+                                <li>1 goede reel = weken instroom.</li>
+                            </ul>
+                        </div>
+                        <div class="stem-list cons">
+                            <h5>❌ Con</h5>
+                            <ul>
+                                <li>Vergt content investering.</li>
+                                <li>Niet alle posts converteren.</li>
+                                <li>Algoritme bepaalt deels het bereik.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="stem-when">
+                        <div class="yes"><strong>Wel inzetten</strong> als hefboom. 1 transformatiepost per week minimum.</div>
+                        <div class="no"><strong>Niet inzetten</strong> als enige bron. Combineer met DM-werk.</div>
+                    </div>
+
+                    <h4 style="margin-top:18px;">Posts die het meest werken</h4>
+                    <ul>
+                        <li><strong>Klant transformatie</strong>. Foto, korte verhaalbeschrijving, geen prijs.</li>
+                        <li><strong>Mythes ontkrachten</strong>. <em>"Jij denkt nog steeds dat cardio billen geeft?"</em>.</li>
+                        <li><strong>Mini-tip met CTA</strong>. <em>"Reageer met BILLEN voor mijn gratis routine."</em>.</li>
+                        <li><strong>Story-driven reel</strong>. <em>"3 dingen die ik anders deed dit jaar."</em>.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============== STEM 5 ============== -->
+        <section id="stem5">
+            <h2><span class="badge">5</span> Stem 5. De Schaarste Strategist</h2>
+
+            <div class="stem">
+                <div class="stem-head">
+                    <div class="stem-emoji">⏳</div>
+                    <div>
+                        <p class="stem-name">De Schaarste Strategist</p>
+                        <div class="stem-tag">"Geen urgentie, geen actie."</div>
+                    </div>
+                    <div class="stem-verdict partial">Soms</div>
+                </div>
+                <div class="stem-body">
+                    <p class="stem-quote">"Vertel haar dat ik deze maand maar 5 nieuwe ladies meeneem. Of dat de groep over 2 weken vol zit. Mensen bewegen pas als er een deadline is."</p>
+
+                    <div class="stem-grid">
+                        <div class="stem-list pros">
+                            <h5>✅ Pro</h5>
+                            <ul>
+                                <li>Versnelt de beslissing om het formulier in te vullen.</li>
+                                <li>Bouwt premium gevoel.</li>
+                                <li>Werkt goed bij twijfelaars.</li>
+                            </ul>
+                        </div>
+                        <div class="stem-list cons">
+                            <h5>❌ Con</h5>
+                            <ul>
+                                <li>Te vaak gebruikt = ongeloofwaardig.</li>
+                                <li>Voelt slijmerig als het niet waar is.</li>
+                                <li>Trekt soms niet de juiste vrouwen.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="stem-when">
+                        <div class="yes"><strong>Wel inzetten</strong> als het écht waar is. Max 1 keer per maand.</div>
+                        <div class="no"><strong>Niet inzetten</strong> als doorlopende boodschap. Verliest dan kracht.</div>
+                    </div>
+
+                    <h4 style="margin-top:18px;">Hoe het natuurlijk klinkt</h4>
+                    <div class="script">
+                        <span class="label">In een voice memo</span>
+                        <div class="text">"Ik plan deze week nog 3 kennismakingsgesprekken in en daarna ben ik vol tot eind van de maand. Dus als jij wil weten of het past, vul je 'm even snel in 💕"</div>
+                        <button class="copy-btn" onclick="copyText(this, 'Ik plan deze week nog 3 kennismakingsgesprekken in en daarna ben ik vol tot eind van de maand. Dus als jij wil weten of het past, vul je hem even snel in 💕')">Kopiëer</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============== STEM 6 ============== -->
+        <section id="stem6">
+            <h2><span class="badge">6</span> Stem 6. De Bewijs Detective</h2>
+
+            <div class="stem">
+                <div class="stem-head">
+                    <div class="stem-emoji">📸</div>
+                    <div>
+                        <p class="stem-name">De Bewijs Detective</p>
+                        <div class="stem-tag">"Resultaten verkopen. Argumenten niet."</div>
+                    </div>
+                    <div class="stem-verdict win">Winnaar</div>
+                </div>
+                <div class="stem-body">
+                    <p class="stem-quote">"Stuur in elke DM een mini-bewijs. Een screenshot van een klant. Een foto van een resultaat. Een quote. Niet om op te scheppen. Om vertrouwen te bouwen."</p>
+
+                    <div class="stem-grid">
+                        <div class="stem-list pros">
+                            <h5>✅ Pro</h5>
+                            <ul>
+                                <li>Sociaal bewijs is onbetwist.</li>
+                                <li>Vermindert twijfel direct.</li>
+                                <li>Maakt het formulier-pitch sterker.</li>
+                                <li>Werkt op alle paden van het spinnenweb.</li>
+                            </ul>
+                        </div>
+                        <div class="stem-list cons">
+                            <h5>❌ Con</h5>
+                            <ul>
+                                <li>Vraagt klanttoestemming voor materiaal.</li>
+                                <li>Te veel bewijs = pochend.</li>
+                                <li>Moet authentiek voelen.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="stem-when">
+                        <div class="yes"><strong>Wel inzetten</strong> in elke DM-conversatie. 1 bewijsstuk dat past bij haar situatie.</div>
+                        <div class="no"><strong>Niet inzetten</strong> als opening. Eerst connectie, dan bewijs.</div>
+                    </div>
+
+                    <h4 style="margin-top:18px;">Soorten bewijs die werken</h4>
+                    <ul>
+                        <li><strong>Screenshot van een DM</strong> waarin een klant zegt hoe blij ze is.</li>
+                        <li><strong>Before en after foto</strong> met kort verhaal.</li>
+                        <li><strong>Voice memo van een klant</strong> waarin ze haar transformatie deelt.</li>
+                        <li><strong>Citaten</strong> met klantnaam en uitkomst.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============== DE WINNAAR ============== -->
+        <section id="winnaar">
+            <h2><span class="badge">★</span> De winnaar. De hybride methode</h2>
+
+            <p>Geen enkele stem wint alleen. De winst zit in het stapelen van de 4 winnende stemmen. Voice Memo + Story Antwoorder + Content Magneet + Bewijs Detective. Schaarste optioneel als gas op het pedaal.</p>
+
+            <div class="winner">
+                <h3>De 5-stappen aanpak</h3>
+                <p><strong>1. Content trekt aandacht.</strong> Reels en stories doen het werk. Klantcases en mythes.</p>
+                <p><strong>2. Story-respons of nieuwe volger triggert voice memo.</strong> Persoonlijk. Warm. Korte vraag.</p>
+                <p><strong>3. Mini-conversatie ontleedt haar situatie.</strong> Doel. Pijn. Wat heeft ze geprobeerd. Stuur 1 stuk bewijs dat past.</p>
+                <p><strong>4. Pivot naar het formulier.</strong> Frame als korte voorbereiding. Niet als drempel. Schaarste alleen als het écht waar is.</p>
+                <p><strong>5. Formulier ingevuld → kennismakingsgesprek geboekt.</strong> Reminders. Daarna closing call apart.</p>
+            </div>
+
+            <div class="flow-wrap" style="margin-top:24px;">
+                <div class="flow-title">De hybride flow visueel</div>
+                <pre class="mermaid">
+flowchart TD
+    Start([Instagram audience]):::startNode
+    Content[Reel of story met haak]:::contentNode
+    Trigger{Wat triggert?}:::checkNode
+    Story[Antwoord op story / poll]:::warmNode
+    Volger[Nieuwe volger]:::warmNode
+    Comment[Comment op post]:::warmNode
+    VM[Voice memo:<br>persoonlijk + glimlach]:::dmNode
+    Convo[Mini-conversatie:<br>doel + pijn + plan]:::dmNode
+    Bewijs[1 stuk bewijs sturen]:::proofNode
+    Pitch[Form pitch:<br>'korte voorbereiding']:::pitchNode
+    Form[Formulier juliabesten.nl]:::formNode
+    Check{Gekwalificeerd?}:::checkNode
+    Call[Kennismakingsgesprek 15 min]:::callNode
+    Niet[Bedankt + warm houden]:::endNode
+
+    Start --> Content
+    Content --> Trigger
+    Trigger --> Story
+    Trigger --> Volger
+    Trigger --> Comment
+    Story --> VM
+    Volger --> VM
+    Comment --> VM
+    VM --> Convo
+    Convo --> Bewijs
+    Bewijs --> Pitch
+    Pitch --> Form
+    Form --> Check
+    Check -->|Ja| Call
+    Check -->|Nee| Niet
+
+    classDef startNode fill:#FDF2F8,stroke:#E91E8C,stroke-width:2px,color:#831843
+    classDef contentNode fill:#FFF,stroke:#A855F7,stroke-width:2px,color:#581C87
+    classDef warmNode fill:#ECFDF5,stroke:#10B981,stroke-width:2px,color:#065F46
+    classDef dmNode fill:#FFF,stroke:#F472B6,stroke-width:2px,color:#1F2937
+    classDef proofNode fill:#FFF,stroke:#0EA5E9,stroke-width:2px,color:#0C4A6E
+    classDef pitchNode fill:#E91E8C,stroke:#BE185D,stroke-width:2px,color:#FFF,font-weight:bold
+    classDef formNode fill:#FFFBEB,stroke:#F59E0B,stroke-width:2px,color:#92400E
+    classDef checkNode fill:#F3E8FF,stroke:#A855F7,stroke-width:2px,color:#581C87
+    classDef callNode fill:#FFF,stroke:#E91E8C,stroke-width:2px,color:#1F2937
+    classDef endNode fill:#F3F4F6,stroke:#9CA3AF,stroke-width:1.5px,color:#4B5563
+                </pre>
+            </div>
+        </section>
+
+        <!-- ============== SCRIPTS ============== -->
+        <section id="scripts">
+            <h2><span class="badge">$</span> De scripts van de winnaar</h2>
+
+            <p>Vier momenten. Vier scripts. Allemaal in mijn ik-voice. Geen prijzen. Korte zinnen. Klaar om te kopiëren.</p>
+
+            <h3>1. Voice memo na story respons</h3>
+            <div class="script">
+                <span class="label">Voice memo (10 tot 14 seconden)</span>
+                <div class="text">"Heyy [naam]! Zag dat je net mijn poll antwoordde 💕 Wat speelt er nu het meest voor jou. Wil je écht aan je [billen / vorm / kracht] werken of vooral afvallen?"</div>
+                <button class="copy-btn" onclick="copyText(this, 'Heyy [naam]! Zag dat je net mijn poll antwoordde 💕 Wat speelt er nu het meest voor jou. Wil je écht aan je billen of vorm of kracht werken of vooral afvallen?')">Kopiëer</button>
+            </div>
+
+            <h3>2. Bewijsstuk middenin het gesprek</h3>
+            <div class="script">
+                <span class="label">Bewijs sturen + duiding</span>
+                <div class="text">"Wacht ik laat je iets zien. Dit is [klant] van [start] tot [eind]. Zelfde verhaal als wat jij nu vertelt. Zij dacht ook dat het niet zou lukken."</div>
+                <button class="copy-btn" onclick="copyText(this, 'Wacht ik laat je iets zien. Dit is [klant] van [start] tot [eind]. Zelfde verhaal als wat jij nu vertelt. Zij dacht ook dat het niet zou lukken.')">Kopiëer</button>
+            </div>
+
+            <h3>3. De form pitch</h3>
+            <div class="script">
+                <span class="label">Pivot naar het formulier</span>
+                <div class="text">"Ik denk echt dat ik je hierbij kan helpen 💕
+
+Ik werk altijd met een korte vragenlijst vooraf. Dan weet ik precies waar jij staat en of mijn programma écht bij je past. Het kost je 3 minuten.
+
+Hier vul je 'm in: juliabesten.nl/#vragenlijst
+
+Doe je 'm? Dan plan ik daarna een kort gesprek met je in 💖"</div>
+                <button class="copy-btn" onclick="copyText(this, 'Ik denk echt dat ik je hierbij kan helpen 💕\n\nIk werk altijd met een korte vragenlijst vooraf. Dan weet ik precies waar jij staat en of mijn programma écht bij je past. Het kost je 3 minuten.\n\nHier vul je hem in: juliabesten.nl/#vragenlijst\n\nDoe je hem? Dan plan ik daarna een kort gesprek met je in 💖')">Kopiëer</button>
+            </div>
+
+            <h3>4. Reminder als ze de form niet invult</h3>
+            <div class="script">
+                <span class="label">24 uur na de form pitch</span>
+                <div class="text">"Hee lieverd! Heb je 'm al kunnen invullen? Geen druk. Maar als je serieus wil kijken of het past, dan is dit echt het belangrijkste stapje 💕"</div>
+                <button class="copy-btn" onclick="copyText(this, 'Hee lieverd! Heb je hem al kunnen invullen? Geen druk. Maar als je serieus wil kijken of het past, dan is dit echt het belangrijkste stapje 💕')">Kopiëer</button>
+            </div>
+
+            <div class="callout callout-warn">
+                <strong>⚠️ Reminder regels</strong>
+                Max 2 reminders. Eerste na 24 uur. Tweede na 5 dagen met een nieuwe invalshoek (bijvoorbeeld een klantcase die op haar lijkt). Daarna stop. Zwijg. Niet pushy worden.
+            </div>
+        </section>
+
+        <!-- ============== PRINCIPES ============== -->
+        <section id="principes">
+            <h2><span class="badge">7</span> De 7 principes</h2>
+
+            <p>Wat altijd geldt. Onafhankelijk van methode of stem.</p>
+
+            <div class="principles">
+                <div class="princ-card">
+                    <div class="num">1</div>
+                    <h4>Form first. Altijd.</h4>
+                    <p>Geen call zonder formulier. Niet één keer, niet voor een vriendin, nooit. De regel is de regel.</p>
+                </div>
+                <div class="princ-card">
+                    <div class="num">2</div>
+                    <h4>Voice memo voor tekst.</h4>
+                    <p>Eerste contact altijd via voice. Tekst is reserveplan. Stem bouwt vertrouwen sneller.</p>
+                </div>
+                <div class="princ-card">
+                    <div class="num">3</div>
+                    <h4>Geen prijzen in DM.</h4>
+                    <p>Ook niet als ze het vraagt. Ook niet half. Prijzen komen in de closing call.</p>
+                </div>
+                <div class="princ-card">
+                    <div class="num">4</div>
+                    <h4>Kwaliteit boven volume.</h4>
+                    <p>15 warme voice memo's verslaan 100 koude blasts. Altijd.</p>
+                </div>
+                <div class="princ-card">
+                    <div class="num">5</div>
+                    <h4>Frame, geen drempel.</h4>
+                    <p>Het formulier is geen barrière. Het is voorbereiding zodat de call waardevol is.</p>
+                </div>
+                <div class="princ-card">
+                    <div class="num">6</div>
+                    <h4>Schaarste alleen waar.</h4>
+                    <p>Liever geen urgentie dan onechte urgentie. Vertrouwen breekt anders.</p>
+                </div>
+                <div class="princ-card">
+                    <div class="num">7</div>
+                    <h4>Stop als ze stil blijft.</h4>
+                    <p>Max 2 follow-ups. Daarna laten gaan. Kom over 14 dagen terug met een story.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============== KPIs ============== -->
+        <section id="kpis">
+            <h2><span class="badge">📊</span> Onze KPIs</h2>
+
+            <p>Wat we tellen. Per dag, per week, per maand. Cijfers laten zien waar het werkt en waar het stokt.</p>
+
+            <h3>Per dag</h3>
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="label">Voice memo's</div>
+                    <div class="num">15</div>
+                    <div class="desc">Aan nieuwe volgers + story responders</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="label">Replies</div>
+                    <div class="num">7+</div>
+                    <div class="desc">Reply rate boven 45%</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="label">Form pitches</div>
+                    <div class="num">3+</div>
+                    <div class="desc">Conversaties die naar formulier gaan</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="label">Form ingevuld</div>
+                    <div class="num">1+</div>
+                    <div class="desc">Per dag minstens 1 nieuwe lead</div>
+                </div>
+            </div>
+
+            <h3>Per week</h3>
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="label">Form fills</div>
+                    <div class="num">7+</div>
+                    <div class="desc">Wekelijks doel</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="label">Calls geboekt</div>
+                    <div class="num">5+</div>
+                    <div class="desc">Na kwalificatie filter</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="label">Show-up rate</div>
+                    <div class="num">75%</div>
+                    <div class="desc">Doel show-up op kennismaking</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="label">Doorzet naar closing</div>
+                    <div class="num">35%</div>
+                    <div class="desc">Van kennismaking naar closing call</div>
+                </div>
+            </div>
+
+            <h3>De funnel in cijfers</h3>
+            <table>
+                <thead>
+                    <tr><th>Stap</th><th>Conversie doel</th><th>Wat het betekent</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Voice memo → reply</strong></td>
+                        <td>≥ 45%</td>
+                        <td>Opener werkt en doelgroep klopt</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Reply → form pitch</strong></td>
+                        <td>≥ 30%</td>
+                        <td>Conversatie kwalificeert tot pivot</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Form pitch → form fill</strong></td>
+                        <td>≥ 50%</td>
+                        <td>Frame en bewijs werken</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Form fill → call geboekt</strong></td>
+                        <td>≥ 70%</td>
+                        <td>Snelle opvolging is sleutel</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Call → closing call</strong></td>
+                        <td>≥ 35%</td>
+                        <td>Verbinding en match in gesprek</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- ============== BOTTLENECK ============== -->
+        <section id="bottleneck">
+            <h2><span class="badge">🔍</span> Wat als het stokt?</h2>
+
+            <p>Eén cijfer dat stokt vertelt waar het probleem zit. Hier is de diagnose.</p>
+
+            <table>
+                <thead>
+                    <tr><th>Wat stokt</th><th>Diagnose</th><th>Wat we aanpassen</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Reply rate onder 30%</strong></td>
+                        <td>Voice memo opener werkt niet of doelgroep is koud.</td>
+                        <td>Test andere openzin. Kijk naar bron van volgers. Filter op story responders.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Form pitch onder 30%</strong></td>
+                        <td>Conversatie blijft te oppervlakkig. Geen pijn boven water.</td>
+                        <td>Meer doorvragen op doel en frustratie. Stuur eerst 1 bewijsstuk dan pitch.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Form fills onder 50%</strong></td>
+                        <td>Frame klopt niet of formulier voelt te zwaar.</td>
+                        <td>Herframe als korte voorbereiding. Check of formulier mobile-snel is.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Calls geboekt onder 70%</strong></td>
+                        <td>Te lang gewacht na form fill. Lead koelde af.</td>
+                        <td>Reageer binnen 1 uur na form fill. Stuur direct kalender link via WhatsApp.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Show-up onder 60%</strong></td>
+                        <td>Reminders gemist of call niet warm gehouden.</td>
+                        <td>Reminder 24 uur en 1 uur vooraf. Persoonlijk bericht ochtend van.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Closing doorzet onder 25%</strong></td>
+                        <td>Kennismaking mist verbinding of fit niet duidelijk.</td>
+                        <td>Check setter playbook stap 7. Meer focus op haar verhaal, niet op programma.</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="callout callout-tip">
+                <strong>💡 De gouden regel bij elke bottleneck</strong>
+                Pas één variabele tegelijk aan en geef het minimaal 1 week. Anders weet je niet wat werkte.
+            </div>
+        </section>
+
+        <p style="margin-top: 72px; text-align: center; color: var(--text-light); font-size: 13px;">
+            🎯 Het Debat · Versie 1.0 · Gebouwd voor Julia en Kim
+        </p>
+    </main>
+</div>
+
+<script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({
+        startOnLoad: true,
+        theme: 'base',
+        themeVariables: {
+            fontFamily: 'Inter, system-ui, sans-serif',
+            primaryColor: '#FFF',
+            primaryTextColor: '#1F2937',
+            primaryBorderColor: '#F472B6',
+            lineColor: '#F472B6',
+            secondaryColor: '#FDF2F8',
+            tertiaryColor: '#FFF',
+            background: '#FFF'
+        },
+        flowchart: {
+            curve: 'basis',
+            padding: 12,
+            nodeSpacing: 38,
+            rankSpacing: 44,
+            useMaxWidth: true,
+            htmlLabels: true
+        }
+    });
+</script>
+
+<script>
+function copyText(btn, text) {
+    navigator.clipboard.writeText(text).then(() => {
+        const originalText = btn.textContent;
+        btn.textContent = '✓ Gekopieerd';
+        btn.classList.add('copied');
+        setTimeout(() => {
+            btn.textContent = originalText;
+            btn.classList.remove('copied');
+        }, 1800);
+    }).catch(err => {
+        alert('Kopiëren mislukt. Selecteer de tekst handmatig.');
+    });
+}
+
+async function logout() {
+    try { await fetch('/api/logout', { method: 'POST' }); } catch (e) {}
+    window.location.href = '/portal-j8k3m9q2x7p5v4';
+}
+
+const menuToggle = document.getElementById('menuToggle');
+const sidebar = document.getElementById('sidebar');
+const backdrop = document.getElementById('backdrop');
+function closeMenu() {
+    sidebar.classList.remove('open');
+    backdrop.classList.remove('show');
+}
+menuToggle?.addEventListener('click', () => {
+    sidebar.classList.toggle('open');
+    backdrop.classList.toggle('show');
+});
+backdrop?.addEventListener('click', closeMenu);
+sidebar?.querySelectorAll('a').forEach(link => link.addEventListener('click', closeMenu));
+
+const sections = document.querySelectorAll('section[id]');
+const navLinks = sidebar.querySelectorAll('a');
+function setActiveLink() {
+    let current = '';
+    sections.forEach(section => {
+        const top = section.getBoundingClientRect().top;
+        if (top < 200) current = section.id;
+    });
+    navLinks.forEach(link => {
+        link.classList.toggle('active', link.getAttribute('href') === '#' + current);
+    });
+}
+window.addEventListener('scroll', setActiveLink, { passive: true });
+setActiveLink();
+</script>
+</body>
+</html>

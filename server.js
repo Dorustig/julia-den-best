@@ -1973,6 +1973,13 @@ const server = http.createServer(async (req, res) => {
     pathname === '/playbook' ||
     pathname === '/playbook/';
 
+  // Debate — strategiedocument over hoe maximaal calls te halen uit de funnel.
+  // Login-protected (zelfde gate als setter playbook).
+  const isDebateSlug =
+    pathname === '/debate' ||
+    pathname === '/debate/' ||
+    pathname === '/debate.html';
+
   // Klant routes — pretty URLs that map to real HTML files
   const klantRouteMap = {
     '/klant/login': '/klant-login.html',
@@ -1998,6 +2005,8 @@ const server = http.createServer(async (req, res) => {
     filePath = getSession(req) ? '/coach.html' : '/login.html';
   } else if (isSetterSlug) {
     filePath = getSession(req) ? '/setter.html' : '/login.html';
+  } else if (isDebateSlug) {
+    filePath = getSession(req) ? '/debate.html' : '/login.html';
   } else if (klantRouteMap[pathname]) {
     filePath = klantRouteMap[pathname];
   } else {
