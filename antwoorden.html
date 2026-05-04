@@ -317,6 +317,159 @@
         .tag-firm { background: #FFFBEB; color: #92400E; }
         .tag-key { background: var(--pink-soft); color: var(--pink-deep); }
 
+        /* ===== Search bar + filter chips ===== */
+        .search-wrap {
+            position: sticky;
+            top: 64px;
+            z-index: 90;
+            background: var(--pink-bg);
+            padding: 18px 0 14px;
+            margin: 24px 0 8px;
+            border-bottom: 1px solid var(--gray-border);
+        }
+        .search-input-wrap {
+            position: relative;
+            display: flex; align-items: center;
+            background: white;
+            border: 2px solid var(--gray-border);
+            border-radius: 999px;
+            padding: 4px 14px 4px 22px;
+            box-shadow: var(--shadow-card);
+            transition: all 0.18s;
+        }
+        .search-input-wrap:focus-within {
+            border-color: var(--pink);
+            box-shadow: 0 0 0 4px var(--pink-glow), var(--shadow-card);
+        }
+        .search-icon {
+            font-size: 18px;
+            margin-right: 12px;
+            opacity: 0.5;
+        }
+        .search-input {
+            flex: 1;
+            border: none;
+            outline: none;
+            background: transparent;
+            font-family: 'Inter', sans-serif;
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text);
+            padding: 12px 0;
+            min-width: 0;
+        }
+        .search-input::placeholder { color: var(--text-faint); font-weight: 400; }
+        .search-clear {
+            background: var(--gray-bg);
+            border: none;
+            color: var(--text-light);
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.15s;
+            margin-right: 6px;
+        }
+        .search-clear:hover { background: var(--pink-soft); color: var(--pink); }
+        .search-kbd {
+            background: var(--gray-bg);
+            color: var(--text-light);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-family: 'Inter', sans-serif;
+            font-size: 11px;
+            font-weight: 700;
+            border: 1px solid var(--gray-border);
+            white-space: nowrap;
+        }
+        .filter-chips {
+            display: flex;
+            gap: 8px;
+            margin-top: 14px;
+            flex-wrap: wrap;
+        }
+        .chip {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: white;
+            border: 1.5px solid var(--gray-border);
+            color: var(--text-mid);
+            padding: 8px 16px;
+            border-radius: 999px;
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+            white-space: nowrap;
+        }
+        .chip:hover {
+            background: var(--pink-soft);
+            border-color: var(--pink-light);
+            color: var(--pink);
+        }
+        .chip.active {
+            background: linear-gradient(135deg, var(--pink), var(--pink-light));
+            border-color: var(--pink);
+            color: white;
+            box-shadow: 0 4px 14px var(--pink-glow);
+        }
+        .chip .count {
+            background: rgba(255,255,255,0.25);
+            color: inherit;
+            padding: 1px 7px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 800;
+            margin-left: 2px;
+        }
+        .chip:not(.active) .count {
+            background: var(--gray-bg);
+            color: var(--text-light);
+        }
+
+        /* ===== No results ===== */
+        .no-results {
+            text-align: center;
+            padding: 48px 24px;
+            background: white;
+            border: 1px dashed var(--gray-border);
+            border-radius: var(--radius);
+            margin: 24px 0;
+        }
+        .no-results .emoji { font-size: 48px; margin-bottom: 12px; }
+        .no-results h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text);
+            margin: 0 0 8px;
+        }
+        .no-results p { color: var(--text-mid); font-size: 14.5px; margin: 0 0 18px; }
+        .no-results button {
+            background: var(--pink);
+            color: white;
+            border: none;
+            padding: 10px 22px;
+            border-radius: 999px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .no-results button:hover { background: var(--pink-deep); transform: translateY(-1px); }
+
+        /* ===== Hidden states ===== */
+        section[hidden], .qa[hidden] { display: none; }
+        .qa mark {
+            background: #FEF08A;
+            color: var(--text);
+            padding: 0 2px;
+            border-radius: 3px;
+            font-weight: 700;
+        }
+
         /* ===== Mobile ===== */
         .menu-toggle { display: none; }
         @media (max-width: 920px) {
@@ -404,7 +557,31 @@
             <span class="subtle">Slimme reacties op de meest voorkomende vragen en bezwaren. Allemaal in mijn ik-voice. Klik kopiëren en plak het in de DM.</span>
         </h1>
 
-        <div class="callout callout-danger">
+        <!-- ===== Search + filter ===== -->
+        <div class="search-wrap">
+            <div class="search-input-wrap">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="searchInput" class="search-input" placeholder="Zoek een scenario. Bijvoorbeeld: 'kost', 'tijd', 'nadenken'..." autocomplete="off">
+                <button class="search-clear" id="searchClear" hidden aria-label="Wis zoekopdracht">✕</button>
+                <span class="search-kbd" id="searchKbd">⌘K</span>
+            </div>
+            <div class="filter-chips" id="filterChips">
+                <button class="chip active" data-cat="all">Alle <span class="count" id="count-all">0</span></button>
+                <button class="chip" data-cat="top">⭐ Top 2 <span class="count" id="count-top">0</span></button>
+                <button class="chip" data-cat="bezwaren">🚧 Bezwaren <span class="count" id="count-bezwaren">0</span></button>
+                <button class="chip" data-cat="twijfels">💭 Twijfels <span class="count" id="count-twijfels">0</span></button>
+                <button class="chip" data-cat="praktisch">⚙️ Praktisch <span class="count" id="count-praktisch">0</span></button>
+            </div>
+        </div>
+
+        <div class="no-results" id="noResults" hidden>
+            <div class="emoji">🔍</div>
+            <h3>Niets gevonden</h3>
+            <p>Geen scenario voor "<span id="searchQuery"></span>". Probeer een ander woord of klik op "Alle".</p>
+            <button onclick="resetSearch()">Reset zoekopdracht</button>
+        </div>
+
+        <div class="callout callout-danger" id="rulesCallout">
             <strong>🚫 De 3 regels die altijd gelden</strong>
             1. Geen prijzen in DM. Niet half. Niet rond. Niet per maand. Nooit.<br>
             2. Geen call zonder ingevuld formulier op <a href="https://www.juliabesten.nl/#vragenlijst" target="_blank">juliabesten.nl/#vragenlijst</a>.<br>
@@ -412,7 +589,7 @@
         </div>
 
         <!-- ============== ALLES TOP ============== -->
-        <section id="alles-top">
+        <section id="alles-top" data-cat="top" data-keywords="alles top gaat goed loopt prima oké geweldig fijn niets nodig">
             <h2><span class="badge">★</span> "Alles gaat top"</h2>
 
             <p>Soms zegt iemand dat alles goed gaat. Niet pushen. Niet weglopen. Eén zachte vervolgvraag.</p>
@@ -443,7 +620,7 @@
         </section>
 
         <!-- ============== WAT KOST HET ============== -->
-        <section id="wat-kost">
+        <section id="wat-kost" data-cat="top" data-keywords="wat kost het prijs prijzen kosten geld duur euro pakket investering bedrag richting">
             <h2><span class="badge">★</span> "Wat kost het?"</h2>
 
             <p>De vraag die je gegarandeerd krijgt. Geen prijs. Niet eens een richting. Bruggetje naar het gesprek.</p>
@@ -491,7 +668,7 @@
         </section>
 
         <!-- ============== GEEN TIJD ============== -->
-        <section id="geen-tijd">
+        <section id="geen-tijd" data-cat="bezwaren" data-keywords="geen tijd druk werk schema bezet sportschool training trainen kinderen agenda">
             <h2><span class="badge">⏰</span> "Ik heb geen tijd"</h2>
 
             <div class="qa">
@@ -514,7 +691,7 @@
         </section>
 
         <!-- ============== GEEN GELD ============== -->
-        <section id="geen-geld">
+        <section id="geen-geld" data-cat="bezwaren" data-keywords="geen geld nu duur kan niet betalen budget financieel sparen later wachten armoede">
             <h2><span class="badge">💸</span> "Ik heb nu geen geld"</h2>
 
             <div class="qa">
@@ -537,7 +714,7 @@
         </section>
 
         <!-- ============== NADENKEN ============== -->
-        <section id="nadenken">
+        <section id="nadenken" data-cat="bezwaren" data-keywords="nadenken denken laten weten over nadenken bedenken twijfel slapen">
             <h2><span class="badge">🤔</span> "Ik moet er nog over nadenken"</h2>
 
             <div class="qa">
@@ -560,7 +737,7 @@
         </section>
 
         <!-- ============== PARTNER ============== -->
-        <section id="partner">
+        <section id="partner" data-cat="bezwaren" data-keywords="partner vriend vriendje man overleggen bespreken vrouw thuis relatie samen">
             <h2><span class="badge">👥</span> "Ik moet eerst overleggen"</h2>
 
             <div class="qa">
@@ -583,7 +760,7 @@
         </section>
 
         <!-- ============== ZELF PROBEREN ============== -->
-        <section id="zelf-proberen">
+        <section id="zelf-proberen" data-cat="bezwaren" data-keywords="zelf proberen alleen zonder hulp eerst zelfstandig coach hoeft niet">
             <h2><span class="badge">💪</span> "Ik wil het eerst zelf proberen"</h2>
 
             <div class="qa">
@@ -606,7 +783,7 @@
         </section>
 
         <!-- ============== WERKT HET ============== -->
-        <section id="werkt-het">
+        <section id="werkt-het" data-cat="twijfels" data-keywords="werkt werkt het garantie zekerheid resultaat bewezen succes">
             <h2><span class="badge">❓</span> "Werkt het echt?"</h2>
 
             <div class="qa">
@@ -629,7 +806,7 @@
         </section>
 
         <!-- ============== GEEN DISCIPLINE ============== -->
-        <section id="geen-discipline">
+        <section id="geen-discipline" data-cat="twijfels" data-keywords="discipline doorzetten doorzettingsvermogen terugval motivatie zwak vastberaden afhaken stop">
             <h2><span class="badge">🌀</span> "Ik heb geen discipline"</h2>
 
             <div class="qa">
@@ -649,7 +826,7 @@
         </section>
 
         <!-- ============== AL EERDER MISLUKT ============== -->
-        <section id="al-eerder">
+        <section id="al-eerder" data-cat="twijfels" data-keywords="al geprobeerd mislukt niet gelukt eerder al van alles diëet diëten voorheen vroeger faalde">
             <h2><span class="badge">📉</span> "Ik heb al van alles geprobeerd"</h2>
 
             <div class="qa">
@@ -672,7 +849,7 @@
         </section>
 
         <!-- ============== HOE LANG ============== -->
-        <section id="hoe-lang">
+        <section id="hoe-lang" data-cat="praktisch" data-keywords="hoe lang duur weken maanden tijdsduur programma traject 16 weken duurt">
             <h2><span class="badge">📅</span> "Hoe lang duurt het programma?"</h2>
 
             <div class="qa">
@@ -692,7 +869,7 @@
         </section>
 
         <!-- ============== ONLINE ============== -->
-        <section id="online">
+        <section id="online" data-cat="praktisch" data-keywords="online fysiek locatie thuis sportschool waar afstand digitaal app">
             <h2><span class="badge">💻</span> "Is het online of fysiek?"</h2>
 
             <div class="qa">
@@ -712,7 +889,7 @@
         </section>
 
         <!-- ============== VAKANTIE ============== -->
-        <section id="vakantie">
+        <section id="vakantie" data-cat="praktisch" data-keywords="vakantie reis weg afwezig zomer wintersport buitenland binnenkort starten">
             <h2><span class="badge">🏖️</span> "Ik ga binnenkort op vakantie"</h2>
 
             <div class="qa">
@@ -732,7 +909,7 @@
         </section>
 
         <!-- ============== REGELS ============== -->
-        <section id="regels">
+        <section id="regels" data-cat="info" data-keywords="regels onthouden basis principes formulier prijs follow up">
             <h2><span class="badge">📌</span> De regels die ik in mijn hoofd hou</h2>
 
             <div class="callout callout-info">
@@ -811,6 +988,7 @@ const navLinks = sidebar.querySelectorAll('a');
 function setActiveLink() {
     let current = '';
     sections.forEach(section => {
+        if (section.hasAttribute('hidden')) return;
         const top = section.getBoundingClientRect().top;
         if (top < 200) current = section.id;
     });
@@ -820,6 +998,160 @@ function setActiveLink() {
 }
 window.addEventListener('scroll', setActiveLink, { passive: true });
 setActiveLink();
+
+// ===== Search + filter =====
+const searchInput = document.getElementById('searchInput');
+const searchClear = document.getElementById('searchClear');
+const searchKbd = document.getElementById('searchKbd');
+const filterChips = document.getElementById('filterChips');
+const chips = filterChips.querySelectorAll('.chip');
+const noResults = document.getElementById('noResults');
+const searchQuery = document.getElementById('searchQuery');
+const rulesCallout = document.getElementById('rulesCallout');
+
+let activeCategory = 'all';
+let activeQuery = '';
+
+// Cache section data for fast filtering
+const sectionData = Array.from(sections).map(s => ({
+    el: s,
+    id: s.id,
+    cat: s.getAttribute('data-cat') || 'info',
+    keywords: (s.getAttribute('data-keywords') || '').toLowerCase(),
+    title: s.querySelector('h2')?.textContent.toLowerCase() || '',
+    body: s.textContent.toLowerCase()
+}));
+
+// Update count badges per category
+function updateCounts() {
+    const counts = { all: 0, top: 0, bezwaren: 0, twijfels: 0, praktisch: 0 };
+    sectionData.forEach(s => {
+        if (s.cat === 'info') return;
+        counts.all++;
+        if (counts[s.cat] !== undefined) counts[s.cat]++;
+    });
+    Object.keys(counts).forEach(k => {
+        const el = document.getElementById('count-' + k);
+        if (el) el.textContent = counts[k];
+    });
+}
+
+function matchesFilter(s) {
+    // Category filter
+    if (activeCategory !== 'all' && s.cat !== activeCategory) return false;
+    // Text search
+    if (activeQuery) {
+        const q = activeQuery.toLowerCase();
+        return s.keywords.includes(q) || s.title.includes(q) || s.body.includes(q);
+    }
+    return true;
+}
+
+function applyFilter() {
+    let visible = 0;
+    sectionData.forEach(s => {
+        // info section (regels) only shows when no filter is active
+        if (s.cat === 'info') {
+            const showInfo = activeCategory === 'all' && !activeQuery;
+            s.el.toggleAttribute('hidden', !showInfo);
+            return;
+        }
+        const match = matchesFilter(s);
+        s.el.toggleAttribute('hidden', !match);
+        if (match) visible++;
+    });
+    // Show/hide rules callout (only when no active query/filter)
+    if (rulesCallout) {
+        const showRules = activeCategory === 'all' && !activeQuery;
+        rulesCallout.style.display = showRules ? '' : 'none';
+    }
+    // No results state
+    if (visible === 0 && (activeQuery || activeCategory !== 'all')) {
+        noResults.hidden = false;
+        searchQuery.textContent = activeQuery || activeCategory;
+    } else {
+        noResults.hidden = true;
+    }
+    setActiveLink();
+}
+
+// Search input handler
+searchInput.addEventListener('input', () => {
+    activeQuery = searchInput.value.trim();
+    searchClear.hidden = !activeQuery;
+    searchKbd.style.display = activeQuery ? 'none' : '';
+    applyFilter();
+});
+
+// Clear button
+searchClear.addEventListener('click', () => {
+    searchInput.value = '';
+    activeQuery = '';
+    searchClear.hidden = true;
+    searchKbd.style.display = '';
+    applyFilter();
+    searchInput.focus();
+});
+
+// Esc to clear
+searchInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        searchInput.value = '';
+        activeQuery = '';
+        searchClear.hidden = true;
+        searchKbd.style.display = '';
+        applyFilter();
+        searchInput.blur();
+    }
+});
+
+// Chip handler
+chips.forEach(chip => {
+    chip.addEventListener('click', () => {
+        chips.forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        activeCategory = chip.getAttribute('data-cat');
+        applyFilter();
+        // Smooth scroll to top of search bar
+        document.querySelector('.search-wrap').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+});
+
+// Reset
+function resetSearch() {
+    searchInput.value = '';
+    activeQuery = '';
+    activeCategory = 'all';
+    chips.forEach(c => c.classList.toggle('active', c.getAttribute('data-cat') === 'all'));
+    searchClear.hidden = true;
+    searchKbd.style.display = '';
+    applyFilter();
+    searchInput.focus();
+}
+window.resetSearch = resetSearch;
+
+// Cmd/Ctrl+K shortcut
+document.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        searchInput.focus();
+        searchInput.select();
+    }
+    // "/" shortcut to focus (when not in input already)
+    if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+        e.preventDefault();
+        searchInput.focus();
+    }
+});
+
+// Detect Mac vs Windows for keyboard hint
+if (!/Mac|iPhone|iPad/i.test(navigator.platform)) {
+    searchKbd.textContent = 'Ctrl K';
+}
+
+// Initialize
+updateCounts();
+applyFilter();
 </script>
 </body>
 </html>
