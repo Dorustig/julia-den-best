@@ -1963,6 +1963,16 @@ const server = http.createServer(async (req, res) => {
     pathname === `/${COACH_SLUG}/` ||
     pathname === `/${COACH_SLUG}.html`;
 
+  // Setter playbook — geheim playbook voor Julia/Kim om iemand te appointment-setten.
+  // Login-protected zodat alleen team toegang heeft. Pretty URL /setter, en directe
+  // /setter.html ook als alias voor backward compat.
+  const isSetterSlug =
+    pathname === '/setter' ||
+    pathname === '/setter/' ||
+    pathname === '/setter.html' ||
+    pathname === '/playbook' ||
+    pathname === '/playbook/';
+
   // Klant routes — pretty URLs that map to real HTML files
   const klantRouteMap = {
     '/klant/login': '/klant-login.html',
@@ -1986,6 +1996,8 @@ const server = http.createServer(async (req, res) => {
     filePath = getSession(req) ? '/admin.html' : '/login.html';
   } else if (isCoachSlug) {
     filePath = getSession(req) ? '/coach.html' : '/login.html';
+  } else if (isSetterSlug) {
+    filePath = getSession(req) ? '/setter.html' : '/login.html';
   } else if (klantRouteMap[pathname]) {
     filePath = klantRouteMap[pathname];
   } else {
