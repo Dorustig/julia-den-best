@@ -39,7 +39,6 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* Top bar */
         .topbar {
             position: sticky; top: 0; z-index: 100;
             background: white;
@@ -67,13 +66,7 @@
             transition: all 0.15s;
         }
         .btn:hover { background: var(--gray-bg); border-color: var(--pink-light); color: var(--pink); }
-        .btn-primary {
-            background: linear-gradient(135deg, var(--pink), var(--pink-light));
-            color: white; border-color: transparent;
-        }
-        .btn-primary:hover { color: white; opacity: 0.95; }
 
-        /* Layout */
         .layout {
             display: grid;
             grid-template-columns: 280px 1fr;
@@ -167,7 +160,6 @@
         .main li { margin: 6px 0; }
         .main strong { color: var(--text); font-weight: 700; }
 
-        /* Hero quick-start card */
         .hero-card {
             background: linear-gradient(135deg, var(--pink-soft) 0%, white 100%);
             border: 1px solid var(--pink-light);
@@ -177,28 +169,19 @@
             box-shadow: var(--shadow-card);
         }
         .hero-card h3 { margin-top: 0; font-size: 17px; }
-        .hero-card .checklist {
-            margin: 16px 0 0;
-            list-style: none;
-            padding: 0;
-        }
+        .hero-card .checklist { margin: 16px 0 0; list-style: none; padding: 0; }
         .hero-card .checklist li {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
+            display: flex; align-items: flex-start; gap: 12px;
             padding: 10px 0;
             border-bottom: 1px dashed var(--gray-border);
             font-size: 14px;
         }
         .hero-card .checklist li:last-child { border-bottom: none; }
         .hero-card .checklist .time {
-            color: var(--pink);
-            font-weight: 700;
-            min-width: 90px;
-            font-size: 13px;
+            color: var(--pink); font-weight: 700;
+            min-width: 90px; font-size: 13px;
         }
 
-        /* Script box (copy-able) */
         .script {
             background: var(--code-bg);
             border: 1px solid var(--pink-soft);
@@ -240,7 +223,6 @@
         .script .copy-btn:hover { background: var(--pink); color: white; }
         .script .copy-btn.copied { background: var(--green); border-color: var(--green); color: white; }
 
-        /* Callouts */
         .callout {
             border-radius: var(--radius-sm);
             padding: 14px 18px;
@@ -255,7 +237,6 @@
         .callout-danger { background: #FEF2F2; border-color: var(--red); color: #991B1B; }
         .callout-info { background: var(--pink-soft); border-color: var(--pink); color: #831843; }
 
-        /* Decision tree */
         .tree {
             background: white;
             border: 1px solid var(--gray-border);
@@ -281,7 +262,6 @@
             margin-bottom: 6px;
         }
 
-        /* Tables */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -296,7 +276,6 @@
         td { padding: 12px; border-top: 1px solid var(--gray-border); vertical-align: top; }
         td strong { color: var(--text); }
 
-        /* Step counter */
         .steps {
             counter-reset: step;
             list-style: none;
@@ -322,7 +301,6 @@
             font-size: 14px;
         }
 
-        /* Quick links grid */
         .links-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -345,7 +323,27 @@
         .link-card .name { font-weight: 700; color: var(--pink); }
         .link-card .desc { font-size: 13px; color: var(--text-light); }
 
-        /* Mobile */
+        .next-step {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 18px;
+            background: white;
+            border: 2px solid var(--pink-light);
+            border-radius: var(--radius-sm);
+            margin: 28px 0 0;
+            text-decoration: none;
+            color: var(--text);
+            font-weight: 600;
+            transition: all 0.15s;
+        }
+        .next-step:hover {
+            background: var(--pink-soft);
+            transform: translateX(4px);
+            border-color: var(--pink);
+        }
+        .next-step .arrow { font-size: 22px; color: var(--pink); margin-left: auto; }
+
         .menu-toggle { display: none; }
         @media (max-width: 920px) {
             .layout { grid-template-columns: 1fr; }
@@ -370,7 +368,6 @@
             .main { padding: 24px 20px 60px; }
             .main h1 { font-size: 28px; }
             .main h2 { font-size: 22px; margin-top: 40px; }
-            .main h2 .badge { display: inline-block; }
             .backdrop {
                 display: none;
                 position: fixed; inset: 0;
@@ -401,628 +398,670 @@
 <div class="layout">
 
     <aside class="sidebar" id="sidebar">
-        <h4>Snelle navigatie</h4>
-        <a href="#quickstart"><span class="num">★</span> Snelstart</a>
-        <a href="#voicememo"><span class="num">1</span> Voice memo</a>
-        <a href="#paden"><span class="num">2</span> De 4 paden</a>
-        <a href="#doorvragen"><span class="num">3</span> Doorvragen</a>
-        <a href="#pivot"><span class="num">4</span> De pivot</a>
-        <a href="#boeken"><span class="num">5</span> Boeken</a>
-        <a href="#gesprek"><span class="num">6</span> Het gesprek</a>
-        <a href="#nahet"><span class="num">7</span> Na het gesprek</a>
-        <a href="#bezwaren"><span class="num">8</span> Bezwaren</a>
-        <a href="#tools"><span class="num">9</span> Tools & links</a>
-        <a href="#kpis"><span class="num">10</span> KPI's</a>
-        <h4>Bibliotheek</h4>
-        <a href="#scripts">📜 Alle scripts</a>
-        <a href="#scenarios">🎭 "Wat als..." scenarios</a>
+        <h4>Volg de stappen op volgorde</h4>
+        <a href="#start"><span class="num">★</span> Voor je begint</a>
+        <a href="#stap1"><span class="num">1</span> Voice memo</a>
+        <a href="#stap2"><span class="num">2</span> Antwoord lezen</a>
+        <a href="#stap3"><span class="num">3</span> Doorvragen</a>
+        <a href="#stap4"><span class="num">4</span> Vraag de call</a>
+        <a href="#stap5"><span class="num">5</span> Plan de call in</a>
+        <a href="#stap6"><span class="num">6</span> Reminders</a>
+        <a href="#stap7"><span class="num">7</span> Het gesprek</a>
+        <a href="#stap8"><span class="num">8</span> Na de call</a>
+        <h4>Hulp tijdens het werk</h4>
+        <a href="#bezwaren">Bezwaren oplossen</a>
+        <a href="#scenarios">Wat als...</a>
+        <a href="#tools">Tools en links</a>
+        <a href="#kpis">Wat we meten</a>
     </aside>
 
     <main class="main">
 
         <h1>Welkom in jouw Setter Playbook
-            <span class="subtle">Alles wat je moet weten om vrouwen van volger naar gesprek te krijgen — woord voor woord uitgeschreven.</span>
+            <span class="subtle">Stap voor stap. Van eerste DM naar klant. Alles uitgeschreven, klaar om te kopiëren.</span>
         </h1>
 
         <div class="callout callout-info">
-            <strong>💡 Hoe gebruik je dit?</strong>
-            Volg de stappen op volgorde voor je eerste paar setjes. Daarna ken je het patroon. Bij elk script kan je op <strong>Kopiëer</strong> klikken om 'm direct te plakken in Instagram of WhatsApp. Heb je twijfel? Spring naar <a href="#bezwaren">Bezwaren</a> of <a href="#scenarios">"Wat als..."</a>.
+            <strong>💡 Hoe dit werkt</strong>
+            Volg de 8 stappen op volgorde. Elke stap heeft een script dat je 1 op 1 kan kopiëren. Twijfel je wat je moet zeggen? Spring naar <a href="#bezwaren">Bezwaren</a> of <a href="#scenarios">Wat als...</a>.
         </div>
 
-        <!-- ============== QUICK START ============== -->
-        <section id="quickstart">
+        <!-- ============== START ============== -->
+        <section id="start">
+            <h2>★ Voor je begint vandaag</h2>
+
             <div class="hero-card">
-                <h3>⚡ Jouw dag in 4 blokken</h3>
-                <p style="margin:8px 0 4px; font-size:14px;">Begin elke dag met dezelfde 4 blokken. Werkt het ene moment niet? Skip 'm en doe 'm later. Maar consistentie is de magie.</p>
+                <h3>Jouw dag in 4 blokjes</h3>
+                <p style="margin:8px 0 4px; font-size:14px;">Werk in vaste blokken. Niet de hele dag DM's tussendoor doen. Dat werkt niet.</p>
                 <ul class="checklist">
-                    <li><span class="time">9:00–10:00</span><span><strong>Voice memos</strong> sturen naar nieuwe volgers van afgelopen 24u (max 15 stuks per ochtend, kwaliteit > kwantiteit)</span></li>
-                    <li><span class="time">10:00–12:00</span><span><strong>DM follow-ups</strong> beantwoorden — duwen richting de pivot wanneer mogelijk</span></li>
-                    <li><span class="time">13:00–14:00</span><span><strong>Calendly invites</strong> versturen + reminders zetten in WhatsApp voor afspraken vandaag/morgen</span></li>
-                    <li><span class="time">16:00–17:00</span><span><strong>Post-call follow-ups</strong> + nurture (story-views, comments) bij dames die al een tijd niet meer reageren</span></li>
+                    <li><span class="time">9:00 tot 10:00</span><span><strong>Voice memo's</strong> sturen naar nieuwe volgers van afgelopen 24 uur. Max 15 stuks.</span></li>
+                    <li><span class="time">10:00 tot 12:00</span><span><strong>Antwoorden behandelen</strong> en richting de call duwen.</span></li>
+                    <li><span class="time">13:00 tot 14:00</span><span><strong>Reminders sturen</strong> voor calls van vandaag of morgen.</span></li>
+                    <li><span class="time">16:00 tot 17:00</span><span><strong>Follow-ups</strong> na calls. En passief liken bij dames die stil zijn.</span></li>
                 </ul>
             </div>
 
-            <h3>📋 Voor je begint vandaag</h3>
+            <h3>5 dingen open op je scherm</h3>
             <ol class="steps">
-                <li><strong>Open Instagram DM's</strong> — sorteer op nieuw / ongelezen.</li>
-                <li><strong>Open Calendly tab</strong> (calendly.com/juliabesten) — link altijd binnen handbereik.</li>
-                <li><strong>Open WhatsApp</strong> Web — voor reminders en post-call.</li>
-                <li><strong>Open je tracker</strong> (Airtable / Google Sheet) — log elke prospect.</li>
-                <li><strong>Drink water + glimlach</strong> 😊 — je stem in een voice memo merkt of jij in flow zit.</li>
+                <li><strong>Instagram DM's</strong>. Op nieuw sorteren.</li>
+                <li><strong>WhatsApp Web</strong>. Voor reminders.</li>
+                <li><strong>Calendly tab</strong>. Link altijd in je clipboard.</li>
+                <li><strong>Tracker</strong>. Airtable of Sheet. Elke prospect erin.</li>
+                <li><strong>Glas water en glimlach</strong>. Echt waar. Je hoort het in je voice memo.</li>
             </ol>
 
-            <div class="callout callout-tip">
-                <strong>Gouden regel</strong>
-                Doe het in <strong>blokken</strong> — niet de hele dag DM's tussendoor. 1 uur volledig focus = 5 uur tussendoor verspreid.
-            </div>
+            <a href="#stap1" class="next-step">
+                Klaar? Door naar Stap 1 <span class="arrow">→</span>
+            </a>
         </section>
 
-        <!-- ============== VOICE MEMO ============== -->
-        <section id="voicememo">
-            <h2><span class="badge">1</span> De Voice Memo (eerste contact)</h2>
+        <!-- ============== 1. VOICE MEMO ============== -->
+        <section id="stap1">
+            <h2><span class="badge">1</span> De voice memo</h2>
 
-            <p>Een voice memo is jouw geheime wapen. Bot-DM's worden binnen 1 seconde herkend en weggeswiped. Een stem niet. Het is persoonlijk, het voelt als een vriendin die je iets stuurt.</p>
+            <p>Dit is jouw eerste contact. Geen tekst. Geen lange uitleg. Een korte voice memo voelt alsof een vriendin je iets stuurt.</p>
 
-            <h3>📝 Het standaard script</h3>
+            <h3>📝 Wat je inspreekt</h3>
             <div class="script">
-                <span class="label">Wat je inspreekt</span>
-                <div class="text">"Heyy [naam]! 💕 Leuk dat je mij bent gaan volgen. Ben je al lang bezig met fitness, of wil je nog beginnen?"</div>
-                <button class="copy-btn" onclick="copyText(this, 'Heyy [naam]! 💕 Leuk dat je mij bent gaan volgen. Ben je al lang bezig met fitness, of wil je nog beginnen?')">Kopiëer</button>
+                <span class="label">Voice memo (8 tot 12 seconden)</span>
+                <div class="text">"Heyy [naam]! Leuk dat je mij volgt 💕 Ben je al lang bezig met fitness of wil je nog beginnen?"</div>
+                <button class="copy-btn" onclick="copyText(this, 'Heyy [naam]! Leuk dat je mij volgt 💕 Ben je al lang bezig met fitness of wil je nog beginnen?')">Kopiëer</button>
             </div>
 
             <h3>🎤 Hoe spreek je 'm in</h3>
             <ul>
-                <li><strong>Glimlach</strong> tijdens het inspreken — je hoort het in de stem.</li>
-                <li><strong>Tempo</strong>: rustig, niet gehaast. Alsof je een vriendin spreekt.</li>
-                <li><strong>Lengte</strong>: 8 tot 12 seconden, niet langer. Geen verkooppraatje.</li>
-                <li><strong>Naam</strong>: gebruik haar voornaam (uit haar IG-profiel of bio). Onbekend? Kijk haar feed door — vrijwel altijd staat er ergens een naam.</li>
-                <li><strong>Geen naam te vinden?</strong> Begin met <em>"Hey jij!"</em> of <em>"Heyy lieverd!"</em> — voelt nog persoonlijk.</li>
+                <li>Glimlach tijdens het inspreken. Je hoort het.</li>
+                <li>Rustig tempo. Niet gehaast.</li>
+                <li>8 tot 12 seconden. Korter mag, langer niet.</li>
+                <li>Gebruik haar voornaam uit haar bio.</li>
+                <li>Geen naam? Begin met "Heyy lieverd!" of "Hey jij!".</li>
             </ul>
 
             <h3>⏰ Wanneer stuur je 'm</h3>
             <ul>
-                <li><strong>Binnen 24 uur</strong> nadat ze je is gaan volgen. Daarna verliest het effect.</li>
-                <li><strong>Tussen 9:00–11:00 of 19:00–21:00</strong> — andere tijden krijg je vaker stiltes.</li>
-                <li><strong>Niet tussen 12:00–14:00</strong> (lunch + werk) en niet na 22:00 (te laat, voelt nodig).</li>
-                <li><strong>Max 15 voice memos per dag</strong>. Anders verlies je kwaliteit per memo.</li>
+                <li>Binnen 24 uur na nieuwe volger.</li>
+                <li>Tussen 9:00 en 11:00 of tussen 19:00 en 21:00.</li>
+                <li>Niet tussen 12:00 en 14:00. Niet na 22:00.</li>
+                <li>Max 15 per dag. Anders verlies je kwaliteit.</li>
             </ul>
 
-            <h3>🚫 Wat je NIET doet</h3>
             <div class="callout callout-danger">
-                <strong>Vermijd in de eerste DM</strong>
-                <ul style="margin:6px 0 0 18px; padding:0;">
-                    <li>Geen prijzen noemen.</li>
-                    <li>Geen Calendly-link.</li>
-                    <li>Geen <em>"ik bied 1-op-1 coaching"</em>.</li>
-                    <li>Geen vragen over haar lichaam (gewicht, omtrek, foto's).</li>
-                    <li>Geen lange tekst-DM in plaats van voice — dat voelt nét weer als verkoop.</li>
-                </ul>
-                Doel van de eerste DM is <strong>één antwoord</strong> krijgen. Niets anders.
+                <strong>Niet doen in deze eerste DM</strong>
+                Geen prijzen. Geen Calendly link. Geen "ik bied 1 op 1 coaching". Geen vragen over haar lichaam of foto's. Eén ding maar. Eén antwoord krijgen.
             </div>
+
+            <a href="#stap2" class="next-step">
+                Wachten op antwoord. Door naar Stap 2 <span class="arrow">→</span>
+            </a>
         </section>
 
-        <!-- ============== 4 PADEN ============== -->
-        <section id="paden">
-            <h2><span class="badge">2</span> Antwoorden lezen — de 4 paden</h2>
+        <!-- ============== 2. ANTWOORD LEZEN ============== -->
+        <section id="stap2">
+            <h2><span class="badge">2</span> Lees haar antwoord</h2>
 
-            <p>Op je voice memo komt een antwoord. Op basis van wat ze zegt kies je 1 van de 4 paden. Dit voorkomt dat je iedereen hetzelfde generieke verhaal stuurt.</p>
+            <p>Wat ze antwoordt zegt alles over wat ze nodig heeft. Je kiest een van deze 4 paden.</p>
 
             <div class="tree">
                 <div class="tree-row">
                     <div class="tree-emoji">🟢</div>
                     <div class="tree-content">
-                        <strong>Pad 1 — De Beginner</strong>
-                        <div class="reply">"Nog niet echt, wil graag beginnen" / "Ben net begonnen" / "Ik wil starten maar weet niet hoe"</div>
-                        Stuur kort, motiverend antwoord + 1 vraag over haar doel.
+                        <strong>Pad 1. De Beginner</strong>
+                        <div class="reply">"Wil graag beginnen" / "Ben net begonnen" / "Weet niet hoe"</div>
+                        Stuur korte motiverende reactie en vraag naar haar doel.
                     </div>
                 </div>
                 <div class="tree-row">
                     <div class="tree-emoji">🟡</div>
                     <div class="tree-content">
-                        <strong>Pad 2 — De Frustratie</strong>
-                        <div class="reply">"Ja al een tijd, maar lukt niet" / "Doe al maanden van alles, geen resultaat" / "Ik kom niet vooruit"</div>
-                        Erken haar pijn + vraag wat ze geprobeerd heeft.
+                        <strong>Pad 2. De Frustratie</strong>
+                        <div class="reply">"Al een tijd bezig maar lukt niet" / "Geen resultaat"</div>
+                        Erken haar pijn. Vraag wat ze al geprobeerd heeft. <strong>Dit is jouw beste pad.</strong>
                     </div>
                 </div>
                 <div class="tree-row">
                     <div class="tree-emoji">🔵</div>
                     <div class="tree-content">
-                        <strong>Pad 3 — De Performer</strong>
-                        <div class="reply">"Ja al jaren, ben fanatiek" / "Sport 5x per week" / "Het gaat goed"</div>
-                        Vraag naar haar grootste plafond. (LET OP: vaak níet de juiste klant. Niet pushen.)
+                        <strong>Pad 3. De Performer</strong>
+                        <div class="reply">"Al jaren bezig" / "Sport 5x per week" / "Het gaat goed"</div>
+                        Vraag waar ze nu tegenaan loopt. Vaak geen klant. Niet pushen.
                     </div>
                 </div>
                 <div class="tree-row">
                     <div class="tree-emoji">⚪</div>
                     <div class="tree-content">
-                        <strong>Pad 4 — Geen reactie</strong>
-                        <div class="reply">(Stilte na voice memo)</div>
-                        Geen DM-spam. Bekijk haar story 2-3× deze week, like 1-2 posts. Probeer opnieuw na 14 dgn.
+                        <strong>Pad 4. Geen reactie</strong>
+                        <div class="reply">(stil)</div>
+                        Geen DM spam. Like een paar posts. Probeer over 14 dagen opnieuw.
                     </div>
                 </div>
             </div>
 
-            <h3>🟢 Pad 1 — De Beginner — wat je terugstuurt</h3>
+            <h3>🟢 Pad 1 (Beginner). Wat je terugstuurt</h3>
             <div class="script">
-                <span class="label">Reactie 1 — open vraag</span>
-                <div class="text">"Tof dat je dat zegt 💕 ik help dagelijks vrouwen die net beginnen. Wat is op dit moment jouw grootste doel — wil je afvallen, gespierder worden, of vooral beter in je vel zitten?"</div>
-                <button class="copy-btn" onclick="copyText(this, 'Tof dat je dat zegt 💕 ik help dagelijks vrouwen die net beginnen. Wat is op dit moment jouw grootste doel — wil je afvallen, gespierder worden, of vooral beter in je vel zitten?')">Kopiëer</button>
+                <span class="label">Reactie</span>
+                <div class="text">"Tof dat je dat zegt 💕 Wat is jouw grootste doel? Afvallen, billen aankomen, of gewoon lekker in je vel zitten?"</div>
+                <button class="copy-btn" onclick="copyText(this, 'Tof dat je dat zegt 💕 Wat is jouw grootste doel? Afvallen, billen aankomen, of gewoon lekker in je vel zitten?')">Kopiëer</button>
             </div>
 
-            <h3>🟡 Pad 2 — De Frustratie — wat je terugstuurt</h3>
+            <h3>🟡 Pad 2 (Frustratie). Wat je terugstuurt</h3>
             <div class="script">
-                <span class="label">Reactie 1 — erkenning + diagnose</span>
-                <div class="text">"Ohh, dat snap ik echt heel goed. Het is zó frustrerend als je doet wat je denkt te moeten doen en het toch niet beweegt. Wat heb je tot nu toe geprobeerd — sportscholen, plannen, app-coaches?"</div>
-                <button class="copy-btn" onclick="copyText(this, 'Ohh, dat snap ik echt heel goed. Het is zó frustrerend als je doet wat je denkt te moeten doen en het toch niet beweegt. Wat heb je tot nu toe geprobeerd — sportscholen, plannen, app-coaches?')">Kopiëer</button>
+                <span class="label">Reactie</span>
+                <div class="text">"Ohh dat snap ik echt. Wat heb je tot nu toe geprobeerd? Sportscholen, schema's, of een online coach?"</div>
+                <button class="copy-btn" onclick="copyText(this, 'Ohh dat snap ik echt. Wat heb je tot nu toe geprobeerd? Sportscholen, schema\'s, of een online coach?')">Kopiëer</button>
             </div>
 
             <div class="callout callout-tip">
-                <strong>Tip</strong>
-                Pad 2 (Frustratie) is jouw beste pad. Daar zit het meeste momentum — ze heeft al pijn en is klaar voor verandering. Investeer hier de meeste tijd in.
+                <strong>Hier zit je geld</strong>
+                Pad 2 is jouw goudmijn. Ze heeft al pijn. Ze is klaar voor verandering. Geef hier je tijd aan.
             </div>
 
-            <h3>🔵 Pad 3 — De Performer — wat je terugstuurt</h3>
+            <h3>🔵 Pad 3 (Performer). Wat je terugstuurt</h3>
             <div class="script">
-                <span class="label">Reactie 1 — voorzichtig peilen</span>
-                <div class="text">"Tof! Wat is op dit moment je grootste plafond — kracht, vorm, of consistentie? Ik werk soms met meiden die juist het laatste 5% willen pakken."</div>
-                <button class="copy-btn" onclick="copyText(this, 'Tof! Wat is op dit moment je grootste plafond — kracht, vorm, of consistentie? Ik werk soms met meiden die juist het laatste 5% willen pakken.')">Kopiëer</button>
+                <span class="label">Reactie</span>
+                <div class="text">"Tof! Waar loop je nu tegenaan? Kracht, vorm, of consistentie?"</div>
+                <button class="copy-btn" onclick="copyText(this, 'Tof! Waar loop je nu tegenaan? Kracht, vorm, of consistentie?')">Kopiëer</button>
             </div>
             <div class="callout callout-warn">
                 <strong>Pas op</strong>
-                Bij Pad 3 (Performer): zegt ze <em>"alles gaat goed"</em>? Bedank haar voor de antwoord, like een paar posts, en stop het gesprek. Ze is geen klant, geen druk uitoefenen.
+                Zegt ze "alles gaat goed"? Bedank haar warm. Like een paar posts. Sluit het gesprek af. Ze is geen klant. Geen druk.
             </div>
 
-            <h3>⚪ Pad 4 — Geen reactie — wat doe je</h3>
+            <h3>⚪ Pad 4 (geen reactie). Wat je doet</h3>
             <ol>
-                <li>Wacht <strong>3 dagen</strong>.</li>
-                <li>Like 1 of 2 van haar recente posts.</li>
-                <li>Bekijk 2-3 van haar stories.</li>
+                <li>Wacht 3 dagen.</li>
+                <li>Like 1 of 2 recente posts.</li>
+                <li>Bekijk haar laatste stories.</li>
                 <li>Wacht weer 3 dagen.</li>
-                <li>Stuur een nieuwe voice memo met een story-share als context: <em>"Hee jij! Dit deed me aan jou denken — [reactie op haar laatste story]. Hoe gaat het?"</em></li>
-                <li>Geen reactie na 14 dgn? Laat los, focus op nieuwe volgers.</li>
+                <li>Stuur een nieuwe voice memo. Niet over coaching. Reageer op iets uit haar story: <em>"Hee jij! Dit deed me aan jou denken. Hoe gaat het?"</em></li>
+                <li>Nog steeds niks? Loslaten en focussen op nieuwe volgers.</li>
             </ol>
+
+            <a href="#stap3" class="next-step">
+                Ze antwoordde. Door naar Stap 3 <span class="arrow">→</span>
+            </a>
         </section>
 
-        <!-- ============== DOORVRAGEN ============== -->
-        <section id="doorvragen">
-            <h2><span class="badge">3</span> Doorvragen op pijn</h2>
+        <!-- ============== 3. DOORVRAGEN ============== -->
+        <section id="stap3">
+            <h2><span class="badge">3</span> Vraag 1 keer dieper</h2>
 
-            <p>Ze heeft je iets verteld over haar doel of frustratie. Nu graaf je <strong>1 laag dieper</strong>. Dit is het moment dat ze besluit of jij haar écht begrijpt of niet. Zoom in op haar specifieke woorden — herhaal ze terug.</p>
+            <p>Ze heeft je iets verteld. Nu graaf je 1 laag dieper. Niet 4 vragen. Eén of twee. Dan voelt het persoonlijk, geen interview.</p>
 
-            <h3>De 3 magische vragen</h3>
+            <h3>De 3 beste vragen</h3>
             <ol class="steps">
-                <li><strong>"Hoe lang loop je hier nu al tegenaan?"</strong> → ze maakt zich bewust van hoe lang het al duurt. Vergroot urgentie.</li>
-                <li><strong>"Wat heb je al geprobeerd?"</strong> → je leert wat NIET werkt voor haar, en ze ziet zelf dat ze al veel heeft geprobeerd.</li>
-                <li><strong>"Wat zou het voor je betekenen als je over 4 maanden wél daar bent waar je wil zijn?"</strong> → emotie. Laat haar visualiseren.</li>
+                <li><strong>"Hoe lang loop je hier al tegenaan?"</strong></li>
+                <li><strong>"Wat heb je al geprobeerd?"</strong></li>
+                <li><strong>"Wat zou het voor je betekenen als het over 4 maanden wel lukt?"</strong></li>
             </ol>
 
-            <h3>📝 Concreet voorbeeld DM-flow (frustratie pad)</h3>
+            <h3>📝 Voorbeeld DM-flow (Frustratie pad)</h3>
             <table>
                 <thead>
-                    <tr><th style="width: 20%">Wie</th><th>Wat</th></tr>
+                    <tr><th style="width: 22%">Wie</th><th>Wat</th></tr>
                 </thead>
                 <tbody>
                     <tr>
                         <td>👤 <strong>Lisa</strong></td>
-                        <td><em>"Ja al 2 jaar, doe sportscholen en heb 3 voedingsschema's gekocht maar resultaat blijft uit"</em></td>
+                        <td><em>"Ja al 2 jaar. Sportschool, 3 schema's gekocht, niks beweegt"</em></td>
                     </tr>
                     <tr>
                         <td>💬 <strong>Jij</strong></td>
-                        <td>"Twee jaar — dat is écht lang om elke keer te denken 'misschien deze keer wel' en dan toch op hetzelfde punt te staan. Wat is het belangrijkste verschil dat je zou willen zien als het over 4 maanden wél lukt?"</td>
+                        <td>"Twee jaar. Dat is écht lang. Wat zou er over 4 maanden anders moeten zijn dat je denkt: ja dit is gelukt?"</td>
                     </tr>
                     <tr>
                         <td>👤 <strong>Lisa</strong></td>
-                        <td><em>"Gewoon weer in mn lievelingsbroek passen en niet meer steeds twijfelen of ik wel naar het strand kan"</em></td>
+                        <td><em>"Gewoon weer in mijn lievelingsbroek passen en niet meer twijfelen of ik naar het strand kan"</em></td>
                     </tr>
                     <tr>
                         <td>💬 <strong>Jij</strong></td>
-                        <td>(NU is het moment voor de pivot — zie volgende sectie)</td>
+                        <td>(Nu vraag je de call. Door naar Stap 4)</td>
                     </tr>
                 </tbody>
             </table>
 
             <div class="callout callout-tip">
                 <strong>Goud waard</strong>
-                Schrijf háár woorden mee in je tracker. <em>"Lievelingsbroek"</em> en <em>"twijfelen of ik naar het strand kan"</em> zijn HÁÁR woorden — die ga je in het gesprek met Julia teruggeven. Dat voelt voor haar alsof Julia haar al kent.
+                Schrijf háár woorden mee in je tracker. "Lievelingsbroek" en "twijfelen of ik naar het strand kan" zijn HÁÁR woorden. Die geef je in het gesprek met Julia terug. Dan voelt het alsof Julia haar al kent.
             </div>
 
-            <h3>🚫 Wat NIET doen</h3>
+            <h3>🚫 Niet doen</h3>
             <ul>
-                <li><strong>Geen 4 of 5 vragen achter elkaar.</strong> Maximaal 2 per DM-uitwisseling. Anders voelt het als een interview.</li>
-                <li><strong>Geen "ja maar"-tegenwerpingen</strong> als ze iets zegt waar je het niet mee eens bent. Bevestig eerst, daarna pas suggereren.</li>
-                <li><strong>Geen oplossing bieden in DM's.</strong> Bewaar dat voor het gesprek met Julia. Anders heeft ze het gevoel dat ze "het al weet" en boekt ze niet.</li>
+                <li>Geen 4 of 5 vragen achter elkaar.</li>
+                <li>Geen "ja maar" als ze iets zegt waar je het niet mee eens bent.</li>
+                <li>Geen oplossing in DM. Bewaar dat voor het gesprek.</li>
             </ul>
+
+            <a href="#stap4" class="next-step">
+                Ze deelde haar pijn. Door naar Stap 4 <span class="arrow">→</span>
+            </a>
         </section>
 
-        <!-- ============== PIVOT ============== -->
-        <section id="pivot">
-            <h2><span class="badge">4</span> De Pivot — naar het gesprek</h2>
+        <!-- ============== 4. VRAAG DE CALL ============== -->
+        <section id="stap4">
+            <h2><span class="badge">4</span> Vraag de call</h2>
 
-            <p>Dit is het moment. Ze heeft pijn gedeeld, jij hebt erkend, ze voelt zich gehoord. Nu pivot je naar een gesprek. Doe het rustig en met toestemming vragen — geen aggressieve sales-pitch.</p>
+            <p>Dit is het moment. Ze voelt zich gehoord. Nu vraag je de call. Rustig. Niet pushen. Toestemming vragen.</p>
 
-            <h3>📝 Het pivot-script</h3>
+            <h3>📝 Het pivot bericht</h3>
             <div class="script">
-                <span class="label">Het pivot-bericht</span>
-                <div class="text">"Heel herkenbaar wat je zegt — ik werk dagelijks met vrouwen die hier vastzitten. Mag ik je iets voorstellen? Ik plan deze week een paar vrijblijvende kennismakingsgesprekken in van 15-20 min. Geen sales-pitch, gewoon een gesprek om te kijken of ik je écht kan helpen. Heb je woensdag of donderdag 15 min?"</div>
-                <button class="copy-btn" onclick="copyText(this, 'Heel herkenbaar wat je zegt — ik werk dagelijks met vrouwen die hier vastzitten. Mag ik je iets voorstellen? Ik plan deze week een paar vrijblijvende kennismakingsgesprekken in van 15-20 min. Geen sales-pitch, gewoon een gesprek om te kijken of ik je écht kan helpen. Heb je woensdag of donderdag 15 min?')">Kopiëer</button>
+                <span class="label">Vraag de call</span>
+                <div class="text">"Hee dit hoor ik vaker. Mag ik je iets vragen? Heb je deze week 15 minuutjes voor een korte call? Geen sales pitch, gewoon kijken of ik je echt kan helpen."</div>
+                <button class="copy-btn" onclick="copyText(this, 'Hee dit hoor ik vaker. Mag ik je iets vragen? Heb je deze week 15 minuutjes voor een korte call? Geen sales pitch, gewoon kijken of ik je echt kan helpen.')">Kopiëer</button>
             </div>
 
-            <h3>🔑 Waarom werkt dit?</h3>
+            <h3>🔑 Waarom dit werkt</h3>
             <ul>
-                <li><strong>"Mag ik je iets voorstellen?"</strong> → ze zegt automatisch "ja", waardoor de psychologische deur al open staat voor je voorstel.</li>
-                <li><strong>"Vrijblijvend"</strong> → verlaagt de drempel. Niemand wil zich vastleggen.</li>
-                <li><strong>"Geen sales-pitch"</strong> → ontwapent de natuurlijke verdediging.</li>
-                <li><strong>"Woensdag of donderdag"</strong> → gesloten vraag → ze kiest één. Dit is psychologisch sterker dan "wanneer komt het uit".</li>
+                <li><strong>"Mag ik je iets vragen?"</strong> Daar zegt ze automatisch ja op. Deur staat open.</li>
+                <li><strong>"15 minuutjes"</strong>. Klein. Niet bedreigend.</li>
+                <li><strong>"Geen sales pitch"</strong>. Ontwapent. Voelt eerlijk.</li>
             </ul>
 
-            <h3>📋 Hoe ze kan reageren — beslisboom</h3>
+            <h3>📋 Hoe ze kan reageren</h3>
 
             <table>
                 <thead>
-                    <tr><th style="width:35%">Haar reactie</th><th>Wat doe je?</th></tr>
+                    <tr><th style="width:35%">Wat zij zegt</th><th>Wat jij terugstuurt</th></tr>
                 </thead>
                 <tbody>
                     <tr>
                         <td>✅ <em>"Ja, donderdag heb ik tijd"</em></td>
-                        <td>Stuur Calendly-link → zie volgende sectie.</td>
+                        <td>Top! Stuur direct Calendly link. (Stap 5)</td>
                     </tr>
                     <tr>
-                        <td>🤔 <em>"Hmm wat zou ik dan precies bespreken?"</em></td>
-                        <td><strong>Antwoord</strong>: "Eigenlijk gewoon: waar je nu staat, waar je naartoe wil, en wat er nu in de weg zit. Aan het eind kijk ik of ik je kan helpen of niet — eerlijk en zonder druk. 15 minuutjes maar."</td>
+                        <td>🤔 <em>"Wat zou ik dan precies bespreken?"</em></td>
+                        <td>"Gewoon waar je nu staat, waar je naartoe wil, en wat in de weg zit. 15 minuutjes maar."</td>
                     </tr>
                     <tr>
                         <td>💭 <em>"Ik moet eerst even nadenken"</em></td>
-                        <td><strong>Antwoord</strong>: "Snap ik volledig. Mag ik je morgen even nudgen? Anders verliezen we het uit het oog en is het zonde — ik denk echt dat ik je kan helpen."</td>
+                        <td>"Snap ik. Mag ik je morgen even nudgen? Anders verliezen we het uit het oog."</td>
                     </tr>
                     <tr>
                         <td>💸 <em>"Wat kost het?"</em></td>
-                        <td><strong>Antwoord</strong>: "Eerlijk: ik praat in een DM nooit over prijzen, omdat het echt afhangt van wat past bij jou. Daarom hebben we het gesprek — dan kunnen we kijken of het past, en wat de juiste aanpak is."</td>
+                        <td>"Eerlijk, ik praat in DM nooit over prijzen. Het hangt echt af van wat past bij jou. Daarom hebben we de call."</td>
                     </tr>
                     <tr>
                         <td>❌ <em>"Nee dank je, niet nu"</em></td>
-                        <td><strong>Antwoord</strong>: "Helemaal goed 💕 als je later toch wil sparren, je weet me te vinden. Succes met alles!" Sluit warm af. NIET pushen.</td>
+                        <td>"Helemaal goed 💕 Als je later toch wil sparren weet je me te vinden. Succes!"</td>
                     </tr>
                     <tr>
-                        <td>🤐 (Stilte na pivot)</td>
-                        <td>Wacht 2 dagen. Stuur dan: <em>"He, even checken — wil je nog die 15 min plannen? Ik heb deze week donderdag of vrijdag tijd"</em></td>
+                        <td>🤐 (geen reactie)</td>
+                        <td>Wacht 2 dagen. Dan: <em>"He, even checken. Wil je nog die 15 min plannen?"</em></td>
                     </tr>
                 </tbody>
             </table>
 
             <div class="callout callout-warn">
-                <strong>Wanneer pivot je NIET?</strong>
-                Als ze nog niet duidelijk pijn of een doel heeft uitgesproken. Eerst 1 doorvraag-stap meer. Pivoten zonder context = "verkoop-modus" = nee.
+                <strong>Wanneer pivot je niet?</strong>
+                Als ze nog niet duidelijk pijn of een doel heeft uitgesproken. Eerst nog 1 doorvraag. Pivoten zonder context voelt als verkoop. Krijg je een nee.
             </div>
+
+            <a href="#stap5" class="next-step">
+                Ze zei ja. Door naar Stap 5 <span class="arrow">→</span>
+            </a>
         </section>
 
-        <!-- ============== BOEKEN ============== -->
-        <section id="boeken">
-            <h2><span class="badge">5</span> Boekingsproces</h2>
+        <!-- ============== 5. PLAN DE CALL IN ============== -->
+        <section id="stap5">
+            <h2><span class="badge">5</span> Plan de call in</h2>
 
-            <p>Ze zei ja. Yes! Nu ga je het zo simpel mogelijk maken voor haar om écht te boeken én het gesprek niet te missen.</p>
+            <p>Yes, ze wil. Maak het zo simpel mogelijk. Eén link. Eén volgende vraag.</p>
 
-            <h3>Stap 1 — Stuur de Calendly-link</h3>
+            <h3>📝 Stuur de Calendly link</h3>
             <div class="script">
-                <span class="label">DM bij ja-reactie</span>
-                <div class="text">"Top! 💕 Hier kan je direct een tijd kiezen die jou uitkomt: calendly.com/juliabesten/kennismakingsgesprek-julia-besten
+                <span class="label">DM bij ja</span>
+                <div class="text">"Yes! 💕 Plan hieronder een tijd die jou uitkomt: calendly.com/juliabesten/kennismakingsgesprek-julia-besten
 
-Stuur even door welke dag je hebt geboekt, dan zet ik 'm met een notitie in mijn agenda."</div>
-                <button class="copy-btn" onclick="copyText(this, 'Top! 💕 Hier kan je direct een tijd kiezen die jou uitkomt: calendly.com/juliabesten/kennismakingsgesprek-julia-besten\n\nStuur even door welke dag je hebt geboekt, dan zet ik \'m met een notitie in mijn agenda.')">Kopiëer</button>
+Stuur even door welke dag je hebt geboekt, dan zet ik er een notitie bij."</div>
+                <button class="copy-btn" onclick="copyText(this, 'Yes! 💕 Plan hieronder een tijd die jou uitkomt: calendly.com/juliabesten/kennismakingsgesprek-julia-besten\n\nStuur even door welke dag je hebt geboekt, dan zet ik er een notitie bij.')">Kopiëer</button>
             </div>
 
-            <h3>Stap 2 — Vraag haar telefoonnummer</h3>
-            <p>Calendly vraagt al naar telefoonnummer als verplicht veld. <strong>Maar</strong>, een tweede laag is goud:</p>
+            <h3>📝 Vraag haar nummer</h3>
+            <p>Calendly vraagt al naar nummer. Zelf nog 1 keer vragen via WhatsApp werkt goud.</p>
             <div class="script">
                 <span class="label">DM zodra ze geboekt heeft</span>
-                <div class="text">"Top dat je geboekt hebt voor [dag/tijd]! 🌸 Stuur even je nummer door, dan kan ik je een reminder sturen via WhatsApp en zie je vooraf precies hoe het gaat."</div>
-                <button class="copy-btn" onclick="copyText(this, 'Top dat je geboekt hebt voor [dag/tijd]! 🌸 Stuur even je nummer door, dan kan ik je een reminder sturen via WhatsApp en zie je vooraf precies hoe het gaat.')">Kopiëer</button>
+                <div class="text">"Top dat je [dag] hebt geboekt 🌸 Stuur even je nummer door, dan stuur ik je vooraf nog wat info via WhatsApp."</div>
+                <button class="copy-btn" onclick="copyText(this, 'Top dat je [dag] hebt geboekt 🌸 Stuur even je nummer door, dan stuur ik je vooraf nog wat info via WhatsApp.')">Kopiëer</button>
             </div>
 
-            <h3>Stap 3 — No-show preventie protocol</h3>
+            <a href="#stap6" class="next-step">
+                Boeking binnen. Door naar Stap 6 <span class="arrow">→</span>
+            </a>
+        </section>
 
+        <!-- ============== 6. REMINDERS ============== -->
+        <section id="stap6">
+            <h2><span class="badge">6</span> Stuur reminders</h2>
+
+            <p>Tussen boeking en gesprek zit vaak 1 tot 5 dagen. In die tijd vergeten dames hun afspraak. Daarom 4 reminders. Korter elke keer.</p>
+
+            <h3>Het reminder protocol</h3>
             <table>
                 <thead>
-                    <tr><th>Wanneer</th><th>Wat</th><th>Via</th></tr>
+                    <tr><th>Wanneer</th><th>Wat</th></tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td><strong>Direct na boeking</strong></td>
-                        <td>Bedank-bericht + bevestiging tijd + 1 voorbereidende vraag</td>
-                        <td>WhatsApp</td>
-                    </tr>
-                    <tr>
-                        <td><strong>24 uur ervoor</strong></td>
-                        <td>Reminder met dag/tijd + Zoom-link + foto van Julia</td>
-                        <td>WhatsApp</td>
-                    </tr>
-                    <tr>
-                        <td><strong>1 uur ervoor</strong></td>
-                        <td>"Tot zo!" + link nogmaals</td>
-                        <td>WhatsApp</td>
-                    </tr>
-                    <tr>
-                        <td><strong>15 min ervoor</strong></td>
-                        <td>Voicebericht of korte tekst van Julia zelf: "Hee, ik kijk er naar uit om je zo te spreken!"</td>
-                        <td>WhatsApp</td>
-                    </tr>
+                    <tr><td><strong>Direct na boeking</strong></td><td>WhatsApp met bevestiging tijd plus 1 voorbereidende vraag.</td></tr>
+                    <tr><td><strong>24 uur ervoor</strong></td><td>WhatsApp met dag, tijd en Zoom link.</td></tr>
+                    <tr><td><strong>1 uur ervoor</strong></td><td>WhatsApp "tot zo" plus link nogmaals.</td></tr>
+                    <tr><td><strong>15 min ervoor</strong></td><td>Korte voice memo van Julia zelf.</td></tr>
                 </tbody>
             </table>
 
-            <h3>📝 Reminder-scripts</h3>
+            <h3>📝 Direct na boeking</h3>
             <div class="script">
-                <span class="label">Direct na boeking — bedank + voorbereidende vraag</span>
-                <div class="text">"Hé [naam]! Top dat je [dag] om [tijd] hebt geboekt 💕
+                <span class="label">WhatsApp 1</span>
+                <div class="text">"Hee [naam]! Top dat je [dag] om [tijd] hebt geboekt 💕
 
-Voor ik je spreek wil ik 1 ding van je weten: wat is op dit moment het belangrijkste dat je uit dit gesprek wil halen?
+Voor ik je spreek wil ik 1 ding van je weten. Wat is op dit moment het belangrijkste dat je uit het gesprek wil halen?
 
-Korte zin is genoeg — dan ben ik vooraf super goed voorbereid op jou. Tot [dag]!"</div>
-                <button class="copy-btn" onclick="copyText(this, 'Hé [naam]! Top dat je [dag] om [tijd] hebt geboekt 💕\n\nVoor ik je spreek wil ik 1 ding van je weten: wat is op dit moment het belangrijkste dat je uit dit gesprek wil halen?\n\nKorte zin is genoeg — dan ben ik vooraf super goed voorbereid op jou. Tot [dag]!')">Kopiëer</button>
+Korte zin is genoeg. Tot [dag]!"</div>
+                <button class="copy-btn" onclick="copyText(this, 'Hee [naam]! Top dat je [dag] om [tijd] hebt geboekt 💕\n\nVoor ik je spreek wil ik 1 ding van je weten. Wat is op dit moment het belangrijkste dat je uit het gesprek wil halen?\n\nKorte zin is genoeg. Tot [dag]!')">Kopiëer</button>
             </div>
 
+            <h3>📝 24 uur ervoor</h3>
             <div class="script">
-                <span class="label">24 uur ervoor — reminder</span>
-                <div class="text">"Hee [naam]! Morgen om [tijd] hebben we ons gesprek 🌸
-
-Hier is de Zoom-link alvast: [zoom-link]
-
-Tip: zorg dat je 5 min van tevoren even rustig kan zitten, dan zijn we to-the-point. Tot morgen!"</div>
-                <button class="copy-btn" onclick="copyText(this, 'Hee [naam]! Morgen om [tijd] hebben we ons gesprek 🌸\n\nHier is de Zoom-link alvast: [zoom-link]\n\nTip: zorg dat je 5 min van tevoren even rustig kan zitten, dan zijn we to-the-point. Tot morgen!')">Kopiëer</button>
+                <span class="label">WhatsApp 2</span>
+                <div class="text">"Hee [naam]! Morgen om [tijd] zien we elkaar 🌸 Hier de Zoom link alvast: [link]. Tot morgen!"</div>
+                <button class="copy-btn" onclick="copyText(this, 'Hee [naam]! Morgen om [tijd] zien we elkaar 🌸 Hier de Zoom link alvast: [link]. Tot morgen!')">Kopiëer</button>
             </div>
 
+            <h3>📝 1 uur ervoor</h3>
             <div class="script">
-                <span class="label">1 uur ervoor — laatste nudge</span>
-                <div class="text">"Hé [naam], over een uurtje! Hier de link nog even: [zoom-link] 💕"</div>
-                <button class="copy-btn" onclick="copyText(this, 'Hé [naam], over een uurtje! Hier de link nog even: [zoom-link] 💕')">Kopiëer</button>
+                <span class="label">WhatsApp 3</span>
+                <div class="text">"Hee [naam], over een uurtje! Hier de link: [link] 💕"</div>
+                <button class="copy-btn" onclick="copyText(this, 'Hee [naam], over een uurtje! Hier de link: [link] 💕')">Kopiëer</button>
             </div>
 
             <div class="callout callout-tip">
                 <strong>Het werkt</strong>
-                Met dit protocol gaat je no-show rate van ~50% naar ~75-80%. Dat zijn letterlijk extra klanten zonder extra werk.
+                Met dit protocol gaat je no-show rate van ongeveer 50% naar 75 of 80%. Dat zijn extra klanten zonder extra werk.
             </div>
+
+            <a href="#stap7" class="next-step">
+                Ze komt opdagen. Door naar Stap 7 <span class="arrow">→</span>
+            </a>
         </section>
 
-        <!-- ============== HET GESPREK ============== -->
-        <section id="gesprek">
-            <h2><span class="badge">6</span> Het Gesprek (15-20 min)</h2>
+        <!-- ============== 7. HET GESPREK ============== -->
+        <section id="stap7">
+            <h2><span class="badge">7</span> Het gesprek (15 min)</h2>
 
-            <p>Dit is voor Julia zelf wanneer ze gespreken doet, OF Kim als zij doorgroeit naar closer-rol. De structuur is altijd hetzelfde:</p>
+            <p>Dit is het moment. Julia of Kim doet de call. Structuur is altijd hetzelfde.</p>
 
             <ol class="steps">
-                <li><strong>Frame (2 min)</strong> — Wat dit gesprek is, wat het niet is, en wat we gaan doen.</li>
-                <li><strong>Discovery (8 min)</strong> — Diepe vragen over haar situatie, doelen, pijn, eerder geprobeerd.</li>
-                <li><strong>Verbinden + Show-the-Gap (3 min)</strong> — Spiegel terug + laat het verschil zien tussen "wat ze nu doet" en "wat nodig is".</li>
-                <li><strong>Aanbod (5 min)</strong> — Foundation OF Elite — afgestemd op haar urgentie + budget.</li>
-                <li><strong>Close (2 min)</strong> — De vraag stellen, bezwaar handelen, ja krijgen.</li>
+                <li><strong>Frame (2 min)</strong>. Wat dit gesprek is. Wat het niet is.</li>
+                <li><strong>Discovery (8 min)</strong>. Vragen stellen. Veel luisteren.</li>
+                <li><strong>Verbinden en gap laten zien (3 min)</strong>. Spiegel terug. Laat zien wat ontbreekt.</li>
+                <li><strong>Aanbod (5 min)</strong>. Foundation of Elite. Op basis van haar urgentie.</li>
+                <li><strong>Close (2 min)</strong>. Vraag stellen. Bezwaar oplossen. Ja krijgen.</li>
             </ol>
 
-            <h3>📝 1. Frame (2 min)</h3>
+            <h3>📝 1. Frame</h3>
             <div class="script">
                 <span class="label">Opening</span>
-                <div class="text">"Hé [naam], super leuk om je eindelijk te zien! 💕 Ik ga heel kort vertellen hoe dit gesprek gaat — vind je dat goed?
+                <div class="text">"Hé [naam], super leuk om je te zien! 💕 Ik vertel kort hoe deze call gaat.
 
-We hebben 15-20 minuten. In de eerste 10 ga ik vooral vragen stellen om jou écht goed te begrijpen — waar je staat, wat je wil, en wat er nu in de weg zit.
+We hebben 15 minuten. In de eerste 10 stel ik vragen om jou goed te begrijpen. Daarna vertel ik kort wat ik doe en kijken we of het past.
 
-Daarna vertel ik kort wat ik doe en kijken we samen of het past. Eind van het gesprek gaan we óf samen door, óf we sluiten af en weet je met een goed gevoel waar je staat. Beide is oké. Klinkt dat goed?"</div>
-                <button class="copy-btn" onclick="copyText(this, 'Hé [naam], super leuk om je eindelijk te zien! 💕 Ik ga heel kort vertellen hoe dit gesprek gaat — vind je dat goed?\n\nWe hebben 15-20 minuten. In de eerste 10 ga ik vooral vragen stellen om jou écht goed te begrijpen — waar je staat, wat je wil, en wat er nu in de weg zit.\n\nDaarna vertel ik kort wat ik doe en kijken we samen of het past. Eind van het gesprek gaan we óf samen door, óf we sluiten af en weet je met een goed gevoel waar je staat. Beide is oké. Klinkt dat goed?')">Kopiëer</button>
+Eind van de call gaan we óf samen door, óf we sluiten af en weet je wat de volgende stap voor jou is. Beide is oké. Klinkt dat goed?"</div>
+                <button class="copy-btn" onclick="copyText(this, 'Hé [naam], super leuk om je te zien! 💕 Ik vertel kort hoe deze call gaat.\n\nWe hebben 15 minuten. In de eerste 10 stel ik vragen om jou goed te begrijpen. Daarna vertel ik kort wat ik doe en kijken we of het past.\n\nEind van de call gaan we óf samen door, óf we sluiten af en weet je wat de volgende stap voor jou is. Beide is oké. Klinkt dat goed?')">Kopiëer</button>
             </div>
 
-            <h3>📝 2. Discovery (8 min)</h3>
-            <p>Stel deze vragen één voor één. <strong>Luister 80%, praat 20%.</strong> Schrijf háár woorden op een kladblok mee.</p>
+            <h3>📝 2. Discovery</h3>
+            <p>Stel deze vragen 1 voor 1. Luister 80%, praat 20%. Schrijf háár woorden mee.</p>
             <ol>
-                <li>"Vertel eens — wat is er op dit moment in je leven aan de hand op het gebied van fitness en gezondheid?"</li>
+                <li>"Vertel eens, wat speelt er nu in jouw leven op het gebied van fitness?"</li>
                 <li>"Hoe lang loop je hier al tegenaan?"</li>
-                <li>"Wat heb je tot nu toe geprobeerd?"</li>
-                <li>"Wat denk je dat het lastige is geweest waarom het niet lukte?"</li>
-                <li>"Wat zou er over 4-6 maanden anders moeten zijn dat je denkt: ja, dit is gelukt?"</li>
-                <li>"En als het wél lukt — wat betekent dat dan voor jou?" <em>(emotie boven)</em></li>
-                <li>"Op een schaal van 1-10, hoe belangrijk is het voor jou om dit nu aan te pakken?" <em>(als &lt; 7: NIET pitchen, ze is niet klaar)</em></li>
+                <li>"Wat heb je al geprobeerd?"</li>
+                <li>"Waarom denk je dat het tot nu toe niet lukte?"</li>
+                <li>"Wat zou er over 4 of 6 maanden anders moeten zijn dat je denkt: ja dit is gelukt?"</li>
+                <li>"En als het wél lukt, wat betekent dat voor jou?"</li>
+                <li>"Op een schaal van 1 tot 10, hoe belangrijk is het voor jou om dit nu aan te pakken?"</li>
             </ol>
 
-            <h3>📝 3. Verbinden + Show-the-Gap (3 min)</h3>
-            <div class="script">
-                <span class="label">Spiegel + gap</span>
-                <div class="text">"Oké, dus wat ik hoor [vat samen in 2 zinnen wat ze zei, gebruik HAAR woorden].
-
-Wat ik denk dat het verschil maakt — en wat ik bij heel veel vrouwen zie — is dat je goede info hebt, maar dat het ontbreekt aan [structuur / persoonlijke begeleiding / iemand die je vasthoudt / dagelijkse begeleiding].
-
-Wil je dat ik je vertel hoe ik dat zou aanpakken?"</div>
-                <button class="copy-btn" onclick="copyText(this, 'Oké, dus wat ik hoor [vat samen in 2 zinnen wat ze zei, gebruik HAAR woorden].\n\nWat ik denk dat het verschil maakt — en wat ik bij heel veel vrouwen zie — is dat je goede info hebt, maar dat het ontbreekt aan [structuur / persoonlijke begeleiding / iemand die je vasthoudt / dagelijkse begeleiding].\n\nWil je dat ik je vertel hoe ik dat zou aanpakken?')">Kopiëer</button>
+            <div class="callout callout-warn">
+                <strong>Belangrijk</strong>
+                Antwoord op vraag 7 onder 7? Niet pitchen. Ze is nog niet klaar. Maak een 30 dagen follow-up.
             </div>
 
-            <h3>📝 4. Aanbod (5 min)</h3>
-            <p><strong>Op basis van urgentie + budget kies je Foundation of Elite:</strong></p>
+            <h3>📝 3. Verbinden en gap laten zien</h3>
+            <div class="script">
+                <span class="label">Spiegel plus gap</span>
+                <div class="text">"Oké, dus wat ik hoor is [vat in 2 zinnen samen, gebruik HAAR woorden].
+
+Wat ik denk dat het verschil maakt is dat je goede info hebt, maar dat het ontbreekt aan [structuur, persoonlijke begeleiding, dagelijkse check-ins].
+
+Wil je dat ik je vertel hoe ik dat zou aanpakken?"</div>
+                <button class="copy-btn" onclick="copyText(this, 'Oké, dus wat ik hoor is [vat in 2 zinnen samen, gebruik HAAR woorden].\n\nWat ik denk dat het verschil maakt is dat je goede info hebt, maar dat het ontbreekt aan [structuur, persoonlijke begeleiding, dagelijkse check-ins].\n\nWil je dat ik je vertel hoe ik dat zou aanpakken?')">Kopiëer</button>
+            </div>
+
+            <h3>📝 4. Aanbod</h3>
             <table>
                 <thead>
                     <tr><th>Wanneer kies je wat?</th><th>Pakket</th></tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>Urgentie 7-8/10, eerste keer écht commitment, "wil ik mij eerst bewijzen"</td>
-                        <td><strong>Foundation</strong> (€XX/mnd × 4 mnd)</td>
-                    </tr>
-                    <tr>
-                        <td>Urgentie 9-10/10, heeft al meerdere dingen geprobeerd, wil maximaal resultaat</td>
-                        <td><strong>Elite</strong> (€XX/mnd × 6 mnd)</td>
-                    </tr>
-                    <tr>
-                        <td>Urgentie &lt;7, twijfelt nog</td>
-                        <td><strong>Geen pitch</strong> — sluit af, follow-up over 30 dagen</td>
-                    </tr>
+                    <tr><td>Urgentie 7 of 8 uit 10. Eerste keer commitment.</td><td><strong>Foundation</strong></td></tr>
+                    <tr><td>Urgentie 9 of 10. Heeft al meerdere dingen geprobeerd.</td><td><strong>Elite</strong></td></tr>
+                    <tr><td>Urgentie onder 7.</td><td><strong>Geen pitch.</strong> Sluit af. Follow-up over 30 dagen.</td></tr>
                 </tbody>
             </table>
 
-            <p><strong>Prijs benoemen — script:</strong></p>
             <div class="script">
-                <span class="label">Prijs benoemen</span>
-                <div class="text">"Wat ik voor jou zou doen is [Foundation/Elite] — dat is [4/6] maanden, met [features benoemen, max 3 dingen]. De investering is [bedrag] in totaal, of [bedrag/maand] als we het in termijnen doen.
+                <span class="label">Prijs noemen</span>
+                <div class="text">"Wat ik voor jou zou doen is [Foundation/Elite]. Dat is [4 of 6] maanden, met [3 features]. De investering is [bedrag] in totaal, of [bedrag/maand] in termijnen.
 
 Hoe voelt dat?"
 
-[STIL ZIJN. WACHT.]</div>
-                <button class="copy-btn" onclick="copyText(this, 'Wat ik voor jou zou doen is [Foundation/Elite] — dat is [4/6] maanden, met [features benoemen, max 3 dingen]. De investering is [bedrag] in totaal, of [bedrag/maand] als we het in termijnen doen.\n\nHoe voelt dat?')">Kopiëer</button>
+(Stil zijn. Wacht.)</div>
+                <button class="copy-btn" onclick="copyText(this, 'Wat ik voor jou zou doen is [Foundation/Elite]. Dat is [4 of 6] maanden, met [3 features]. De investering is [bedrag] in totaal, of [bedrag/maand] in termijnen.\n\nHoe voelt dat?')">Kopiëer</button>
             </div>
 
             <div class="callout callout-tip">
                 <strong>Cruciale skill</strong>
-                Na het noemen van de prijs: <strong>STIL ZIJN</strong>. Geen extra uitleg, geen rechtvaardiging. Wie eerst praat, verliest. Laat haar de stilte vullen — ze gaat 80% van de tijd zelf naar de oplossing toe.
+                Na het noemen van de prijs. Stil zijn. Niet uitleggen. Niet rechtvaardigen. Wie eerst praat verliest. Laat haar de stilte vullen.
             </div>
 
-            <h3>📝 5. Close (2 min)</h3>
+            <h3>📝 5. Close</h3>
             <div class="script">
-                <span class="label">De directe close</span>
-                <div class="text">"Op een schaal van 1-10, hoe zeker ben jij dat dit voor jou de juiste stap is?"
-
-[Ze zegt een getal]
-
-→ <strong>9 of 10:</strong> "Top — zal ik je dan direct laten zien hoe we starten? Ik stuur je nu de betaallink."
-
-→ <strong>7 of 8:</strong> "Wat is voor jou de 1 of 2 punten die je nog twijfelt? Dan kijken we daar even naar." [→ behandel als bezwaar]
-
-→ <strong>5 of 6:</strong> "Ik hoor dat je nog niet helemaal voelt dat het hier is. Ik wil je niet pushen. Wil je liever even tijd? Dan plannen we over 1 week een vervolg." [→ NIET nu sluiten]
-
-→ <strong>1-4:</strong> "Helemaal goed — dit is dan niet het moment. Ik wens je veel succes en je weet me te vinden!" [→ AFSLUITEN, geen druk]</div>
-                <button class="copy-btn" onclick="copyText(this, 'Op een schaal van 1-10, hoe zeker ben jij dat dit voor jou de juiste stap is?')">Kopiëer scale-vraag</button>
+                <span class="label">De close vraag</span>
+                <div class="text">"Op een schaal van 1 tot 10, hoe zeker ben jij dat dit voor jou de juiste stap is?"</div>
+                <button class="copy-btn" onclick="copyText(this, 'Op een schaal van 1 tot 10, hoe zeker ben jij dat dit voor jou de juiste stap is?')">Kopiëer</button>
             </div>
+
+            <table>
+                <thead>
+                    <tr><th>Haar antwoord</th><th>Wat doe je?</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><strong>9 of 10</strong></td><td>"Top! Zal ik je nu de betaallink sturen?"</td></tr>
+                    <tr><td><strong>7 of 8</strong></td><td>"Wat zijn de 1 of 2 punten waar je nog over twijfelt?"</td></tr>
+                    <tr><td><strong>5 of 6</strong></td><td>"Ik hoor dat je nog niet voelt dat het hier is. Wil je liever even tijd? Dan plannen we volgende week een vervolg."</td></tr>
+                    <tr><td><strong>1 tot 4</strong></td><td>"Helemaal goed, dit is dan niet het moment. Veel succes 💕" Afsluiten. Geen druk.</td></tr>
+                </tbody>
+            </table>
+
+            <a href="#stap8" class="next-step">
+                Gesprek klaar. Door naar Stap 8 <span class="arrow">→</span>
+            </a>
         </section>
 
-        <!-- ============== NA HET GESPREK ============== -->
-        <section id="nahet">
-            <h2><span class="badge">7</span> Na het Gesprek</h2>
+        <!-- ============== 8. NA DE CALL ============== -->
+        <section id="stap8">
+            <h2><span class="badge">8</span> Na de call</h2>
 
-            <h3>✅ Yes — ze gaat door</h3>
+            <h3>✅ Yes. Ze gaat door</h3>
             <ol>
-                <li><strong>Direct na call</strong> (binnen 30 min): stuur Plug&Pay betaallink via WhatsApp + bevestigingsmail.</li>
-                <li><strong>Eerste betaling binnen 24u?</strong> Stuur welkomstbericht + onboarding-instructies.</li>
-                <li><strong>Niet betaald binnen 24u?</strong> Stuur vriendelijke nudge.</li>
+                <li>Stuur direct (binnen 30 min) de Plug&Pay betaallink via WhatsApp.</li>
+                <li>Niet betaald binnen 24 uur? Stuur vriendelijke nudge.</li>
+                <li>Wel betaald? Welkomstbericht plus onboarding info.</li>
             </ol>
             <div class="script">
-                <span class="label">Yes-bericht direct na call</span>
-                <div class="text">"Wat tof dat je dit gaat doen, [naam]! 💕 Hier is de link om te starten: [Plug&Pay link]
-
-Zodra de betaling binnen is krijg je van me een welkomstbericht + alle onboarding-info. Ik kijk er super naar uit om met je te beginnen!"</div>
-                <button class="copy-btn" onclick="copyText(this, 'Wat tof dat je dit gaat doen, [naam]! 💕 Hier is de link om te starten: [Plug&Pay link]\n\nZodra de betaling binnen is krijg je van me een welkomstbericht + alle onboarding-info. Ik kijk er super naar uit om met je te beginnen!')">Kopiëer</button>
+                <span class="label">Yes bericht direct na call</span>
+                <div class="text">"Yes [naam]! Wat tof dat je dit gaat doen 💕 Hier de link om te starten: [link]. Zodra de betaling binnen is stuur ik je alle info."</div>
+                <button class="copy-btn" onclick="copyText(this, 'Yes [naam]! Wat tof dat je dit gaat doen 💕 Hier de link om te starten: [link]. Zodra de betaling binnen is stuur ik je alle info.')">Kopiëer</button>
             </div>
 
-            <h3>🤔 Twijfelt — wil even nadenken</h3>
+            <h3>🤔 Twijfelt. Wil even nadenken</h3>
             <ol>
-                <li>Vraag: <strong>"Wat zou je nog willen weten of zien om dit met een goed gevoel te doen?"</strong></li>
-                <li>Bevestig: <em>"Helemaal oké dat je hier even tijd voor neemt."</em></li>
-                <li>Spreek concreet af: <strong>"Mag ik je morgen om [tijd] even bellen of appen om te horen wat je beslist hebt?"</strong></li>
-                <li>Plan reminder zelf in je agenda voor exact dat moment.</li>
-                <li>Als ze morgen niet meer reageert: 1 follow-up via voice memo, daarna nurture.</li>
+                <li>Vraag: <em>"Wat zou je nog willen weten om dit met een goed gevoel te doen?"</em></li>
+                <li>Plan concreet: <em>"Mag ik je morgen om [tijd] even appen?"</em></li>
+                <li>Zet zelf een reminder in je agenda voor exact dat moment.</li>
+                <li>Reageert ze niet? 1 follow-up via voice memo. Daarna loslaten.</li>
             </ol>
 
             <div class="script">
-                <span class="label">24u follow-up bij twijfel — voice memo van Julia</span>
-                <div class="text">"Hey [naam]! Ik moest gisteren nog even denken aan ons gesprek, vooral wat je zei over [persoonlijk detail uit gesprek]. Ik wilde je gewoon even iets zeggen: ik denk écht dat dit het moment voor je is — niet morgen, niet over een maand. Maar je beslist. Laat me weten wat je voelt 💕"</div>
-                <button class="copy-btn" onclick="copyText(this, 'Hey [naam]! Ik moest gisteren nog even denken aan ons gesprek, vooral wat je zei over [persoonlijk detail uit gesprek]. Ik wilde je gewoon even iets zeggen: ik denk écht dat dit het moment voor je is — niet morgen, niet over een maand. Maar je beslist. Laat me weten wat je voelt 💕')">Kopiëer</button>
+                <span class="label">24 uur follow-up bij twijfel</span>
+                <div class="text">"Hey [naam]! Ik moest gisteren nog even denken aan ons gesprek. Vooral aan wat je zei over [persoonlijk detail]. Ik wilde je dit gewoon even zeggen. Ik denk echt dat dit het moment voor je is. Maar jij beslist 💕"</div>
+                <button class="copy-btn" onclick="copyText(this, 'Hey [naam]! Ik moest gisteren nog even denken aan ons gesprek. Vooral aan wat je zei over [persoonlijk detail]. Ik wilde je dit gewoon even zeggen. Ik denk echt dat dit het moment voor je is. Maar jij beslist 💕')">Kopiëer</button>
             </div>
 
-            <h3>❌ Nee — niet nu</h3>
+            <h3>❌ Nee. Niet nu</h3>
             <ol>
-                <li>Bedank haar warm voor haar tijd. <strong>Geen druk, geen schuldgevoel.</strong></li>
-                <li>Voeg toe aan "30-day re-engage" lijst in tracker.</li>
-                <li>Volg haar story 1-2× per week passief, geen DM's.</li>
-                <li>Na 30 dgn: stuur 1 nieuwe voice memo met andere insteek (niet over coaching, gewoon hoe het met haar gaat).</li>
+                <li>Bedank haar warm. Geen druk.</li>
+                <li>Voeg toe aan "30 dagen herkans" lijst.</li>
+                <li>Volg haar story 1 of 2x per week passief.</li>
+                <li>Na 30 dagen 1 nieuwe voice memo. Niet over coaching.</li>
             </ol>
 
             <h3>🚫 No-show</h3>
             <ol>
-                <li>Wacht <strong>1 uur</strong> na de geplande tijd.</li>
-                <li>Stuur: <em>"He, je bent niet komen opdagen — gemist! Wil je opnieuw plannen of komt het je niet uit?"</em></li>
-                <li>Geef <strong>1 herkans</strong>. No-show 2e keer? Dan niet meer plannen — toon dat je tijd ook waardevol is.</li>
+                <li>Wacht 1 uur na geplande tijd.</li>
+                <li>Stuur korte vraag (zie script onder).</li>
+                <li>Geef 1 herkans. No-show 2e keer? Niet meer plannen.</li>
             </ol>
 
             <div class="script">
                 <span class="label">No-show bericht</span>
-                <div class="text">"He [naam], we hadden om [tijd] een gesprek staan en ik heb je gemist. Geen probleem — gebeurt 💕 Wil je opnieuw plannen, of past het toch niet? Allebei is goed."</div>
-                <button class="copy-btn" onclick="copyText(this, 'He [naam], we hadden om [tijd] een gesprek staan en ik heb je gemist. Geen probleem — gebeurt 💕 Wil je opnieuw plannen, of past het toch niet? Allebei is goed.')">Kopiëer</button>
+                <div class="text">"He [naam], we hadden om [tijd] een gesprek staan. Geen probleem 💕 Wil je opnieuw plannen, of past het toch niet?"</div>
+                <button class="copy-btn" onclick="copyText(this, 'He [naam], we hadden om [tijd] een gesprek staan. Geen probleem 💕 Wil je opnieuw plannen, of past het toch niet?')">Kopiëer</button>
             </div>
+
+            <a href="#bezwaren" class="next-step">
+                Klaar! Naar de hulp-secties <span class="arrow">→</span>
+            </a>
         </section>
 
         <!-- ============== BEZWAREN ============== -->
         <section id="bezwaren">
-            <h2><span class="badge">8</span> Bezwaarbehandeling</h2>
+            <h2>🛡️ Bezwaren oplossen</h2>
 
-            <p>Hier zijn de meest voorkomende bezwaren en exact wat je terugzegt. <strong>Erken altijd eerst</strong>, dan pas je antwoord — anders voelt het als ontkenning van haar gevoel.</p>
+            <p>De meest voorkomende dingen die ze kan zeggen. En wat jij dan terugzegt. Erken altijd eerst. Dan pas antwoord.</p>
 
             <h3>💸 "Het is te duur"</h3>
             <div class="script">
                 <span class="label">Antwoord</span>
-                <div class="text">"Ik snap dat het een investering is. Even een vraag terug — als geld geen factor was, zou je het dan doen?
+                <div class="text">"Ik snap dat het een investering is. Even een vraag terug. Als geld geen factor was, zou je het dan doen?
 
-[Ja → 'Oké, dus de vraag is niet of het past, maar hóe het past. We hebben termijnen — dan is het [€/maand]. Wat zou voor jou werken qua maandbedrag?']
+Ja → "Oké, dan is de vraag niet of het past, maar hóe het past. We hebben termijnen. Wat zou voor jou werken qua maandbedrag?"
 
-[Nee → 'Dan denk ik dat het meer is dan alleen geld. Wat is dan het echte? Vertel me eerlijk.']"</div>
+Nee → "Dan is het meer dan geld. Wat is dan het echte? Zeg het eerlijk."</div>
             </div>
 
             <h3>⏰ "Ik heb geen tijd"</h3>
             <div class="script">
                 <span class="label">Antwoord</span>
-                <div class="text">"Ik snap dat. Ik hoor van veel klanten dat ze precies hetzelfde dachten. Even, hoeveel uur per week heb je nu vrij voor jezelf?
+                <div class="text">"Hoor ik vaker. Hoeveel uur per week heb je nu vrij voor jezelf?
 
-[X uur → 'En hoeveel daarvan zou je willen besteden aan jezelf — fitness, lichaam, energie?']
+[X uur → "En hoeveel daarvan zou je willen besteden aan je lichaam?"]
 
-Wat ik je beloof: het traject is opgebouwd zodat je MEER tijd terug krijgt dan je investeert. Mensen die fit zijn werken efficiënter, slapen beter, en hebben minder tijd nodig om te herstellen. Klinkt dat realistisch?"</div>
+Wat ik je beloof. Dit traject geeft je MEER tijd terug dan het kost. Je slaapt beter. Je hebt meer energie. Je werkt efficiënter. Klinkt dat realistisch?"</div>
             </div>
 
-            <h3>🤷 "Ik twijfel of het wel werkt voor mij"</h3>
+            <h3>🤷 "Ik twijfel of het werkt"</h3>
             <div class="script">
                 <span class="label">Antwoord</span>
-                <div class="text">"Vertel me precies — wat maakt dat je twijfelt? Heb je eerder iets geprobeerd dat niet werkte? Of is het meer een gevoel?
+                <div class="text">"Vertel me precies. Wat maakt dat je twijfelt? Heb je eerder iets geprobeerd dat niet werkte? Of is het een gevoel?
 
-[Ze deelt iets → 'Oké, dat begrijp ik. Hier is wat anders is bij mij vs wat je probeerde: [3 specifieke verschillen — bv. 1-op-1 vs schema, dagelijkse begeleiding vs alleen check-in, plan op basis van JOU vs standaard.]']"</div>
+[Ze deelt → "Dat snap ik. Hier is wat anders is bij mij. Ik werk 1 op 1. Geen standaard schema. Dagelijkse begeleiding. En ik zie precies wat jij nodig hebt."]</div>
             </div>
 
             <h3>🤔 "Ik moet eerst nadenken"</h3>
             <div class="script">
                 <span class="label">Antwoord</span>
-                <div class="text">"Helemaal oké. Snel even — wat moet je over nadenken? Want vaak helpt het om dat hier samen te bespreken in plaats van alleen.
+                <div class="text">"Snap ik. Even, waar moet je over nadenken? Vaak helpt het om dat hier samen te bespreken.
 
-[Ze deelt → behandel als bezwaar]
-
-[Geen duidelijk antwoord → 'Begrijpelijk. Mag ik je morgen om [tijd] even bellen om te horen wat je gevoel is? Geen druk, gewoon afspraak houden.']"</div>
+[Geen duidelijk antwoord → "Mag ik je morgen om [tijd] even bellen om te horen wat je voelt? Geen druk."]</div>
             </div>
 
-            <h3>👫 "Ik moet eerst met mijn man / partner overleggen"</h3>
+            <h3>👫 "Ik moet eerst met mijn partner overleggen"</h3>
             <div class="script">
                 <span class="label">Antwoord</span>
-                <div class="text">"Helemaal logisch. Wat ik wel wil zeggen — als je hem nu de basis vertelt: '[korte samenvatting van wat ze gaat doen + waarom]'... wat denk je dat zijn reactie zal zijn?
+                <div class="text">"Logisch. Even, als je hem nu de basis vertelt, wat denk je dat zijn reactie wordt?
 
-[Positief → 'Oké, dan weet je het al. Zal ik je nu de link sturen, of wil je echt eerst even praten?']
+[Positief → "Oké, dan weet je het al. Zal ik je nu de link sturen?"]
 
-[Niet zeker → 'Ik snap het. Mag ik je morgen om [tijd] even bellen om te horen wat hij zegt? Of nog beter — wil je me dan beiden bellen, dan kan ik het ook aan hem uitleggen.']"</div>
+[Niet zeker → "Mag ik morgen even appen om te horen? Of nog beter, willen jullie samen 5 min met me bellen?"]</div>
             </div>
 
-            <h3>👶 "Mijn kinderen / werk / situatie nu"</h3>
+            <h3>👶 "Mijn kinderen of werk nu"</h3>
             <div class="script">
                 <span class="label">Antwoord</span>
-                <div class="text">"Snap ik. Wat ik je wil meegeven — er is nooit een 'perfect moment'. Werk wordt drukker, kinderen blijven aandacht vragen, en je situatie verandert nooit zomaar. De vrouwen die ik help die hetzelfde dachten, zeiden 6 maanden later: 'Ik wist niet dat dit kon — en het was juist DOOR de drukte dat ik dit nodig had'.
+                <div class="text">"Snap ik. Maar er is nooit een perfect moment. Werk wordt drukker. Kinderen blijven aandacht vragen.
 
-Wat als ik je laat zien hoe ik dit met jouw [situatie] zou inplannen — zou dat helpen?"</div>
+De vrouwen die ik help die hetzelfde dachten zeiden 6 maanden later: 'Ik wist niet dat dit kon. En het was juist DOOR de drukte dat ik dit nodig had'.
+
+Wat als ik je laat zien hoe ik dit met jouw situatie zou inplannen?"</div>
             </div>
 
             <div class="callout callout-tip">
-                <strong>Universele bezwaar-formule</strong>
-                <strong>1. Erken</strong> — "Ik snap dat / Logisch / Hoor ik vaker"<br>
-                <strong>2. Vraag terug</strong> — "Vertel me — wat maakt..." (graaf naar het echte bezwaar)<br>
-                <strong>3. Spiegel + reframe</strong> — laat haar zelf de oplossing zien<br>
-                <strong>4. Vraag commitment</strong> — "Als ik dat oplos, gaan we dan verder?"
+                <strong>Universele formule</strong>
+                1. Erken. "Ik snap dat" of "Hoor ik vaker".<br>
+                2. Vraag terug. "Vertel me, wat maakt..."<br>
+                3. Spiegel en herframe. Laat haar zelf de oplossing zien.<br>
+                4. Vraag commitment. "Als ik dat oplos, gaan we dan verder?"
             </div>
+        </section>
+
+        <!-- ============== SCENARIOS ============== -->
+        <section id="scenarios">
+            <h2>🎭 Wat als...</h2>
+
+            <h3>Wat als ze direct prijzen vraagt in DM?</h3>
+            <p><em>"Eerlijk, ik vertel prijzen liever niet via DM. Het hangt echt af van wat past bij jou. Sommige meiden hebben Foundation nodig. Andere Elite. 15 minuutjes en dan weet je het zeker."</em></p>
+
+            <h3>Wat als ze direct wil starten zonder gesprek?</h3>
+            <p><em>"Tof! Maar ik wil eerst kort checken of we een match zijn. Voor jouw én mijn zekerheid. 15 minuutjes en dan pakken we 'm op. Wanneer kan je?"</em></p>
+
+            <h3>Wat als ze al klant is bij een andere coach?</h3>
+            <p><em>"Tof dat je al investeert in jezelf 💕 Wat is op dit moment de reden dat je naar mij kijkt? Werkt het niet helemaal of zoek je iets extra?"</em></p>
+            <p>Niet praten over die andere coach. Niet afkraken.</p>
+
+            <h3>Wat als ze emotioneel wordt in DM?</h3>
+            <p><em>"Wat tof dat je dit deelt. Je bent niet alleen hierin. Mag ik je een korte call aanbieden? Niet om te verkopen. Gewoon om je te horen en te kijken wat zou helpen."</em></p>
+
+            <h3>Wat als haar profiel leeg is?</h3>
+            <p>Negeer of stuur 1 voice memo en wacht. Geen tijd verspillen aan fake accounts.</p>
+
+            <h3>Wat als ze geen Nederlands praat?</h3>
+            <p><em>"Hi! Are you comfortable in Dutch or shall we continue in English?"</em></p>
+            <p>Engelse versies van de scripts werken voor 95% gelijk.</p>
+
+            <h3>Wat als ze om foto's of referenties vraagt?</h3>
+            <p><em>"Tof dat je daarnaar vraagt 💕 Hier mijn website met before en afters: juliabesten.nl. Maar belangrijkst is dat het bij JOU past. Daarom de korte call. Dan weet je zeker."</em></p>
+
+            <h3>Wat als ze ja zegt zonder doorvragen?</h3>
+            <p>Geweldig. Stuur direct Calendly. Niet meer praten in DM.</p>
+
+            <h3>Wat als ze geen geld heeft maar wel motivatie?</h3>
+            <p><em>"Eerlijk, ik denk dat dit het verkeerde moment voor je is. Ik wil niet dat je je financieel in de problemen brengt. Volg me wel. Ik deel elke week gratis tips. Als je situatie verandert weet je me te vinden 💕"</em></p>
+
+            <h3>Wat als ze om een gratis proefweek vraagt?</h3>
+            <p><em>"Bedankt voor je vraag. Maar nee. Ik werk persoonlijk met heel beperkte plekken. Mensen die zich half committeren krijgen geen volledige resultaten. Een vrijblijvend gesprek is wel wat ik aanbied. Daar voor in?"</em></p>
         </section>
 
         <!-- ============== TOOLS ============== -->
         <section id="tools">
-            <h2><span class="badge">9</span> Tools & Quick Links</h2>
+            <h2>🛠️ Tools en links</h2>
 
             <div class="links-grid">
                 <a class="link-card" href="https://www.instagram.com/direct/inbox/" target="_blank">
                     <span class="name">📩 Instagram DM's</span>
-                    <span class="desc">Voice memos sturen en gesprekken voeren</span>
+                    <span class="desc">Voice memos en gesprekken</span>
                 </a>
                 <a class="link-card" href="https://web.whatsapp.com/" target="_blank">
                     <span class="name">💬 WhatsApp Web</span>
-                    <span class="desc">Reminders, follow-ups, na-gesprek</span>
+                    <span class="desc">Reminders en follow-ups</span>
                 </a>
                 <a class="link-card" href="https://calendly.com/juliabesten/kennismakingsgesprek-julia-besten" target="_blank">
                     <span class="name">📅 Calendly link</span>
@@ -1030,127 +1069,65 @@ Wat als ik je laat zien hoe ik dit met jouw [situatie] zou inplannen — zou dat
                 </a>
                 <a class="link-card" href="https://admin.plugandpay.com/" target="_blank">
                     <span class="name">💳 Plug&Pay</span>
-                    <span class="desc">Betaallinks na ja-call</span>
+                    <span class="desc">Betaallinks na ja</span>
                 </a>
                 <a class="link-card" href="https://us02web.zoom.us/" target="_blank">
                     <span class="name">📹 Zoom</span>
-                    <span class="desc">Voor de gesprekken zelf</span>
+                    <span class="desc">Voor de gesprekken</span>
                 </a>
                 <a class="link-card" href="/portal-j8k3m9q2x7p5v4" target="_blank">
                     <span class="name">📊 Lead admin</span>
-                    <span class="desc">Inkomende formulieren + status</span>
+                    <span class="desc">Inkomende leads en status</span>
                 </a>
             </div>
 
             <h3>📋 Wat je in je tracker bijhoudt</h3>
-            <p>Per dame log je:</p>
             <ul>
-                <li><strong>Naam + IG-handle</strong></li>
-                <li><strong>Datum eerste voice memo</strong></li>
-                <li><strong>Pad</strong> (1/2/3/4)</li>
-                <li><strong>Status</strong> (Voice memo gestuurd / In gesprek / Pivot gedaan / Geboekt / Gehad / Klant / Nee / No-show)</li>
-                <li><strong>Datum laatste contact</strong></li>
-                <li><strong>Volgende actie + datum</strong></li>
-                <li><strong>Háár woorden</strong> (key quotes uit gesprekken)</li>
+                <li>Naam plus IG handle</li>
+                <li>Datum eerste voice memo</li>
+                <li>Pad (1, 2, 3 of 4)</li>
+                <li>Status (voice memo gestuurd, in gesprek, geboekt, gehad, klant, nee, no-show)</li>
+                <li>Datum laatste contact</li>
+                <li>Volgende actie plus datum</li>
+                <li>Háár woorden (key quotes uit gesprekken)</li>
             </ul>
         </section>
 
         <!-- ============== KPIS ============== -->
         <section id="kpis">
-            <h2><span class="badge">10</span> KPI's — wat we wekelijks meten</h2>
+            <h2>📊 Wat we wekelijks meten</h2>
 
-            <p>Op vrijdagmiddag check je deze 5 cijfers met Julia in een 15-min stand-up. Bovenaan elk getal staat het <strong>doel</strong> waar je naartoe groeit.</p>
+            <p>Vrijdagmiddag check je deze 5 cijfers met Julia in een 15 min stand-up.</p>
 
             <table>
                 <thead>
-                    <tr><th>Metric</th><th>Doel</th><th>Wat het zegt</th></tr>
+                    <tr><th>Wat</th><th>Doel</th><th>Wat zegt het</th></tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td><strong>Voice memos gestuurd</strong></td>
-                        <td>50/week</td>
-                        <td>Volume — hoeveel nieuwe contacten geopend</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Reply rate</strong></td>
-                        <td>50%+</td>
-                        <td>Kwaliteit van je voice memo</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Calls geboekt</strong></td>
-                        <td>5+/week</td>
-                        <td>Effectiviteit van je pivots</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Show-up rate</strong></td>
-                        <td>75%+</td>
-                        <td>Werkt je no-show preventie protocol</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Close rate</strong></td>
-                        <td>30%+</td>
-                        <td>Kwaliteit van Julia's gesprek + qualifying</td>
-                    </tr>
+                    <tr><td><strong>Voice memos gestuurd</strong></td><td>50 per week</td><td>Volume</td></tr>
+                    <tr><td><strong>Reply rate</strong></td><td>50% of meer</td><td>Kwaliteit van je voice memo</td></tr>
+                    <tr><td><strong>Calls geboekt</strong></td><td>5 per week</td><td>Effectiviteit pivot</td></tr>
+                    <tr><td><strong>Show-up rate</strong></td><td>75% of meer</td><td>Werkt je reminder protocol</td></tr>
+                    <tr><td><strong>Close rate</strong></td><td>30% of meer</td><td>Kwaliteit van het gesprek</td></tr>
                 </tbody>
             </table>
 
             <div class="callout callout-info">
-                <strong>Funnel-rekenvoorbeeld</strong>
-                50 voice memos × 50% reply × 25% pivot-naar-call × 75% show × 33% close = <strong>~1,5 klanten/week</strong>. Bij €4.700 average = €7.000 per week. Verhoog volume of conversie op zwakste punt.
+                <strong>Funnel rekenvoorbeeld</strong>
+                50 voice memos × 50% reply × 25% pivot × 75% show × 33% close = 1,5 klanten per week. Bij €4.700 gemiddeld = €7.000 per week.
             </div>
 
-            <h3>🔍 Als 1 cijfer ondergemiddeld is</h3>
+            <h3>🔍 Als 1 cijfer onder doel zit</h3>
             <ul>
-                <li><strong>Reply rate &lt; 30%</strong> → voice memo werkt niet. Test andere openzin, andere tone, andere tijden.</li>
-                <li><strong>Calls geboekt &lt; 5</strong> → te vroeg of te laat pivoten. Reset op script in <a href="#pivot">sectie 4</a>.</li>
-                <li><strong>Show-up &lt; 60%</strong> → reminder protocol niet gevolgd. Check sectie <a href="#boeken">5</a>.</li>
-                <li><strong>Close rate &lt; 20%</strong> → óf de leads zijn niet warm genoeg vóór de call (qualifying probleem voor Kim/Julia), óf het gesprek mist structuur.</li>
+                <li><strong>Reply rate onder 30%</strong>. Voice memo werkt niet. Test andere openzin.</li>
+                <li><strong>Calls geboekt onder 5</strong>. Te vroeg of te laat pivoten. Reset op stap 4.</li>
+                <li><strong>Show-up onder 60%</strong>. Reminder protocol niet gevolgd. Check stap 6.</li>
+                <li><strong>Close rate onder 20%</strong>. Leads niet warm genoeg. Of het gesprek mist structuur.</li>
             </ul>
         </section>
 
-        <!-- ============== SCRIPTS BIBLIOTHEEK ============== -->
-        <section id="scripts" style="margin-top: 80px;">
-            <h2>📜 Alle scripts in één plek</h2>
-            <p>Snelle copy-paste — alle scripts van bovenstaande secties staan op de juiste plek hierboven, gegroepeerd per stap. Tip: gebruik <kbd>Cmd+F</kbd> (Mac) of <kbd>Ctrl+F</kbd> (Windows) om snel te zoeken naar een specifiek woord.</p>
-        </section>
-
-        <!-- ============== SCENARIOS ============== -->
-        <section id="scenarios">
-            <h2>🎭 "Wat als..." — bijzondere scenarios</h2>
-
-            <h3>Wat als ze direct vraagt naar prijzen in DM?</h3>
-            <p><strong>Antwoord</strong>: <em>"Eerlijk — ik vertel prijzen liever niet via DM, omdat het écht afhangt van wat past bij jou. Sommige meiden hebben Foundation nodig (€XXX), andere Elite (€XXX). Hebben we even 15 min om te kijken wat past? Dan weet je het zeker."</em></p>
-
-            <h3>Wat als ze meteen wil starten zonder gesprek?</h3>
-            <p><strong>Antwoord</strong>: <em>"Hou je passie! Maar ik wil eerst even checken of we een match zijn — voor jouw én mijn zekerheid dat we samen het juiste doen. 15 minuutjes en dan pakken we 'm op. Wanneer kan jij?"</em></p>
-
-            <h3>Wat als ze al klant is van een andere coach?</h3>
-            <p><strong>Antwoord</strong>: <em>"Tof dat je al investeert in jezelf 💕 Wat is op dit moment de reden dat je naar mij kijkt — werkt het niet helemaal of zoek je iets extra's?"</em> [→ luister, geen onderlinge afkraak. Niet praten over andere coach.]</p>
-
-            <h3>Wat als ze emotioneel wordt tijdens DM?</h3>
-            <p><strong>Antwoord</strong>: Niks meer pushen. <em>"Wat tof dat je dit deelt. Je bent niet alleen hierin. Mag ik je een kort gesprek aanbieden — niet om te verkopen, gewoon om je te horen en samen te kijken wat zou helpen?"</em></p>
-
-            <h3>Wat als haar IG nul foto's heeft / een fake-account lijkt?</h3>
-            <p><strong>Antwoord</strong>: Negeer of stuur 1 voice memo en wacht. Geen tijd verspillen. Echte volgers hebben echte profielen.</p>
-
-            <h3>Wat als ze geen Nederlands praat?</h3>
-            <p><strong>Antwoord</strong>: Gebruik Engelse versie van de scripts. Werkt voor 95% van de logica gelijk. Als ze in een andere taal antwoordt: <em>"Hi! Are you comfortable with Dutch or shall we continue in English?"</em></p>
-
-            <h3>Wat als ze vraagt om foto's / referentie?</h3>
-            <p><strong>Antwoord</strong>: <em>"Tof dat je daarnaar vraagt 💕 Hier is mijn website met before/afters: juliabesten.nl. Maar het allerbelangrijkste is dat het bij JÓU past — laten we daarom even een korte call doen, dan weet je zeker."</em></p>
-
-            <h3>Wat als ze direct ja zegt op de pivot zonder doorvragen?</h3>
-            <p><strong>Antwoord</strong>: Geweldig. Stuur direct Calendly. Niet meer praten in DM.</p>
-
-            <h3>Wat als ze zegt dat ze geen geld heeft maar wel motivatie?</h3>
-            <p><strong>Antwoord</strong>: <em>"Eerlijk — ik denk dat dit het verkeerde moment voor je is. Ik wil niet dat je je financieel in de problemen brengt. Wel dit: volg me, ik deel ELKE WEEK gratis tips. En als je situatie verandert, weet je me te vinden 💕"</em></p>
-
-            <h3>Wat als ze vraagt om een gratis proefweek?</h3>
-            <p><strong>Antwoord</strong>: <em>"Bedankt voor je vraag — ik begrijp 'm. Maar nee. Ik werk persoonlijk met heel beperkte plekken, en mensen die zich half committeren krijgen geen volledige resultaten. Een vrijblijvend gesprek is wat ik wel doe — ben je daar voor in?"</em></p>
-        </section>
-
         <p style="margin-top: 64px; text-align: center; color: var(--text-light); font-size: 13px;">
-            💕 Julia's Setter Playbook · Versie 1.0 · Gemaakt met liefde voor de coaching-business
+            💕 Julia's Setter Playbook · Versie 1.1
         </p>
     </main>
 </div>
@@ -1166,7 +1143,7 @@ function copyText(btn, text) {
             btn.classList.remove('copied');
         }, 1800);
     }).catch(err => {
-        alert('Kopieëren mislukt — selecteer de tekst handmatig.');
+        alert('Kopiëren mislukt. Selecteer de tekst handmatig.');
     });
 }
 
@@ -1175,7 +1152,6 @@ async function logout() {
     window.location.href = '/portal-j8k3m9q2x7p5v4';
 }
 
-// Mobile menu toggle
 const menuToggle = document.getElementById('menuToggle');
 const sidebar = document.getElementById('sidebar');
 const backdrop = document.getElementById('backdrop');
@@ -1190,7 +1166,6 @@ menuToggle?.addEventListener('click', () => {
 backdrop?.addEventListener('click', closeMenu);
 sidebar?.querySelectorAll('a').forEach(link => link.addEventListener('click', closeMenu));
 
-// Active section highlight in sidebar
 const sections = document.querySelectorAll('section[id]');
 const navLinks = sidebar.querySelectorAll('a');
 function setActiveLink() {
