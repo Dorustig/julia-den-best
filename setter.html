@@ -518,7 +518,7 @@
 
         <div class="callout callout-danger">
             <strong>🚫 Belangrijk: nooit prijzen in DM</strong>
-            Ook niet in het kennismakingsgesprek. Prijzen komen pas in een aparte closing call met mij. Het 15-minutengesprek is een vrijblijvende kennismaking, geen sales pitch.
+            Prijzen noem ik pas in het gesprek zelf. Op de Zoom van 40 minuten doe ik alles. Eerst chit chat, dan de vragen, dan de pitch met prijs, dan bezwaar afhandelen, dan close.
         </div>
 
         <!-- ============== START ============== -->
@@ -633,7 +633,7 @@
         <section id="stap3">
             <h2><span class="badge">3</span> Het Spinnenweb</h2>
 
-            <p>De volledige beslisboom van DM tot kennismakingsgesprek. Volg het pad dat zij koos in Stap 2 en zigzag van vraag naar vraag tot ik haar pijn én haar doel ken. Dan pas pivot ik naar de call.</p>
+            <p>De volledige beslisboom van DM tot ingeplande call. Volg het pad dat zij koos in Stap 2 en zigzag van vraag naar vraag tot ik haar pijn én haar doel ken. Dan pas pivot ik naar de call.</p>
 
             <div class="callout callout-info">
                 <strong>De universele volgorde</strong>
@@ -667,9 +667,9 @@ flowchart TD
     JaCall -->|Nee| Sluit[Warm afsluiten]:::endNode
     FollowUp --> JaCall
     Calendly --> Reminder[Reminder protocol<br>24u, 1u, 15min]:::actionNode
-    Reminder --> Call[15 min<br>kennismakingsgesprek]:::callNode
-    Call --> NaCall{Match?}:::decisionNode
-    NaCall -->|Ja| Closing[Boek 2e gesprek<br>= closing call met Julia]:::successNode
+    Reminder --> Call[40 min gesprek<br>chit chat → vragen → pitch → close]:::callNode
+    Call --> NaCall{Beslissing?}:::decisionNode
+    NaCall -->|Ja| Closing[Stuur betaallink<br>= klant]:::successNode
     NaCall -->|Twijfel| Nadenk[24u voice memo follow-up]:::actionNode
     NaCall -->|Nee| Nurture[30 dagen herkans-lijst]:::endNode
 
@@ -924,7 +924,7 @@ flowchart TD
                     </tr>
                     <tr>
                         <td>🤔 <em>"Wat zou ik dan precies bespreken?"</em></td>
-                        <td>"Gewoon waar je nu staat, waar je naartoe wil, en wat in de weg zit. 15 minuutjes maar. Geen druk."</td>
+                        <td>"Gewoon waar je nu staat, waar je naartoe wil, en wat in de weg zit. We nemen er 40 minuutjes voor. Geen druk."</td>
                     </tr>
                     <tr>
                         <td>💭 <em>"Ik moet eerst even nadenken"</em></td>
@@ -932,11 +932,11 @@ flowchart TD
                     </tr>
                     <tr>
                         <td>💸 <em>"Wat kost het?"</em></td>
-                        <td>"Eerlijk, ik praat in DM nooit over prijzen. Daarom hebben we eerst die 15 minuutjes."</td>
+                        <td>"Eerlijk, ik praat in DM nooit over prijzen. Dat doe ik wel in het gesprek zelf."</td>
                     </tr>
                     <tr>
                         <td>📦 <em>"Wat bied je dan aan?"</em></td>
-                        <td>"Dat leg ik liever uit als ik weet wat jij precies nodig hebt. Daarom de korte call 💕"</td>
+                        <td>"Dat leg ik liever uit als ik weet wat jij precies nodig hebt. Daarom het gesprek 💕"</td>
                     </tr>
                     <tr>
                         <td>❌ <em>"Nee dank je, niet nu"</em></td>
@@ -944,7 +944,7 @@ flowchart TD
                     </tr>
                     <tr>
                         <td>🤐 (geen reactie)</td>
-                        <td>Wacht 2 dagen. Dan: <em>"He, even checken. Wil je nog die 15 min plannen?"</em></td>
+                        <td>Wacht 2 dagen. Dan: <em>"He, even checken. Wil je het gesprek nog plannen?"</em></td>
                     </tr>
                 </tbody>
             </table>
@@ -952,13 +952,13 @@ flowchart TD
             <h3>Klemmende scripts</h3>
             <div class="script">
                 <span class="label">Op "wat kost het"</span>
-                <div class="text">"Eerlijk, ik praat in DM nooit over prijzen. Het hangt echt af van wat past bij jou. Daarom hebben we eerst die 15 minuutjes 💕"</div>
-                <button class="copy-btn" onclick="copyText(this, 'Eerlijk, ik praat in DM nooit over prijzen. Het hangt echt af van wat past bij jou. Daarom hebben we eerst die 15 minuutjes 💕')">Kopiëer</button>
+                <div class="text">"Eerlijk, ik praat in DM nooit over prijzen. Het hangt echt af van wat past bij jou. Dat bespreken we in het gesprek 💕"</div>
+                <button class="copy-btn" onclick="copyText(this, 'Eerlijk, ik praat in DM nooit over prijzen. Het hangt echt af van wat past bij jou. Dat bespreken we in het gesprek 💕')">Kopiëer</button>
             </div>
             <div class="script">
                 <span class="label">Op "wat bied je aan"</span>
-                <div class="text">"Dat leg ik liever uit als ik weet wat jij precies nodig hebt. Daarom de korte call, niks meer dan dat 💕"</div>
-                <button class="copy-btn" onclick="copyText(this, 'Dat leg ik liever uit als ik weet wat jij precies nodig hebt. Daarom de korte call, niks meer dan dat 💕')">Kopiëer</button>
+                <div class="text">"Dat leg ik liever uit als ik weet wat jij precies nodig hebt. Daarom het gesprek, niks meer dan dat 💕"</div>
+                <button class="copy-btn" onclick="copyText(this, 'Dat leg ik liever uit als ik weet wat jij precies nodig hebt. Daarom het gesprek, niks meer dan dat 💕')">Kopiëer</button>
             </div>
 
             <a href="#stap5" class="next-step">
@@ -1035,22 +1035,24 @@ Korte zin is genoeg. Tot [dag]!"</div>
 
         <!-- ============== 7. HET GESPREK ============== -->
         <section id="stap7">
-            <h2><span class="badge">7</span> Het kennismakingsgesprek</h2>
+            <h2><span class="badge">7</span> Het gesprek van 40 minuten</h2>
 
-            <div class="callout callout-danger">
-                <strong>🚫 Geen aanbod, geen prijzen, geen close</strong>
-                Dit gesprek is voor verbinding en kwalificatie. Het echte aanbod en prijzen komen pas in een aparte tweede call. Op deze 15 minuutjes vraag ik door, luister ik, en spreek ik een vervolgstap af.
+            <div class="callout callout-info">
+                <strong>💡 1 gesprek, 40 minuten, volledige flow</strong>
+                In deze 40 minuten doe ik alles. Eerst even chit chat zodat ze zich op haar gemak voelt. Daarna vertel ik hoe het gesprek eruit ziet. Dan de vragen, de pitch, de bezwaren en de close.
             </div>
 
             <div class="flow-wrap">
-                <div class="flow-title">Het 15-minutengesprek</div>
+                <div class="flow-title">Het 40-minutengesprek</div>
                 <pre class="mermaid">
 flowchart TD
-    Open([Hé, super leuk om je te zien!]):::start
-    Open --> Frame[/"Frame: 2 min<br>'Ik ga vooral vragen stellen<br>aan het eind kijken we<br>of het klikt'"/]:::stap
-    Frame --> Discovery[/"Discovery: 10 min<br>7 open vragen<br>luister 80%, praat 20%"/]:::stap
-    Discovery --> Spiegel[/"Spiegel: 2 min<br>Vat samen in haar woorden<br>laat de gap zien"/]:::stap
-    Spiegel --> Volg[/"Vervolgstap: 1 min<br>Nodig uit voor 2e gesprek<br>= closing call"/]:::eind
+    Open([Hé, leuk dat je er bent! Ik heb er zin in]):::start
+    Open --> Chit[/"Chit chat: 5 min<br>'Hoe is het met je?'<br>'Wat doe je in het dagelijks leven?'"/]:::stap
+    Chit --> Frame[/"Frame: 2 min<br>Hoe gaan de 40 min eruit zien"/]:::stap
+    Frame --> Discovery[/"Vragen: 12 min<br>7 open vragen<br>luister 80%, praat 20%"/]:::stap
+    Discovery --> Pitch[/"Pitch: 10 min<br>Spiegel + aanbod + prijs"/]:::stap
+    Pitch --> Bezwaar[/"Objection handle: 7 min<br>Adem in, valideer, beantwoord"/]:::stap
+    Bezwaar --> Close[/"Close: 4 min<br>Vraag de beslissing<br>spreek af"/]:::eind
 
     classDef start fill:#FDF2F8,stroke:#E91E8C,stroke-width:2px,color:#831843,font-weight:bold
     classDef stap fill:#FFF,stroke:#F472B6,stroke-width:2px,color:#1F2937
@@ -1058,19 +1060,33 @@ flowchart TD
                 </pre>
             </div>
 
-            <h3>Frame (2 min)</h3>
+            <h3>1. Chit chat (5 min)</h3>
+            <p>Zodra ze joint, gelijk warm beginnen. Geen frame, geen agenda. Eerst connectie.</p>
             <div class="script">
-                <span class="label">Opening</span>
-                <div class="text">"Hé [naam], super leuk om je te zien! 💕 Ik vertel kort hoe deze 15 minuutjes gaan.
+                <span class="label">Opening zodra ze in beeld komt</span>
+                <div class="text">"Hé [naam], leuk dat je er bent! Ik heb er zin in 💕 Hoe is het met je?"</div>
+                <button class="copy-btn" onclick="copyText(this, 'Hé [naam], leuk dat je er bent! Ik heb er zin in 💕 Hoe is het met je?')">Kopiëer</button>
+            </div>
+            <div class="script">
+                <span class="label">Doorvraag voor chit chat</span>
+                <div class="text">"En wat doe je in het dagelijks leven?"</div>
+                <button class="copy-btn" onclick="copyText(this, 'En wat doe je in het dagelijks leven?')">Kopiëer</button>
+            </div>
+            <p>Laat haar even praten. Stel 1 of 2 vervolgvragen op wat zij vertelt. Wees écht nieuwsgierig. Zodra het gesprek warm is, ga ik over naar het frame.</p>
 
-Ik ga vooral vragen stellen om jou goed te leren kennen. Waar je staat, waar je naartoe wil, en wat tot nu toe in de weg zat.
+            <h3>2. Frame (2 min)</h3>
+            <div class="script">
+                <span class="label">Hoe het gesprek eruit ziet</span>
+                <div class="text">"Tof om je een beetje te leren kennen 💕 Zal ik even vertellen hoe deze 40 minuutjes eruit gaan zien?
 
-Aan het eind kijken we samen of het klikt en zo ja wat een logische vervolgstap zou zijn. Geen druk en geen verkooppraatje. Klinkt dat goed?"</div>
-                <button class="copy-btn" onclick="copyText(this, 'Hé [naam], super leuk om je te zien! 💕 Ik vertel kort hoe deze 15 minuutjes gaan.\n\nIk ga vooral vragen stellen om jou goed te leren kennen. Waar je staat, waar je naartoe wil, en wat tot nu toe in de weg zat.\n\nAan het eind kijken we samen of het klikt en zo ja wat een logische vervolgstap zou zijn. Geen druk en geen verkooppraatje. Klinkt dat goed?')">Kopiëer</button>
+Ik ga je eerst een aantal vragen stellen om écht te begrijpen waar je nu staat, waar je naartoe wil, en wat tot nu toe in de weg zat. Daarna laat ik je zien hoe ik je daarbij kan helpen en wat dat kost. Aan het eind van het gesprek vraag ik je of het iets voor je is, ja of nee.
+
+Klinkt dat goed?"</div>
+                <button class="copy-btn" onclick="copyText(this, 'Tof om je een beetje te leren kennen 💕 Zal ik even vertellen hoe deze 40 minuutjes eruit gaan zien?\n\nIk ga je eerst een aantal vragen stellen om écht te begrijpen waar je nu staat, waar je naartoe wil, en wat tot nu toe in de weg zat. Daarna laat ik je zien hoe ik je daarbij kan helpen en wat dat kost. Aan het eind van het gesprek vraag ik je of het iets voor je is, ja of nee.\n\nKlinkt dat goed?')">Kopiëer</button>
             </div>
 
-            <h3>Discovery (10 min)</h3>
-            <p>Stel deze vragen 1 voor 1. Luister 80%, praat 20%. Schrijf háár woorden mee.</p>
+            <h3>3. De vragen (12 min)</h3>
+            <p>Stel deze vragen 1 voor 1. Luister 80%, praat 20%. Schrijf háár woorden mee. Die heb ik in de pitch nodig.</p>
             <ol>
                 <li>"Vertel eens, wat speelt er nu in jouw leven op het gebied van fitness?"</li>
                 <li>"Hoe lang loop je hier al tegenaan?"</li>
@@ -1081,45 +1097,105 @@ Aan het eind kijken we samen of het klikt en zo ja wat een logische vervolgstap 
                 <li>"Wat zou je nodig hebben om er deze keer wel te komen?"</li>
             </ol>
 
-            <h3>Spiegel terug (2 min)</h3>
+            <h3>4. De pitch (10 min)</h3>
+            <p>Eerst spiegelen. Dan het aanbod. Dan de prijs. Niet over de prijs heen praten. Stilte mag.</p>
             <div class="script">
-                <span class="label">Wat ik zeg</span>
+                <span class="label">Spiegel terug</span>
                 <div class="text">"Oké, dus wat ik hoor is [vat in 2 of 3 zinnen samen wat zij zei, gebruik HAAR woorden].
 
 Wat ik denk dat het verschil maakt is dat je goede info hebt, maar dat het ontbreekt aan structuur en iemand die je vasthoudt. En dat is precies wat ik doe."</div>
                 <button class="copy-btn" onclick="copyText(this, 'Oké, dus wat ik hoor is [vat in 2 of 3 zinnen samen wat zij zei, gebruik HAAR woorden].\n\nWat ik denk dat het verschil maakt is dat je goede info hebt, maar dat het ontbreekt aan structuur en iemand die je vasthoudt. En dat is precies wat ik doe.')">Kopiëer</button>
             </div>
-
-            <h3>Vervolgstap (1 min)</h3>
             <div class="script">
-                <span class="label">Uitnodiging voor 2e gesprek</span>
-                <div class="text">"Ik denk dat ik je écht zou kunnen helpen. Wat ik graag wil doen is een tweede gesprek inplannen waarin ik je laat zien hoe ik dat zou aanpakken bij jou specifiek. Geen druk, je zegt aan het eind ja of nee.
+                <span class="label">Aanbod toelichten</span>
+                <div class="text">"Wat ik doe is een 12 weken programma. Persoonlijk schema dat past bij jouw leven. Wekelijkse check ins met mij. Een community van vrouwen die hetzelfde doen. En een app waar alles in staat.
 
-Heb je deze of volgende week een rustig moment voor een uurtje?"</div>
-                <button class="copy-btn" onclick="copyText(this, 'Ik denk dat ik je écht zou kunnen helpen. Wat ik graag wil doen is een tweede gesprek inplannen waarin ik je laat zien hoe ik dat zou aanpakken bij jou specifiek. Geen druk, je zegt aan het eind ja of nee.\n\nHeb je deze of volgende week een rustig moment voor een uurtje?')">Kopiëer</button>
+Voor [haar specifieke situatie en doel] betekent dat [vertaal het aanbod naar HAAR woorden]."</div>
+                <button class="copy-btn" onclick="copyText(this, 'Wat ik doe is een 12 weken programma. Persoonlijk schema dat past bij jouw leven. Wekelijkse check ins met mij. Een community van vrouwen die hetzelfde doen. En een app waar alles in staat.\n\nVoor [haar specifieke situatie en doel] betekent dat [vertaal het aanbod naar HAAR woorden].')">Kopiëer</button>
+            </div>
+            <div class="script">
+                <span class="label">De prijs</span>
+                <div class="text">"De investering voor de 12 weken is [bedrag]. Dat kan in 1 keer of in 3 termijnen.
+
+[Stilte. Niet vullen.]"</div>
+                <button class="copy-btn" onclick="copyText(this, 'De investering voor de 12 weken is [bedrag]. Dat kan in 1 keer of in 3 termijnen.\n\n[Stilte. Niet vullen.]')">Kopiëer</button>
             </div>
 
-            <div class="callout callout-info">
-                <strong>Waarom 2 gesprekken</strong>
-                Verkopen op het eerste gesprek voelt opdringerig. Door een tweede gesprek aan te bieden geef ik haar tijd om er thuis over na te denken én laat ik zien dat ik haar serieus neem. De tweede call is waar ik mijn aanbod doe en de prijs noem.
+            <h3>5. Objection handle (7 min)</h3>
+            <p>Bijna iedereen heeft een bezwaar. Dat is normaal. Adem in, valideer, beantwoord, vraag terug.</p>
+            <div class="script">
+                <span class="label">Standaard structuur</span>
+                <div class="text">"Snap ik helemaal. [Valideer wat ze zegt in 1 zin.]
+
+[Beantwoord het bezwaar. Gebruik HAAR woorden van eerder in het gesprek.]
+
+Hoe voelt dat?"</div>
+                <button class="copy-btn" onclick="copyText(this, 'Snap ik helemaal. [Valideer wat ze zegt in 1 zin.]\n\n[Beantwoord het bezwaar. Gebruik HAAR woorden van eerder in het gesprek.]\n\nHoe voelt dat?')">Kopiëer</button>
+            </div>
+            <table>
+                <thead>
+                    <tr><th style="width:35%">Bezwaar</th><th>Mijn antwoord</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>💸 "Te duur"</td>
+                        <td>"Snap ik. Even eerlijk, je zei net dat [haar doel] je [X euro / X jaar] kost als het niet lukt. Dit is een investering in dat het wel lukt. Wat voelt zwaarder?"</td>
+                    </tr>
+                    <tr>
+                        <td>🤔 "Ik moet erover nadenken"</td>
+                        <td>"Helemaal goed. Mag ik vragen waar je over wil nadenken? Dan kan ik je daar misschien nu al mee helpen."</td>
+                    </tr>
+                    <tr>
+                        <td>👫 "Met partner overleggen"</td>
+                        <td>"Logisch. Wat denk je dat hij gaat zeggen? En als hij nee zegt, wat doe jij dan?"</td>
+                    </tr>
+                    <tr>
+                        <td>⏰ "Ik heb geen tijd"</td>
+                        <td>"Dat hoor ik vaker. Daarom is dit programma juist gebouwd voor drukke vrouwen. 3 keer per week 45 minuten. Lukt jou dat?"</td>
+                    </tr>
+                    <tr>
+                        <td>🤷 "Werkt het wel voor mij?"</td>
+                        <td>"Eerlijke vraag. Wat je net vertelde over [haar situatie] is precies wat ik elke week zie. En precies wat we aanpakken. Wat zou jou overtuigen dat het werkt?"</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>6. Close (4 min)</h3>
+            <p>Vraag de beslissing. Direct, warm, zonder druk. Stilte mag.</p>
+            <div class="script">
+                <span class="label">De vraag</span>
+                <div class="text">"Goed. Dan is mijn vraag heel simpel. Wil jij dit doen, ja of nee?"</div>
+                <button class="copy-btn" onclick="copyText(this, 'Goed. Dan is mijn vraag heel simpel. Wil jij dit doen, ja of nee?')">Kopiëer</button>
+            </div>
+            <div class="script">
+                <span class="label">Bij ja</span>
+                <div class="text">"Wat tof 💕 Dan stuur ik je direct na dit gesprek de betaallink en het welkomstpakket. Zodra je betaald hebt krijg je toegang tot de app en plan ik je eerste check in.
+
+Heb je voorkeur voor 1 keer of in 3 termijnen?"</div>
+                <button class="copy-btn" onclick="copyText(this, 'Wat tof 💕 Dan stuur ik je direct na dit gesprek de betaallink en het welkomstpakket. Zodra je betaald hebt krijg je toegang tot de app en plan ik je eerste check in.\n\nHeb je voorkeur voor 1 keer of in 3 termijnen?')">Kopiëer</button>
+            </div>
+            <div class="script">
+                <span class="label">Bij twijfel of nee</span>
+                <div class="text">"Helemaal goed. Mag ik vragen wat de doorslag geeft? Geen druk, ik wil het gewoon snappen 💕"</div>
+                <button class="copy-btn" onclick="copyText(this, 'Helemaal goed. Mag ik vragen wat de doorslag geeft? Geen druk, ik wil het gewoon snappen 💕')">Kopiëer</button>
             </div>
 
             <a href="#stap8" class="next-step">
-                Eerste gesprek klaar. Door naar Stap 8 <span class="arrow">→</span>
+                Gesprek klaar. Door naar Stap 8 <span class="arrow">→</span>
             </a>
         </section>
 
         <!-- ============== 8. NA DE CALL ============== -->
         <section id="stap8">
-            <h2><span class="badge">8</span> Na het kennismakingsgesprek</h2>
+            <h2><span class="badge">8</span> Na het gesprek</h2>
 
-            <h3>✅ Tweede gesprek geboekt</h3>
+            <h3>✅ Ze zei ja</h3>
             <div class="script">
                 <span class="label">Direct na het gesprek</span>
-                <div class="text">"Wat tof om je gesproken te hebben [naam] 💕 Hier de link voor ons vervolggesprek: [calendly link uitgebreide call]
+                <div class="text">"Wat tof om je in het team te hebben [naam] 💕 Hier de betaallink: [betaallink].
 
-Pak een rustig moment uit, dan nemen we er ruim de tijd voor."</div>
-                <button class="copy-btn" onclick="copyText(this, 'Wat tof om je gesproken te hebben [naam] 💕 Hier de link voor ons vervolggesprek: [calendly link uitgebreide call]\n\nPak een rustig moment uit, dan nemen we er ruim de tijd voor.')">Kopiëer</button>
+Zodra je betaald hebt krijg je de welkomstmail met toegang tot de app en plan ik je eerste check in. Tot snel!"</div>
+                <button class="copy-btn" onclick="copyText(this, 'Wat tof om je in het team te hebben [naam] 💕 Hier de betaallink: [betaallink].\n\nZodra je betaald hebt krijg je de welkomstmail met toegang tot de app en plan ik je eerste check in. Tot snel!')">Kopiëer</button>
             </div>
 
             <h3>🤔 Wil eerst nadenken</h3>
@@ -1164,24 +1240,24 @@ Pak een rustig moment uit, dan nemen we er ruim de tijd voor."</div>
         <section id="bezwaren">
             <h2>🛡️ Bezwaren in DM</h2>
 
-            <p>Wat zij in DM zegt en wat ik antwoord. <strong>Nooit prijzen, nooit aanbod.</strong> Ik leid alles terug naar het kennismakingsgesprek.</p>
+            <p>Wat zij in DM zegt en wat ik antwoord. <strong>Nooit prijzen, nooit aanbod.</strong> Ik leid alles terug naar het gesprek.</p>
 
             <h3>💸 "Wat kost het?"</h3>
             <div class="script">
-                <div class="text">"Eerlijk, ik praat in DM nooit over prijzen. Het hangt echt af van wat past bij jou. Daarom hebben we eerst die 15 minuutjes 💕"</div>
-                <button class="copy-btn" onclick="copyText(this, 'Eerlijk, ik praat in DM nooit over prijzen. Het hangt echt af van wat past bij jou. Daarom hebben we eerst die 15 minuutjes 💕')">Kopiëer</button>
+                <div class="text">"Eerlijk, ik praat in DM nooit over prijzen. Het hangt echt af van wat past bij jou. Dat bespreken we in het gesprek 💕"</div>
+                <button class="copy-btn" onclick="copyText(this, 'Eerlijk, ik praat in DM nooit over prijzen. Het hangt echt af van wat past bij jou. Dat bespreken we in het gesprek 💕')">Kopiëer</button>
             </div>
 
             <h3>📦 "Wat bied je aan?"</h3>
             <div class="script">
-                <div class="text">"Dat leg ik liever uit als ik weet wat jij precies nodig hebt. Daarom de korte call, niks meer dan dat 💕"</div>
-                <button class="copy-btn" onclick="copyText(this, 'Dat leg ik liever uit als ik weet wat jij precies nodig hebt. Daarom de korte call, niks meer dan dat 💕')">Kopiëer</button>
+                <div class="text">"Dat leg ik liever uit als ik weet wat jij precies nodig hebt. Daarom het gesprek, niks meer dan dat 💕"</div>
+                <button class="copy-btn" onclick="copyText(this, 'Dat leg ik liever uit als ik weet wat jij precies nodig hebt. Daarom het gesprek, niks meer dan dat 💕')">Kopiëer</button>
             </div>
 
             <h3>⏰ "Ik heb geen tijd"</h3>
             <div class="script">
-                <div class="text">"Snap ik. Maar even, 15 minuutjes maar. Geen verkooppraatje, gewoon kijken of ik je echt kan helpen 💕"</div>
-                <button class="copy-btn" onclick="copyText(this, 'Snap ik. Maar even, 15 minuutjes maar. Geen verkooppraatje, gewoon kijken of ik je echt kan helpen 💕')">Kopiëer</button>
+                <div class="text">"Snap ik. We nemen 40 minuutjes. Geen verkooppraatje, gewoon kijken of ik je echt kan helpen 💕"</div>
+                <button class="copy-btn" onclick="copyText(this, 'Snap ik. We nemen 40 minuutjes. Geen verkooppraatje, gewoon kijken of ik je echt kan helpen 💕')">Kopiëer</button>
             </div>
 
             <h3>🤷 "Ik weet niet of het werkt voor mij"</h3>
@@ -1198,13 +1274,13 @@ Pak een rustig moment uit, dan nemen we er ruim de tijd voor."</div>
 
             <h3>👫 "Ik moet met mijn partner overleggen"</h3>
             <div class="script">
-                <div class="text">"Logisch! Maar dit gesprek is een vrijblijvende kennismaking, niets bindend. Plan 'm gerust in en daarna kan je samen overleggen 💕"</div>
-                <button class="copy-btn" onclick="copyText(this, 'Logisch! Maar dit gesprek is een vrijblijvende kennismaking, niets bindend. Plan \'m gerust in en daarna kan je samen overleggen 💕')">Kopiëer</button>
+                <div class="text">"Logisch! Plan 'm gerust in. We bespreken het samen en daarna kan jij rustig met je partner overleggen 💕"</div>
+                <button class="copy-btn" onclick="copyText(this, 'Logisch! Plan \'m gerust in. We bespreken het samen en daarna kan jij rustig met je partner overleggen 💕')">Kopiëer</button>
             </div>
 
             <div class="callout callout-tip">
                 <strong>De gouden regel</strong>
-                Bezwaar in DM? Leid altijd terug naar het kennismakingsgesprek. Daar geef ik geen aanbod en geen prijs. Het is gewoon een gesprek.
+                Bezwaar in DM? Leid altijd terug naar het gesprek. In DM geef ik geen aanbod en geen prijs. Dat doe ik op de Zoom.
             </div>
         </section>
 
@@ -1216,7 +1292,7 @@ Pak een rustig moment uit, dan nemen we er ruim de tijd voor."</div>
             <p>Zie sectie Bezwaren. Nooit prijzen in DM.</p>
 
             <h3>Wat als ze direct wil starten zonder gesprek?</h3>
-            <p><em>"Tof! Maar ik wil eerst kort checken of we een match zijn. Voor jouw én mijn zekerheid. 15 minuutjes en dan pakken we 'm op. Wanneer kan je?"</em></p>
+            <p><em>"Tof! Maar ik wil eerst even checken of we een match zijn. Voor jouw én mijn zekerheid. 40 minuutjes en dan pakken we 'm op. Wanneer kan je?"</em></p>
 
             <h3>Wat als ze al klant is bij een andere coach?</h3>
             <p><em>"Tof dat je al investeert in jezelf 💕 Wat is op dit moment de reden dat je naar mij kijkt? Werkt het niet helemaal of zoek je iets extra?"</em></p>
@@ -1276,7 +1352,7 @@ Pak een rustig moment uit, dan nemen we er ruim de tijd voor."</div>
                 <li>Naam plus IG handle</li>
                 <li>Datum eerste voice memo</li>
                 <li>Pad (Beginner, Frustratie, Performer of Stil)</li>
-                <li>Status (voice memo gestuurd, in gesprek, geboekt, gehad, naar closing call, klant, nee, no-show)</li>
+                <li>Status (voice memo gestuurd, in gesprek, geboekt, gehad, klant, nee, no-show)</li>
                 <li>Datum laatste contact</li>
                 <li>Volgende actie plus datum</li>
                 <li>Háár woorden (key quotes uit het gesprek)</li>
@@ -1298,7 +1374,7 @@ Pak een rustig moment uit, dan nemen we er ruim de tijd voor."</div>
                     <tr><td><strong>Reply rate</strong></td><td>50% of meer</td><td>Kwaliteit van de voice memo</td></tr>
                     <tr><td><strong>Calls geboekt</strong></td><td>5 per week</td><td>Effectiviteit pivot</td></tr>
                     <tr><td><strong>Show-up rate</strong></td><td>75% of meer</td><td>Werkt het reminder protocol</td></tr>
-                    <tr><td><strong>Doorgezet naar closing call</strong></td><td>40% of meer</td><td>Kwaliteit van het kennismakingsgesprek</td></tr>
+                    <tr><td><strong>Close rate</strong></td><td>30% of meer</td><td>Kwaliteit van het gesprek (pitch + bezwaar + close)</td></tr>
                 </tbody>
             </table>
 
@@ -1307,7 +1383,7 @@ Pak een rustig moment uit, dan nemen we er ruim de tijd voor."</div>
                 <li><strong>Reply rate onder 30%</strong>. Voice memo werkt niet. Test andere openzin.</li>
                 <li><strong>Calls geboekt onder 5</strong>. Te vroeg of te laat pivoten. Reset op Stap 3.</li>
                 <li><strong>Show-up onder 60%</strong>. Reminder protocol niet gevolgd. Check Stap 6.</li>
-                <li><strong>Doorzet onder 25%</strong>. Eerste gesprek mist verbinding. Check Stap 7.</li>
+                <li><strong>Close rate onder 20%</strong>. Pitch of bezwaar afhandeling mist. Check Stap 7.</li>
             </ul>
         </section>
 
