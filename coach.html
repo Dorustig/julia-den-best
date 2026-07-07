@@ -809,7 +809,8 @@
                                 <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#FEF3C7;color:#92400E;margin-right:3px;" onclick="klantNotities('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#128221;</button>
                                 <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#EDE9FE;color:#5B21B6;margin-right:3px;" title="Workouts bekijken" onclick="klantWorkouts('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#128170;</button>
                                 <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#E0E7FF;color:#3730A3;margin-right:3px;" title="Bewerk klant" onclick="klantBewerken('${k.id}')">&#9998;</button>
-                                <button class="btn-admin btn-export" style="padding:4px 10px;font-size:11px" title="Nieuw wachtwoord" onclick="klantResetWachtwoord('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#128273;</button>
+                                <button class="btn-admin btn-export" style="padding:4px 10px;font-size:11px;margin-right:3px;" title="Nieuw wachtwoord" onclick="klantResetWachtwoord('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#128273;</button>
+                                <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#FEE2E2;color:#991B1B;" title="Verwijder klant" onclick="klantVerwijderen('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#128465;</button>
                             </td>
                         </tr>
                     `;
@@ -885,8 +886,11 @@
                         <textarea name="vorige_ervaring" class="filter-input" style="width:100%;min-height:50px">${escapeHtml(v(klant.vorige_ervaring))}</textarea></div>
                     <div style="margin-top:10px"><label style="font-size:12px;color:#6B7280">&#128221; Notities Julia (privé)</label>
                         <textarea name="notities_julia" class="filter-input" style="width:100%;min-height:70px">${escapeHtml(v(klant.notities_julia))}</textarea></div>
-                    <div style="display:flex;gap:10px;margin-top:16px;justify-content:space-between">
-                        <button type="button" class="btn-admin" style="background:#FEE2E2;color:#991B1B;padding:10px 16px;" onclick="archiveerKlant('${klant.id}', '${escapeHtml((klant.naam||klant.email).replace(/'/g,"\\'"))}')">&#128465; Archiveren</button>
+                    <div style="display:flex;gap:10px;margin-top:16px;justify-content:space-between;flex-wrap:wrap;">
+                        <div style="display:flex;gap:8px;">
+                            <button type="button" class="btn-admin" style="background:#FEF3C7;color:#92400E;padding:10px 16px;" onclick="archiveerKlant('${klant.id}', '${escapeHtml((klant.naam||klant.email).replace(/'/g,"\\'"))}')">&#128230; Archiveren</button>
+                            <button type="button" class="btn-admin" style="background:#FEE2E2;color:#991B1B;padding:10px 16px;" onclick="klantVerwijderen('${klant.id}', '${escapeHtml((klant.naam||klant.email).replace(/'/g,"\\'"))}')">&#128465; Verwijderen</button>
+                        </div>
                         <button type="submit" class="btn-admin btn-export" style="background:#EC4899;color:#fff">Opslaan</button>
                     </div>
                 </form>
@@ -942,6 +946,22 @@
             } catch (e) { alert('Mislukt: ' + e.message); }
         }
 
+        // Permanent verwijderen: klant + alle data (check-ins, workouts, chat,
+        // foto's) + login. Dubbele confirm want dit kan niet ongedaan.
+        async function klantVerwijderen(klantId, naam) {
+            if (!confirm(`"${naam}" VERWIJDEREN?\n\nDit wist de klant permanent: alle check-ins, workouts, foto's, chat en de login. Dit kan NIET ongedaan worden gemaakt.\n\nWil je alleen pauzeren of stoppen? Gebruik dan ✏️ Bewerken → status.`)) return;
+            if (!confirm(`Zeker weten? "${naam}" en al haar data zijn hierna definitief weg.`)) return;
+            try {
+                const r = await fetch('/api/admin/klanten/' + klantId + '?hard=1', {
+                    method: 'DELETE', credentials: 'include',
+                });
+                const j = await r.json().catch(() => ({}));
+                if (!r.ok || j.error) throw new Error(j.error || 'HTTP ' + r.status);
+                closeEditKlant();
+                loadKlanten();
+            } catch (e) { alert('Verwijderen mislukt: ' + e.message); }
+        }
+
         // ========================================================
         // WORKOUTS BEKIJKEN (coach)
         // ========================================================
@@ -963,11 +983,49 @@
                         <div style="padding:40px;text-align:center;color:#6B7280">Nog geen workout-logs.</div>`;
                     return;
                 }
-                const rows = workouts.map(w => {
+                // Progressie per oefening: eerste ↔ zwaarste gewicht + PR-datum.
+                // workouts is datum-desc gesorteerd.
+                const progressie = {};
+                for (let i = workouts.length - 1; i >= 0; i--) {
+                    const w = workouts[i];
+                    for (const o of (w.oefeningen || [])) {
+                        const key = (o.naam || '').trim().toLowerCase();
+                        if (!key) continue;
+                        const maxKg = Math.max(...(o.sets || []).filter(s => s && !s.skipped && s.gewicht != null).map(s => s.gewicht), -Infinity);
+                        if (maxKg === -Infinity) continue;
+                        if (!progressie[key]) {
+                            progressie[key] = { naam: o.naam.trim(), eerste: maxKg, max: maxKg, maxDatum: w.datum, sessies: 1 };
+                        } else {
+                            progressie[key].sessies++;
+                            if (maxKg >= progressie[key].max) { progressie[key].max = maxKg; progressie[key].maxDatum = w.datum; }
+                        }
+                    }
+                }
+                const progRows = Object.values(progressie)
+                    .filter(p => p.sessies >= 2)
+                    .sort((a, b) => (b.max - b.eerste) - (a.max - a.eerste));
+                const progHtml = progRows.length ? `
+                    <div style="background:#FDF2F8;border:1px solid #FBCFE8;border-radius:12px;padding:14px;margin-bottom:14px;">
+                        <div style="font-weight:700;font-size:13px;color:#9D174D;margin-bottom:8px;">&#128200; Progressie per oefening</div>
+                        ${progRows.map(p => {
+                            const diff = +(p.max - p.eerste).toFixed(1);
+                            const kleur = diff > 0 ? '#065F46' : (diff < 0 ? '#991B1B' : '#6B7280');
+                            return `
+                                <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:13px;">
+                                    <span><strong>${escapeHtml(p.naam)}</strong> <span style="color:#9CA3AF;font-size:11px;">· ${p.sessies} sessies</span></span>
+                                    <span>${p.eerste} &rarr; <strong>${p.max} kg</strong> 🥇 <span style="color:${kleur};font-weight:600;">${diff > 0 ? '+' : ''}${diff} kg</span></span>
+                                </div>`;
+                        }).join('')}
+                    </div>` : '';
+
+                const rows = progHtml + workouts.map(w => {
                     const d = new Date(w.datum).toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' });
                     const oefs = (w.oefeningen || []).map(o => {
+                        const key = (o.naam || '').trim().toLowerCase();
+                        const maxKgLog = Math.max(...(o.sets || []).filter(s => s && !s.skipped && s.gewicht != null).map(s => s.gewicht), -Infinity);
+                        const isPr = progressie[key] && maxKgLog !== -Infinity && maxKgLog >= progressie[key].max && w.datum === progressie[key].maxDatum && progressie[key].sessies >= 2;
                         const sets = (o.sets || []).map(s => `${s.reps ?? '–'}×${s.gewicht ?? '–'}kg`).join(', ');
-                        return `<div style="padding:4px 0;"><strong>${escapeHtml(o.naam)}</strong> <span style="color:#6B7280;font-size:12px">· ${sets}</span></div>`;
+                        return `<div style="padding:4px 0;"><strong>${escapeHtml(o.naam)}</strong>${isPr ? ' <span title="Persoonlijk record">🥇</span>' : ''} <span style="color:#6B7280;font-size:12px">· ${sets}</span></div>`;
                     }).join('');
                     return `
                         <div style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:14px;margin-bottom:10px;">
@@ -1379,6 +1437,9 @@
         // ========================================================
         // TRAINING / VOEDING PER KLANT
         // ========================================================
+        const DAG_NAMEN = ['Maandag', 'Dinsdag', 'Woensdag', 'Donderdag', 'Vrijdag', 'Zaterdag', 'Zondag'];
+        window.__trainingDagenCache = {}; // per klant: alle dag-rijen
+
         async function klantTraining(klantId, klantNaam) {
             const modal = document.getElementById('trainingModal');
             const content = document.getElementById('trainingModalContent');
@@ -1391,23 +1452,32 @@
                 <div style="padding:24px;text-align:center;color:#9CA3AF;">Laden...</div>
             `;
             try {
-                const [r, tr] = await Promise.all([
+                const [r, dr] = await Promise.all([
                     fetch('/api/admin/klanten/' + klantId + '/training-schemas', { credentials: 'include' }),
-                    fetch('/api/admin/training-templates', { credentials: 'include' }),
+                    fetch('/api/admin/klanten/' + klantId + '/training-dagen', { credentials: 'include' }),
                 ]);
                 const { schemas } = await r.json();
-                const tmplData = await tr.json();
-                _trainingTemplatesCache = tmplData.templates || [];
+                const dagenData = dr.ok ? await dr.json() : { dagen: [] };
+                window.__trainingDagenCache[klantId] = dagenData.dagen || [];
                 const byWeek = {};
                 (schemas || []).forEach(s => { byWeek[s.week_nr] = s; });
+                const dagenByWeek = {};
+                (dagenData.dagen || []).forEach(d => {
+                    if (!dagenByWeek[d.week_nr]) dagenByWeek[d.week_nr] = [];
+                    dagenByWeek[d.week_nr].push(d);
+                });
                 const cells = Array.from({ length: 16 }, (_, i) => {
                     const wk = i + 1;
-                    const filled = !!byWeek[wk];
-                    const titel = filled && byWeek[wk].titel ? byWeek[wk].titel : '';
+                    const dagen = dagenByWeek[wk] || [];
+                    const trainingen = dagen.filter(d => !d.is_rustdag && ((d.oefeningen || []).length || d.titel)).length;
+                    const filled = trainingen > 0 || !!byWeek[wk];
+                    const sub = trainingen > 0
+                        ? trainingen + 'x training'
+                        : (byWeek[wk] ? (byWeek[wk].titel || 'Ingevuld') : 'Leeg');
                     return `
                         <div class="week-cell ${filled ? 'filled' : ''}" onclick="editTrainingWeek('${klantId}', '${escapeHtml(klantNaam)}', ${wk})">
                             <span class="wk-nr">${wk}${filled ? '<span class="wk-dot"></span>' : ''}</span>
-                            <span>${titel ? escapeHtml(titel) : (filled ? 'Ingevuld' : 'Leeg')}</span>
+                            <span>${escapeHtml(sub)}</span>
                         </div>
                     `;
                 }).join('');
@@ -1416,7 +1486,7 @@
                         <h2>&#127947; Training — ${escapeHtml(klantNaam)}</h2>
                         <button class="modal-close" onclick="document.getElementById('trainingModal').classList.remove('active')">&#10005;</button>
                     </div>
-                    <p style="font-size:13px;color:#6B7280;margin-bottom:12px;">Klik op een week om het schema te vullen.</p>
+                    <p style="font-size:13px;color:#6B7280;margin-bottom:12px;">Klik op een week en vul per dag een training of rustdag in. De klant ziet het schema direct in haar app.</p>
                     <div class="week-grid">${cells}</div>
                 `;
             } catch (e) {
@@ -1427,83 +1497,186 @@
             }
         }
 
+        // 1 oefening-rij in de dag-editor
+        function oefRowHtml(dag, o) {
+            o = o || {};
+            return `
+                <div class="oef-edit-row" style="display:grid;grid-template-columns:1fr 64px 84px 32px;gap:6px;margin-bottom:6px;align-items:center;">
+                    <input class="filter-input oef-naam" placeholder="Oefening (bv. Hip thrust)" value="${escapeHtml(o.naam || '')}" style="width:100%;padding:7px 10px;font-size:13px;">
+                    <input class="filter-input oef-sets" type="number" min="1" max="20" placeholder="sets" value="${o.sets ?? ''}" style="width:100%;padding:7px 6px;font-size:13px;text-align:center;">
+                    <input class="filter-input oef-reps" placeholder="reps" value="${escapeHtml(o.reps || '')}" style="width:100%;padding:7px 8px;font-size:13px;text-align:center;">
+                    <button type="button" class="btn-small danger" onclick="this.closest('.oef-edit-row').remove()" title="Verwijder oefening">&#10005;</button>
+                    <input class="filter-input oef-video" placeholder="Video URL (optioneel, komt later)" value="${escapeHtml(o.video_url || '')}" style="grid-column:1 / -1;width:100%;padding:5px 10px;font-size:11px;color:#6B7280;${o.video_url ? '' : 'display:none;'}">
+                </div>`;
+        }
+        function addOefRow(btn, dag) {
+            btn.insertAdjacentHTML('beforebegin', oefRowHtml(dag, null));
+        }
+        function toggleRustdag(dag, isRust) {
+            const blok = document.querySelector(`.dag-blok[data-dag="${dag}"]`);
+            if (!blok) return;
+            blok.dataset.rustdag = isRust ? '1' : '0';
+            blok.querySelector('.dag-body').style.display = isRust ? 'none' : '';
+            const btn = blok.querySelector('.rust-toggle');
+            btn.style.background = isRust ? '#EDE9FE' : '#F9FAFB';
+            btn.style.color = isRust ? '#5B21B6' : '#6B7280';
+            btn.textContent = isRust ? '🛌 Rustdag' : 'Rustdag?';
+        }
+        // Toon video-velden in de hele editor (kleine link onderaan)
+        function toggleVideoVelden(a) {
+            document.querySelectorAll('#dagEditor .oef-video').forEach(el => {
+                el.style.display = el.style.display === 'none' ? '' : 'none';
+            });
+            a.textContent = a.textContent.includes('Toon') ? 'Verberg video-velden' : 'Toon video-velden (voor als je oefening-video\'s hebt)';
+        }
+
         async function editTrainingWeek(klantId, klantNaam, weekNr) {
             const content = document.getElementById('trainingModalContent');
-            let schema = { titel: '', content_markdown: '' };
+            content.innerHTML = '<div style="padding:24px;text-align:center;color:#9CA3AF;">Laden...</div>';
+            let dagen = [];
+            let schema = null;
             try {
-                const r = await fetch('/api/admin/klanten/' + klantId + '/training-schemas', { credentials: 'include' });
-                const { schemas } = await r.json();
-                const existing = (schemas || []).find(s => s.week_nr === weekNr);
-                if (existing) schema = existing;
+                const [dr, sr] = await Promise.all([
+                    fetch('/api/admin/klanten/' + klantId + '/training-dagen/' + weekNr, { credentials: 'include' }),
+                    fetch('/api/admin/klanten/' + klantId + '/training-schemas', { credentials: 'include' }),
+                ]);
+                if (dr.ok) dagen = (await dr.json()).dagen || [];
+                if (sr.ok) schema = ((await sr.json()).schemas || []).find(s => s.week_nr === weekNr) || null;
             } catch {}
+            const byDag = {};
+            dagen.forEach(d => { byDag[d.dag] = d; });
 
-            const tmplOptions = _trainingTemplatesCache.length
-                ? `<option value="">-- kies template om te importeren --</option>` +
-                  _trainingTemplatesCache.map(t => `<option value="${t.id}">${escapeHtml(t.naam)}</option>`).join('')
-                : '';
+            const dagBlokken = DAG_NAMEN.map((naam, i) => {
+                const dag = i + 1;
+                const d = byDag[dag] || {};
+                const oefs = Array.isArray(d.oefeningen) ? d.oefeningen : [];
+                const isRust = !!d.is_rustdag;
+                return `
+                    <div class="dag-blok" data-dag="${dag}" data-rustdag="${isRust ? '1' : '0'}" style="border:1px solid #E5E7EB;border-radius:12px;padding:12px 14px;margin-bottom:10px;background:#fff;">
+                        <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+                            <div style="width:86px;font-weight:700;font-size:13px;color:#1F2937;flex-shrink:0;">${naam}</div>
+                            <input class="filter-input dag-titel" placeholder="bv. Billen, Upper body..." value="${escapeHtml(d.titel || '')}" style="flex:1;padding:7px 10px;font-size:13px;">
+                            <button type="button" class="btn-small rust-toggle" style="flex-shrink:0;${isRust ? 'background:#EDE9FE;color:#5B21B6;' : ''}" onclick="toggleRustdag(${dag}, this.closest('.dag-blok').dataset.rustdag !== '1')">${isRust ? '🛌 Rustdag' : 'Rustdag?'}</button>
+                        </div>
+                        <div class="dag-body" style="${isRust ? 'display:none;' : ''}">
+                            ${oefs.map(o => oefRowHtml(dag, o)).join('')}
+                            <button type="button" class="btn-small" style="width:100%;border-style:dashed;color:#E91E8C;border-color:#F9A8D4;" onclick="addOefRow(this, ${dag})">&#10133; Oefening</button>
+                        </div>
+                    </div>`;
+            }).join('');
 
             content.innerHTML = `
                 <div class="lead-modal-header">
                     <h2>Week ${weekNr} — ${escapeHtml(klantNaam)}</h2>
                     <button class="modal-close" onclick="document.getElementById('trainingModal').classList.remove('active')">&#10005;</button>
                 </div>
-                ${tmplOptions ? `
-                    <div class="tmpl-picker">
-                        <span>&#128196; Template:</span>
-                        <select id="trainTmplSel">${tmplOptions}</select>
-                        <button class="btn-small primary" onclick="applyTrainingTemplate()">Importeer</button>
+                <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
+                    <span style="font-size:13px;color:#6B7280;">&#128203; Kopieer van week:</span>
+                    <select id="kopieerWeekSel" class="filter-input" style="padding:6px 10px;font-size:13px;">
+                        ${Array.from({ length: 16 }, (_, i) => i + 1).filter(w => w !== weekNr).map(w => `<option value="${w}" ${w === weekNr - 1 ? 'selected' : ''}>Week ${w}</option>`).join('')}
+                    </select>
+                    <button class="btn-small primary" onclick="kopieerWeek('${klantId}', ${weekNr})">Kopieer</button>
+                </div>
+                <div id="dagEditor">${dagBlokken}</div>
+                <a href="#" onclick="toggleVideoVelden(this);return false;" style="font-size:12px;color:#9CA3AF;display:inline-block;margin-bottom:10px;">Toon video-velden (voor als je oefening-video's hebt)</a>
+                <details style="margin-bottom:12px;" ${schema && schema.content_markdown ? 'open' : ''}>
+                    <summary style="font-size:13px;color:#6B7280;cursor:pointer;">&#128221; Weeknotities${schema && schema.content_markdown ? ' (oude schema-tekst)' : ' (optioneel)'}</summary>
+                    <div class="md-editor" style="margin-top:8px;">
+                        <textarea id="trainContent" placeholder="Extra uitleg voor deze week..." style="min-height:100px;">${escapeHtml(schema ? schema.content_markdown || '' : '')}</textarea>
                     </div>
-                ` : '<p style="font-size:12px;color:#9CA3AF;margin-bottom:10px">Tip: maak eerst templates aan.</p>'}
-                <div class="lead-field">
-                    <label>Titel (optioneel)</label>
-                    <input id="trainTitel" class="filter-input" value="${escapeHtml(schema.titel || '')}" placeholder="bv. Week ${weekNr} - Krachttraining" style="width:100%">
-                </div>
-                <div class="lead-field md-editor">
-                    <label>Schema (markdown)</label>
-                    <textarea id="trainContent" placeholder="# Dag 1&#10;- Squat 3x8&#10;...">${escapeHtml(schema.content_markdown || '')}</textarea>
-                </div>
-                <label style="display:flex;align-items:center;gap:8px;margin:8px 0 12px;font-size:13px;color:#374151;cursor:pointer;">
-                    <input type="checkbox" id="trainNotify">
-                    &#128231; Stuur klant een email bij opslaan
-                </label>
+                </details>
+                <p style="font-size:12px;color:#9CA3AF;margin-bottom:12px;">&#128276; De klant krijgt automatisch een melding in de app zodra je opslaat.</p>
                 <div class="lead-actions" style="justify-content:space-between">
                     <div>
                         <button class="btn-admin btn-refresh" onclick="klantTraining('${klantId}', '${escapeHtml(klantNaam)}')">&#8592; Terug</button>
-                        ${schema.id ? `<button class="btn-admin" style="color:#991B1B;border-color:#FECACA;background:#FEF2F2;margin-left:8px" onclick="deleteTrainingWeek('${klantId}', '${escapeHtml(klantNaam)}', ${weekNr})">&#128465; Leegmaken</button>` : ''}
+                        <button class="btn-admin" style="color:#991B1B;border-color:#FECACA;background:#FEF2F2;margin-left:8px" onclick="deleteTrainingWeek('${klantId}', '${escapeHtml(klantNaam)}', ${weekNr})">&#128465; Week leegmaken</button>
                     </div>
-                    <button class="btn-admin btn-export" onclick="saveTrainingWeek('${klantId}', '${escapeHtml(klantNaam)}', ${weekNr})">Opslaan</button>
+                    <button class="btn-admin btn-export" id="saveWeekBtn" onclick="saveTrainingWeek('${klantId}', '${escapeHtml(klantNaam)}', ${weekNr})">Opslaan</button>
                 </div>
             `;
         }
 
-        function applyTrainingTemplate() {
-            const sel = document.getElementById('trainTmplSel');
-            const t = _trainingTemplatesCache.find(x => x.id === sel.value);
-            if (!t) return;
-            document.getElementById('trainTitel').value = t.naam;
-            document.getElementById('trainContent').value = t.content_markdown || '';
+        // Kopieer dag-schema's van een andere week naar de editor (alleen UI, opslaan doet de rest)
+        async function kopieerWeek(klantId, doelWeek) {
+            const bron = parseInt(document.getElementById('kopieerWeekSel').value, 10);
+            try {
+                const r = await fetch('/api/admin/klanten/' + klantId + '/training-dagen/' + bron, { credentials: 'include' });
+                const { dagen } = await r.json();
+                if (!dagen || !dagen.length) { alert('Week ' + bron + ' heeft nog geen dag-schema om te kopiëren.'); return; }
+                const byDag = {};
+                dagen.forEach(d => { byDag[d.dag] = d; });
+                document.querySelectorAll('#dagEditor .dag-blok').forEach(blok => {
+                    const dag = parseInt(blok.dataset.dag, 10);
+                    const d = byDag[dag];
+                    blok.querySelector('.dag-titel').value = d ? (d.titel || '') : '';
+                    toggleRustdag(dag, d ? !!d.is_rustdag : false);
+                    const body = blok.querySelector('.dag-body');
+                    body.querySelectorAll('.oef-edit-row').forEach(row => row.remove());
+                    const addBtn = body.querySelector('button');
+                    ((d && d.oefeningen) || []).forEach(o => addBtn.insertAdjacentHTML('beforebegin', oefRowHtml(dag, o)));
+                });
+            } catch (e) { alert('Kopiëren mislukt: ' + e.message); }
         }
 
         async function saveTrainingWeek(klantId, klantNaam, weekNr) {
-            const body = {
-                titel: document.getElementById('trainTitel').value.trim(),
-                content_markdown: document.getElementById('trainContent').value,
-                notify: document.getElementById('trainNotify').checked,
-            };
+            const btn = document.getElementById('saveWeekBtn');
+            btn.disabled = true; btn.textContent = 'Opslaan...';
+            const dagen = [];
+            document.querySelectorAll('#dagEditor .dag-blok').forEach(blok => {
+                const dag = parseInt(blok.dataset.dag, 10);
+                const isRust = blok.dataset.rustdag === '1';
+                const oefeningen = [];
+                blok.querySelectorAll('.oef-edit-row').forEach(row => {
+                    const naam = row.querySelector('.oef-naam').value.trim();
+                    if (!naam) return;
+                    oefeningen.push({
+                        naam,
+                        sets: row.querySelector('.oef-sets').value || null,
+                        reps: row.querySelector('.oef-reps').value.trim() || null,
+                        video_url: row.querySelector('.oef-video').value.trim() || null,
+                    });
+                });
+                dagen.push({
+                    dag,
+                    titel: blok.querySelector('.dag-titel').value.trim(),
+                    is_rustdag: isRust,
+                    oefeningen: isRust ? [] : oefeningen,
+                });
+            });
             try {
-                const r = await fetch('/api/admin/klanten/' + klantId + '/training-schemas/' + weekNr, {
+                const r = await fetch('/api/admin/klanten/' + klantId + '/training-dagen/' + weekNr, {
                     method: 'PUT', credentials: 'include',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(body),
+                    body: JSON.stringify({ dagen }),
                 });
                 const out = await r.json();
                 if (!r.ok || out.error) throw new Error(out.error || 'HTTP ' + r.status);
+
+                // Weeknotities apart opslaan (silent — de dagen-save pushte al).
+                // Leeg = record weggooien zodat de week niet onterecht "gevuld" lijkt.
+                const notities = (document.getElementById('trainContent')?.value || '').trim();
+                if (notities) {
+                    await fetch('/api/admin/klanten/' + klantId + '/training-schemas/' + weekNr, {
+                        method: 'PUT', credentials: 'include',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ titel: '', content_markdown: notities, silent: true }),
+                    }).catch(() => {});
+                } else {
+                    await fetch('/api/admin/klanten/' + klantId + '/training-schemas/' + weekNr, {
+                        method: 'DELETE', credentials: 'include',
+                    }).catch(() => {});
+                }
+
                 klantTraining(klantId, klantNaam);
-            } catch (e) { alert('Opslaan mislukt: ' + e.message); }
+            } catch (e) {
+                alert('Opslaan mislukt: ' + e.message);
+                btn.disabled = false; btn.textContent = 'Opslaan';
+            }
         }
         async function deleteTrainingWeek(klantId, klantNaam, weekNr) {
             if (!confirm(`Week ${weekNr} leegmaken?`)) return;
             try {
+                await fetch('/api/admin/klanten/' + klantId + '/training-dagen/' + weekNr, { method: 'DELETE', credentials: 'include' });
                 await fetch('/api/admin/klanten/' + klantId + '/training-schemas/' + weekNr, { method: 'DELETE', credentials: 'include' });
                 klantTraining(klantId, klantNaam);
             } catch (e) { alert('Verwijderen mislukt: ' + e.message); }
@@ -1559,17 +1732,19 @@
                         <label>Voorbeeldmaaltijden / toelichting (markdown)</label>
                         <textarea id="voedContent" placeholder="## Ontbijt...">${escapeHtml(p.content_markdown || '')}</textarea>
                     </div>
-                    <label style="display:flex;align-items:center;gap:8px;margin:4px 0 12px;font-size:13px;color:#374151;cursor:pointer;">
-                        <input type="checkbox" id="voedNotify">
-                        &#128231; Stuur klant een email bij opslaan
-                    </label>
+                    <p style="font-size:12px;color:#9CA3AF;margin:4px 0 12px;">&#128276; De klant krijgt automatisch een melding in de app zodra je opslaat.</p>
                     <div class="lead-actions" style="justify-content:space-between">
                         <div>
                             ${p.id ? `<button class="btn-admin" style="color:#991B1B;border-color:#FECACA;background:#FEF2F2" onclick="deleteVoedingPlan('${klantId}', '${escapeHtml(klantNaam)}')">&#128465; Verwijder</button>` : ''}
                         </div>
                         <button class="btn-admin btn-export" onclick="saveVoedingPlan('${klantId}', '${escapeHtml(klantNaam)}')">Opslaan</button>
                     </div>
+                    <div style="margin-top:18px;border-top:1px solid #F3F4F6;padding-top:14px;">
+                        <h3 style="font-size:14px;margin-bottom:8px;">&#127860; Wat ${escapeHtml((klantNaam || '').split(' ')[0])} at (laatste 14 dagen)</h3>
+                        <div id="voedingLogView" style="font-size:13px;color:#9CA3AF;">Laden...</div>
+                    </div>
                 `;
+                loadVoedingLogView(klantId);
             } catch (e) {
                 content.innerHTML = `
                     <div class="lead-modal-header"><h2>Voeding</h2><button class="modal-close" onclick="document.getElementById('voedingModal').classList.remove('active')">&#10005;</button></div>
@@ -1590,6 +1765,44 @@
             document.getElementById('voedContent').value = t.content_markdown || '';
         }
 
+        // Voedingslog van de klant tonen (gegroepeerd per dag, met dagtotaal)
+        async function loadVoedingLogView(klantId) {
+            const wrap = document.getElementById('voedingLogView');
+            if (!wrap) return;
+            try {
+                const r = await fetch('/api/admin/klanten/' + klantId + '/voeding-logs?days=14', { credentials: 'include' });
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                const { logs } = await r.json();
+                if (!logs || !logs.length) {
+                    wrap.innerHTML = '<span style="color:#9CA3AF;">Nog niks gelogd. De klant logt eten via haar app (&#127860; Voeding).</span>';
+                    return;
+                }
+                const byDatum = {};
+                logs.forEach(l => { (byDatum[l.datum] = byDatum[l.datum] || []).push(l); });
+                const MAALTIJD_EMOJI = { ontbijt: '&#127859;', lunch: '&#129386;', diner: '&#127869;&#65039;', snack: '&#127871;' };
+                wrap.innerHTML = Object.keys(byDatum).sort().reverse().map(datum => {
+                    const items = byDatum[datum];
+                    const totaal = items.reduce((s, l) => s + (l.calories || 0), 0);
+                    const d = new Date(datum).toLocaleDateString('nl-NL', { weekday: 'short', day: 'numeric', month: 'short' });
+                    return `
+                        <div style="border:1px solid #F3F4F6;border-radius:10px;padding:10px 12px;margin-bottom:8px;">
+                            <div style="display:flex;justify-content:space-between;font-weight:600;color:#1F2937;margin-bottom:6px;">
+                                <span>${d}</span>
+                                <span style="color:#E91E8C;">${totaal > 0 ? totaal + ' kcal' : ''}</span>
+                            </div>
+                            ${items.map(l => `
+                                <div style="display:flex;justify-content:space-between;padding:2px 0;color:#374151;">
+                                    <span>${MAALTIJD_EMOJI[l.maaltijd] || ''} ${escapeHtml(l.omschrijving)}</span>
+                                    <span style="color:#9CA3AF;flex-shrink:0;margin-left:8px;">${l.calories != null ? l.calories + ' kcal' : ''}</span>
+                                </div>
+                            `).join('')}
+                        </div>`;
+                }).join('');
+            } catch (e) {
+                wrap.innerHTML = '<span style="color:#EF4444;">Kon voedingslog niet laden: ' + escapeHtml(e.message) + '</span>';
+            }
+        }
+
         async function saveVoedingPlan(klantId, klantNaam) {
             const body = {
                 titel: document.getElementById('voedTitel').value.trim(),
@@ -1598,7 +1811,6 @@
                 koolhydraten_g: document.getElementById('voedKh').value,
                 vetten_g: document.getElementById('voedVet').value,
                 content_markdown: document.getElementById('voedContent').value,
-                notify: document.getElementById('voedNotify').checked,
             };
             try {
                 const r = await fetch('/api/admin/klanten/' + klantId + '/voeding-plan', {
@@ -2098,7 +2310,7 @@
                 const r = await fetch('/api/admin/stats/vandaag', { credentials: 'include' });
                 if (!r.ok) { body.textContent = 'Vandaag-data laden mislukt.'; return; }
                 const v = await r.json();
-                if (!v || v.totaal === 0) {
+                if (!v || (v.totaal === 0 && !(v.workoutsVandaag || []).length)) {
                     body.innerHTML = `
                         <div style="text-align:center;padding:18px 0;color:#065F46;">
                             <div style="font-size:32px;margin-bottom:6px;">&#127881;</div>
@@ -2128,6 +2340,17 @@
                     </div>`;
 
                 body.innerHTML = `
+                    ${block(
+                        '&#127947; Vandaag getraind',
+                        v.workoutsVandaag || [],
+                        '',
+                        w => row(w.naam || w.email,
+                            `${w.aantal_oefeningen} oefeningen${w.duur_min ? ' · ' + w.duur_min + ' min' : ''}`,
+                            `klantWorkouts('${w.klant_id}', '${escapeHtml((w.naam||w.email||'').replace(/'/g, "\\'"))}')`,
+                            '#065F46'
+                        ),
+                        '#0F766E'
+                    )}
                     ${block(
                         '&#128221; Nieuwe check-ins om te reviewen',
                         v.nieuweCheckIns,

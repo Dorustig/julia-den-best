@@ -315,7 +315,7 @@ const server = http.createServer(async (req, res) => {
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   // Version-stamp om te kunnen debuggen welke deploy draait.
-  res.setHeader('X-App-Version', 'coach-split-v3');
+  res.setHeader('X-App-Version', 'voeding-trainingdagen-v4');
 
   if (req.method === 'OPTIONS') {
     res.writeHead(204);
@@ -802,6 +802,126 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
+  // ===== VOEDING LOGS (klant logt handmatig eten) =====
+  if (pathname === '/api/klant/voeding-logs' && req.method === 'GET') {
+    const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+    const user = await supabaseHelper.verifyUserToken(token);
+    if (!user) return jsonRes(res, 401, { error: 'Not logged in' });
+    const klant = await supabaseHelper.getKlantByAuthUserId(user.id);
+    if (!klant) return jsonRes(res, 404, { error: 'No klant profile' });
+    const datum = parsed.query.datum || null;
+    const days = Math.min(90, parseInt(parsed.query.days || '7', 10) || 7);
+    const logs = await supabaseHelper.listVoedingLogs(klant.id, { datum, days });
+    return jsonRes(res, 200, { logs });
+  }
+  if (pathname === '/api/klant/voeding-logs' && req.method === 'POST') {
+    const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+    const user = await supabaseHelper.verifyUserToken(token);
+    if (!user) return jsonRes(res, 401, { error: 'Not logged in' });
+    const klant = await supabaseHelper.getKlantByAuthUserId(user.id);
+    if (!klant) return jsonRes(res, 404, { error: 'No klant profile' });
+    let body;
+    try { body = JSON.parse(await readBody(req)); }
+    catch { return jsonRes(res, 400, { error: 'Invalid JSON' }); }
+    const r = await supabaseHelper.saveVoedingLog({
+      klantId: klant.id,
+      datum: body.datum,
+      maaltijd: body.maaltijd,
+      omschrijving: body.omschrijving,
+      calories: body.calories,
+      eiwit_g: body.eiwit_g,
+      koolhydraten_g: body.koolhydraten_g,
+      vetten_g: body.vetten_g,
+    });
+    if (!r.ok) return jsonRes(res, 400, { error: r.error });
+    return jsonRes(res, 200, { ok: true, log: r.log });
+  }
+  {
+    const m = pathname.match(/^\/api\/klant\/voeding-logs\/([0-9a-f-]+)$/i);
+    if (m && req.method === 'DELETE') {
+      const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+      const user = await supabaseHelper.verifyUserToken(token);
+      if (!user) return jsonRes(res, 401, { error: 'Not logged in' });
+      const klant = await supabaseHelper.getKlantByAuthUserId(user.id);
+      if (!klant) return jsonRes(res, 404, { error: 'No klant profile' });
+      const log = await supabaseHelper.getVoedingLog(m[1]);
+      if (!log || log.klant_id !== klant.id) return jsonRes(res, 403, { error: 'Niet van jou' });
+      const r = await supabaseHelper.deleteVoedingLog(m[1]);
+      if (!r.ok) return jsonRes(res, 400, { error: r.error });
+      return jsonRes(res, 200, { ok: true });
+    }
+  }
+
+  // Coach bekijkt voeding-logs van een klant
+  {
+    const m = pathname.match(/^\/api\/admin\/klanten\/([0-9a-f-]+)\/voeding-logs$/i);
+    if (m && req.method === 'GET') {
+      if (!requireAuth(req, res)) return;
+      const days = Math.min(90, parseInt(parsed.query.days || '14', 10) || 14);
+      const logs = await supabaseHelper.listVoedingLogs(m[1], { days });
+      return jsonRes(res, 200, { logs });
+    }
+  }
+
+  // ===== TRAINING DAGEN (weekschema per dag) =====
+
+  // GET /api/klant/training-dagen — klant leest eigen dag-schemas (JWT)
+  if (pathname === '/api/klant/training-dagen' && req.method === 'GET') {
+    const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+    const user = await supabaseHelper.verifyUserToken(token);
+    if (!user) return jsonRes(res, 401, { error: 'Not logged in' });
+    const klant = await supabaseHelper.getKlantByAuthUserId(user.id);
+    if (!klant) return jsonRes(res, 404, { error: 'No klant profile' });
+    const dagen = await supabaseHelper.listTrainingDagen(klant.id);
+    return jsonRes(res, 200, { dagen });
+  }
+
+  // GET/PUT/DELETE /api/admin/klanten/:klantId/training-dagen/:weekNr
+  {
+    const m = pathname.match(/^\/api\/admin\/klanten\/([0-9a-f-]+)\/training-dagen\/(\d+)$/i);
+    if (m) {
+      if (!requireAuth(req, res)) return;
+      const klantId = m[1];
+      const weekNr = parseInt(m[2], 10);
+      if (req.method === 'GET') {
+        const dagen = await supabaseHelper.listTrainingDagen(klantId, weekNr);
+        return jsonRes(res, 200, { dagen });
+      }
+      if (req.method === 'PUT') {
+        let body;
+        try { body = JSON.parse(await readBody(req)); }
+        catch { return jsonRes(res, 400, { error: 'Invalid JSON' }); }
+        const r = await supabaseHelper.saveTrainingWeekDagen(klantId, weekNr, body.dagen || []);
+        if (!r.ok) return jsonRes(res, 400, { error: r.error });
+
+        // Klant krijgt altijd een melding in de app (push) — geen email meer.
+        pushToKlant(klantId, {
+          title: `🏋️ Training week ${weekNr} staat klaar`,
+          body: 'Julia heeft je weekschema bijgewerkt. Bekijk je trainingen in de app.',
+          url: '/klant/start#training',
+          tag: 'training-' + klantId,
+        }).catch(e => console.warn('[training-dagen push] failed:', e.message));
+
+        return jsonRes(res, 200, { ok: true, dagen: r.dagen });
+      }
+      if (req.method === 'DELETE') {
+        const r = await supabaseHelper.deleteTrainingWeekDagen(klantId, weekNr);
+        if (!r.ok) return jsonRes(res, 400, { error: r.error });
+        return jsonRes(res, 200, { ok: true });
+      }
+    }
+  }
+
+  // Alle weken in 1 call (voor de coach week-grid)
+  {
+    const m = pathname.match(/^\/api\/admin\/klanten\/([0-9a-f-]+)\/training-dagen$/i);
+    if (m && req.method === 'GET') {
+      if (!requireAuth(req, res)) return;
+      const dagen = await supabaseHelper.listTrainingDagen(m[1]);
+      return jsonRes(res, 200, { dagen });
+    }
+  }
+
   // ===== COACH EDIT KLANT (specifiek klant-profiel vanuit coach-dashboard) =====
   // PUT /api/admin/klanten/:klantId  → Julia past klantprofiel aan
   // DELETE /api/admin/klanten/:klantId → archiveren (status = gestopt)
@@ -833,7 +953,14 @@ const server = http.createServer(async (req, res) => {
     }
     if (m && req.method === 'DELETE') {
       if (!requireAuth(req, res)) return;
-      // Soft-delete: status = gestopt. Harde delete is te riskant (FK cascades).
+      // ?hard=1 → permanent verwijderen: klanten-rij (cascades ruimen alle
+      // data op) + auth user zodat login niet meer werkt.
+      if (parsed.query.hard === '1') {
+        const r = await supabaseHelper.deleteKlantHard(m[1]);
+        if (!r.ok) return jsonRes(res, 500, { error: r.error });
+        return jsonRes(res, 200, { ok: true, deleted: true, email: r.email });
+      }
+      // Zonder hard-flag: soft-delete (status = gestopt), data blijft bewaard.
       const upd = await supabaseHelper.updateKlantFields(m[1], { status: 'gestopt' });
       if (!upd.ok) return jsonRes(res, 500, { error: upd.error });
       return jsonRes(res, 200, { ok: true, klant: upd.klant });
@@ -1006,17 +1133,10 @@ const server = http.createServer(async (req, res) => {
         });
         if (!r.ok) return jsonRes(res, 400, { error: r.error });
 
-        // Notify klant if 'notify' flag is true (admin kiest zelf): email + push
-        if (body.notify) {
-          supabaseHelper.supabase
-            .from('klanten').select('email,naam').eq('id', klantId).single()
-            .then(({ data }) => {
-              if (data?.email && emailHelper.isEnabled()) {
-                emailHelper.sendKlantNewTrainingEmail({
-                  to: data.email, klantNaam: data.naam, weekNr, titel: body.titel,
-                }).catch(e => console.warn('[training mail] failed:', e.message));
-              }
-            }).catch(() => {});
+        // Klant krijgt altijd een melding in de app (push) — geen email meer.
+        // body.silent=true wordt gebruikt als deze save onderdeel is van een
+        // grotere save (dag-editor) die zelf al één push stuurt.
+        if (!body.silent) {
           pushToKlant(klantId, {
             title: `🏋️ Training week ${weekNr} staat klaar`,
             body: body.titel ? String(body.titel).slice(0, 100) : 'Je nieuwe trainingsschema is beschikbaar.',
@@ -1107,25 +1227,13 @@ const server = http.createServer(async (req, res) => {
         const r = await supabaseHelper.saveVoedingPlan({ ...body, klantId });
         if (!r.ok) return jsonRes(res, 400, { error: r.error });
 
-        // Notify klant if 'notify' flag is true: email + push
-        if (body.notify) {
-          supabaseHelper.supabase
-            .from('klanten').select('email,naam').eq('id', klantId).single()
-            .then(({ data }) => {
-              if (data?.email && emailHelper.isEnabled()) {
-                emailHelper.sendKlantNewVoedingEmail({
-                  to: data.email, klantNaam: data.naam,
-                  titel: body.titel, calories: r.plan.calories,
-                }).catch(e => console.warn('[voeding mail] failed:', e.message));
-              }
-            }).catch(() => {});
-          pushToKlant(klantId, {
-            title: '🥗 Voedingsplan bijgewerkt',
-            body: body.titel ? String(body.titel).slice(0, 100) : 'Je nieuwe plan staat klaar.',
-            url: '/klant/start#voeding',
-            tag: 'voeding-' + klantId,
-          }).catch(e => console.warn('[voeding push] failed:', e.message));
-        }
+        // Klant krijgt altijd een melding in de app (push) — geen email meer.
+        pushToKlant(klantId, {
+          title: '🥗 Voedingsplan bijgewerkt',
+          body: body.titel ? String(body.titel).slice(0, 100) : 'Je nieuwe plan staat klaar.',
+          url: '/klant/start#voeding',
+          tag: 'voeding-' + klantId,
+        }).catch(e => console.warn('[voeding push] failed:', e.message));
 
         return jsonRes(res, 200, { ok: true, plan: r.plan });
       }
@@ -1705,7 +1813,13 @@ const server = http.createServer(async (req, res) => {
 
       if (supabaseHelper.isEnabled() && Object.keys(sbPatch).length) {
         const r = await supabaseHelper.updateLead(leadId, sbPatch);
-        if (!r.ok) console.warn('[PUT lead] Supabase:', r.error);
+        if (!r.ok) {
+          // Supabase is de canonical store voor de admin-lijst. Als de update
+          // daar faalt (bv. ongeldige status), moet de UI dat weten — anders
+          // lijkt de wijziging te lukken en springt hij bij refresh terug.
+          console.warn('[PUT lead] Supabase:', r.error);
+          return jsonRes(res, 400, { error: 'Opslaan mislukt: ' + r.error });
+        }
       }
 
       // Update file (legacy)
@@ -1997,6 +2111,8 @@ const server = http.createServer(async (req, res) => {
     '/klant/checkin/': '/klant-checkin.html',
     '/klant/workout': '/klant-workout.html',
     '/klant/workout/': '/klant-workout.html',
+    '/klant/voeding': '/klant-voeding.html',
+    '/klant/voeding/': '/klant-voeding.html',
     '/klant': '/klant-start.html',
     '/klant/': '/klant-start.html',
   };

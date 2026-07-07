@@ -994,9 +994,20 @@
         async function setStatus(id, status) {
             const idx = leads.findIndex(l => l.id === id);
             if (idx === -1) return;
+            const oldStatus = leads[idx].status;
             leads[idx].status = status;
-            try { await fetch(`/api/leads/${id}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ status }) }); }
-            catch (e) { console.warn('Backend update failed:', e); }
+            try {
+                const r = await fetch(`/api/leads/${id}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ status }) });
+                if (!r.ok) {
+                    const j = await r.json().catch(() => ({}));
+                    throw new Error(j.error || 'HTTP ' + r.status);
+                }
+            } catch (e) {
+                // Terugdraaien + laten zien — anders lijkt het gelukt en springt
+                // de status bij een refresh stilletjes terug.
+                leads[idx].status = oldStatus;
+                alert('Status wijzigen mislukt: ' + e.message);
+            }
             updateStats();
             renderTable();
             openLead(id);

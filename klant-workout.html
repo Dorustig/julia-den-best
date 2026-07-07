@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js" async defer></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -159,6 +160,38 @@
     .msg { padding: 12px; border-radius: 10px; font-size: 13px; margin-bottom: 14px; display: none; }
     .msg.error { background: #FEE2E2; color: #991B1B; display: block; }
     .msg.success { background: #D1FAE5; color: #065F46; display: block; }
+
+    /* PR celebration overlay */
+    .pr-overlay {
+      position: fixed; inset: 0; background: rgba(15,15,20,0.6); z-index: 500;
+      display: none; align-items: center; justify-content: center; padding: 24px;
+      backdrop-filter: blur(4px);
+    }
+    .pr-overlay.active { display: flex; }
+    .pr-card {
+      background: #fff; border-radius: 24px; padding: 32px 28px; max-width: 380px; width: 100%;
+      text-align: center; box-shadow: 0 24px 70px rgba(0,0,0,0.35);
+    }
+    .pr-card .medal { font-size: 72px; line-height: 1; margin-bottom: 10px; }
+    .pr-card h2 { font-family: 'Playfair Display', serif; font-size: 24px; color: #1F2937; margin-bottom: 8px; }
+    .pr-card .pr-lines { font-size: 15px; color: #374151; line-height: 1.7; margin-bottom: 16px; }
+    .pr-card .pr-lines strong { color: #E91E8C; }
+    .pr-card button {
+      width: 100%; padding: 14px; background: #E91E8C; color: #fff; border: none;
+      border-radius: 14px; font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit;
+    }
+
+    /* Progressie sectie */
+    .prog-item {
+      background: #fff; border-radius: 14px; padding: 12px 16px; margin-bottom: 8px;
+      border: 1px solid #F3F4F6; display: flex; justify-content: space-between;
+      align-items: center; font-size: 14px; gap: 10px;
+    }
+    .prog-item .naam { font-weight: 600; }
+    .prog-item .naam .sessies { font-weight: 400; font-size: 11px; color: #9CA3AF; }
+    .prog-item .delta { flex-shrink: 0; text-align: right; }
+    .prog-item .delta .kgs { font-family: 'Playfair Display', serif; font-weight: 700; color: #E91E8C; }
+    .prog-item .delta .diff { display: block; font-size: 11px; font-weight: 600; }
     .loader { display: flex; justify-content: center; padding: 60px 0; }
     .spinner { width: 36px; height: 36px; border: 3px solid #FCE7F3; border-top-color: #E91E8C; border-radius: 50%; animation: spin 0.8s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
@@ -192,6 +225,10 @@
     let history = [];
     let weekSchema = null;
     let schemaExpanded = false;
+    let dagSchema = null; // vandaag-schema uit training_dagen (Julia's dag-planning)
+
+    // JS getDay(): 0=zo..6=za → onze notatie 1=ma..7=zo
+    function vandaagDagNr() { return ((new Date().getDay() + 6) % 7) + 1; }
 
     async function main() {
       const cfg = await (await fetch('/api/config')).json();
@@ -201,14 +238,16 @@
       if (!session) { window.location.href = '/klant/login'; return; }
       authHdr = { Authorization: 'Bearer ' + session.access_token };
 
-      const [meRes, wRes, schemaRes] = await Promise.all([
+      const [meRes, wRes, schemaRes, dagenRes] = await Promise.all([
         fetch('/api/klant/me', { headers: authHdr }),
         fetch('/api/klant/workouts', { headers: authHdr }),
         fetch('/api/klant/training-schemas', { headers: authHdr }),
+        fetch('/api/klant/training-dagen', { headers: authHdr }),
       ]);
       klantInfo = meRes.ok ? (await meRes.json()).klant : null;
       history = wRes.ok ? ((await wRes.json()).workouts || []) : [];
       const schemas = schemaRes.ok ? ((await schemaRes.json()).schemas || []) : [];
+      const dagen = dagenRes.ok ? ((await dagenRes.json()).dagen || []) : [];
 
       if (klantInfo?.start_datum) {
         const startMs = new Date(klantInfo.start_datum).getTime();
@@ -218,6 +257,18 @@
       weekSchema = currentWorkout.week_nr
         ? (schemas.find(s => s.week_nr === currentWorkout.week_nr) || null)
         : null;
+      dagSchema = currentWorkout.week_nr
+        ? (dagen.find(d => d.week_nr === currentWorkout.week_nr && d.dag === vandaagDagNr()) || null)
+        : null;
+
+      // Julia's oefeningen van vandaag direct klaarzetten in het log-formulier.
+      // Alleen bij een vers formulier — niet als we een bestaande log bewerken.
+      if (dagSchema && !dagSchema.is_rustdag && (dagSchema.oefeningen || []).length) {
+        currentWorkout.oefeningen = dagSchema.oefeningen.map(o => {
+          const nSets = Math.max(1, Math.min(20, parseInt(o.sets, 10) || 3));
+          return { naam: o.naam || '', sets: Array.from({ length: nSets }, emptySet), note: '' };
+        });
+      }
 
       renderPage();
     }
@@ -276,6 +327,8 @@
           <button class="submit inline" id="saveBtnInline" onclick="saveWorkout()">Workout opslaan</button>
         </div>
 
+        ${renderProgressie()}
+
         ${history.length > 0 ? `
           <h2 style="font-family:'Playfair Display',serif;font-size:20px;margin:24px 0 12px;">Jouw eerdere workouts</h2>
           ${history.map(renderHistory).join('')}
@@ -284,6 +337,15 @@
         <div class="sticky-save">
           <button class="submit" id="saveBtn" onclick="saveWorkout()">Workout opslaan</button>
         </div>
+
+        <div class="pr-overlay" id="prOverlay">
+          <div class="pr-card">
+            <div class="medal">🥇</div>
+            <h2>GEFELICITEERD!</h2>
+            <div class="pr-lines" id="prLines"></div>
+            <button onclick="document.getElementById('prOverlay').classList.remove('active')">Yes! 💪</button>
+          </div>
+        </div>
       `);
 
       document.body.classList.add('has-sticky-save');
@@ -291,6 +353,29 @@
     }
 
     function renderSchemaCard() {
+      // Dag-schema van vandaag heeft voorrang: dat is wat ze nú gaat doen.
+      if (dagSchema) {
+        if (dagSchema.is_rustdag) {
+          return `
+            <div class="schema-card" style="background:#F3F4F6;border-color:#E5E7EB;">
+              <div class="schema-label" style="color:#6B7280;">&#128716; Vandaag &middot; week ${currentWorkout.week_nr}</div>
+              <div class="schema-title">Rustdag volgens je schema — lekker herstellen. Toch getraind? Log 'm gerust hieronder.</div>
+            </div>`;
+        }
+        if ((dagSchema.oefeningen || []).length) {
+          const regels = dagSchema.oefeningen.map(o => {
+            const doel = o.sets ? o.sets + '×' + (o.reps || '?') : (o.reps || '');
+            return `• ${o.naam}${doel ? ' — ' + doel : ''}`;
+          }).join('\n');
+          return `
+            <div class="schema-card">
+              <div class="schema-label">&#128293; Vandaag op je schema &middot; week ${currentWorkout.week_nr}</div>
+              <div class="schema-title">${escapeHtml(dagSchema.titel || 'Training')}</div>
+              <div class="schema-body">${escapeHtml(regels)}</div>
+              <div style="font-size:11px;color:#9D174D;margin-top:6px;">De oefeningen staan al voor je klaar hieronder 👇</div>
+            </div>`;
+        }
+      }
       if (!weekSchema) return '';
       const body = (weekSchema.content_markdown || '').trim();
       if (!body) return '';
@@ -369,6 +454,78 @@
       const s = new Set();
       for (const w of history) for (const o of (w.oefeningen || [])) if (o.naam) s.add(o.naam.trim());
       return [...s].slice(0, 30);
+    }
+
+    // Zwaarste gewicht ooit per oefening (uit history, exclusief 1 log-id).
+    function maxGewichtVoor(naam, { excludeId = null } = {}) {
+      const key = (naam || '').trim().toLowerCase();
+      if (!key) return null;
+      let max = null;
+      for (const w of history) {
+        if (excludeId && w.id === excludeId) continue;
+        for (const o of (w.oefeningen || [])) {
+          if ((o.naam || '').trim().toLowerCase() !== key) continue;
+          for (const s of (o.sets || [])) {
+            if (s && !s.skipped && s.gewicht != null && (max === null || s.gewicht > max)) max = s.gewicht;
+          }
+        }
+      }
+      return max;
+    }
+
+    // Progressie-overzicht: per oefening eerste sessie → zwaarste ooit.
+    function renderProgressie() {
+      const per = {};
+      for (let i = history.length - 1; i >= 0; i--) { // oudste eerst
+        const w = history[i];
+        for (const o of (w.oefeningen || [])) {
+          const key = (o.naam || '').trim().toLowerCase();
+          if (!key) continue;
+          const kgs = (o.sets || []).filter(s => s && !s.skipped && s.gewicht != null).map(s => s.gewicht);
+          if (!kgs.length) continue;
+          const maxKg = Math.max(...kgs);
+          if (!per[key]) per[key] = { naam: o.naam.trim(), eerste: maxKg, max: maxKg, sessies: 1 };
+          else { per[key].sessies++; if (maxKg > per[key].max) per[key].max = maxKg; }
+        }
+      }
+      const rows = Object.values(per).filter(p => p.sessies >= 2)
+        .sort((a, b) => (b.max - b.eerste) - (a.max - a.eerste));
+      if (!rows.length) return '';
+      return `
+        <h2 style="font-family:'Playfair Display',serif;font-size:20px;margin:24px 0 12px;">📈 Jouw progressie</h2>
+        ${rows.map(p => {
+          const diff = +(p.max - p.eerste).toFixed(1);
+          return `
+            <div class="prog-item">
+              <div class="naam">${escapeHtml(p.naam)} 🥇<br><span class="sessies">${p.sessies} sessies</span></div>
+              <div class="delta">
+                <span class="kgs">${p.eerste} &rarr; ${p.max} kg</span>
+                <span class="diff" style="color:${diff > 0 ? '#065F46' : '#6B7280'};">${diff > 0 ? '+' + diff + ' kg sinds je start' : 'houd vol!'}</span>
+              </div>
+            </div>`;
+        }).join('')}
+      `;
+    }
+
+    // Confetti + gefeliciteerd-melding bij nieuwe PR('s)
+    function celebratePRs(prs) {
+      if (!prs.length) return;
+      const lines = document.getElementById('prLines');
+      if (lines) {
+        lines.innerHTML = prs.map(p =>
+          `Nieuw record op <strong>${escapeHtml(p.naam)}</strong>: <strong>${p.nieuw} kg</strong>${p.oud != null ? ` <span style="color:#9CA3AF;">(was ${p.oud} kg)</span>` : ''}`
+        ).join('<br>') + '<br><span style="color:#6B7280;font-size:13px;">Julia ziet dit ook — she\'s proud 💕</span>';
+      }
+      document.getElementById('prOverlay')?.classList.add('active');
+      if (typeof confetti === 'function') {
+        const fire = (opts) => { try { confetti(Object.assign({
+          particleCount: 80, spread: 75, origin: { y: 0.6 },
+          colors: ['#E91E8C', '#F472B6', '#FBBF24', '#FCE7F3', '#FFD700'],
+        }, opts || {})); } catch {} };
+        fire();
+        setTimeout(() => fire({ angle: 60, origin: { x: 0, y: 0.7 } }), 250);
+        setTimeout(() => fire({ angle: 120, origin: { x: 1, y: 0.7 } }), 500);
+      }
     }
 
     function formatKort(d) {
@@ -577,6 +734,17 @@
 
         msg.className = 'msg success';
         msg.textContent = '✓ Workout opgeslagen.';
+
+        // PR-detectie: vergelijk met het zwaarste gewicht ooit (vóór deze log).
+        const prs = [];
+        for (const o of filtered) {
+          const kgs = (o.sets || []).filter(s => s && !s.skipped && s.gewicht != null).map(s => s.gewicht);
+          if (!kgs.length) continue;
+          const nieuw = Math.max(...kgs);
+          const oud = maxGewichtVoor(o.naam, { excludeId: currentWorkout.id });
+          if (oud != null && nieuw > oud) prs.push({ naam: o.naam, nieuw, oud });
+        }
+
         // Refresh history + reset form
         const wRes = await fetch('/api/klant/workouts', { headers: authHdr });
         history = wRes.ok ? ((await wRes.json()).workouts || []) : [];
@@ -589,6 +757,7 @@
           notities: '',
         };
         renderPage();
+        celebratePRs(prs);
       } catch (e) {
         msg.className = 'msg error';
         msg.textContent = e.message;

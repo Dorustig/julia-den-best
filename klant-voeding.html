@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Voeding loggen · Julia Besten</title>
+  <meta name="theme-color" content="#E91E8C">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif; color: #1F2937; min-height: 100vh;
+      background: linear-gradient(135deg, #FFF1F7 0%, #FFE4EF 50%, #FFEDE4 100%);
+      padding: 20px 16px 60px;
+    }
+    .wrap { max-width: 640px; margin: 0 auto; }
+    .topbar { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+    .back { font-size: 22px; color: #E91E8C; text-decoration: none; padding: 4px 8px; }
+    .brand { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: #E91E8C; flex: 1; }
+    h1 { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; margin-bottom: 6px; }
+    .intro { color: #6B7280; font-size: 14px; line-height: 1.5; margin-bottom: 16px; }
+
+    .card { background: #fff; border-radius: 20px; padding: 20px; box-shadow: 0 10px 40px rgba(233,30,140,0.08); margin-bottom: 14px; }
+
+    /* Dag-navigatie */
+    .day-nav { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
+    .day-nav button {
+      width: 42px; height: 42px; border-radius: 12px; border: 1.5px solid #FBCFE8;
+      background: #fff; color: #E91E8C; font-size: 18px; cursor: pointer; font-family: inherit;
+    }
+    .day-nav button:disabled { opacity: 0.35; cursor: default; }
+    .day-nav .day-label { font-weight: 700; font-size: 15px; text-align: center; flex: 1; }
+    .day-nav .day-label .sub { display: block; font-weight: 400; font-size: 12px; color: #9CA3AF; }
+
+    /* Dagtotaal */
+    .total-card { background: linear-gradient(135deg, #E91E8C 0%, #F06292 100%); color: #fff; border-radius: 20px; padding: 18px 20px; margin-bottom: 14px; box-shadow: 0 12px 32px rgba(233,30,140,0.25); }
+    .total-row { display: flex; justify-content: space-between; align-items: baseline; }
+    .total-kcal { font-family: 'Playfair Display', serif; font-size: 34px; font-weight: 700; line-height: 1; }
+    .total-kcal .unit { font-size: 14px; font-family: 'Inter', sans-serif; opacity: 0.85; font-weight: 500; }
+    .total-doel { font-size: 13px; opacity: 0.9; text-align: right; }
+    .total-bar { height: 8px; background: rgba(255,255,255,0.25); border-radius: 4px; margin-top: 12px; overflow: hidden; }
+    .total-bar .fill { height: 100%; background: #fff; border-radius: 4px; transition: width 0.4s ease; }
+    .total-macros { display: flex; gap: 14px; margin-top: 10px; font-size: 12px; opacity: 0.9; }
+
+    /* Maaltijd-sectie */
+    .meal { margin-bottom: 4px; }
+    .meal-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+    .meal-head .naam { font-weight: 700; font-size: 15px; }
+    .meal-head .kcal { font-size: 13px; color: #E91E8C; font-weight: 600; }
+    .meal-item { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid #FDF2F8; font-size: 14px; }
+    .meal-item .oms { flex: 1; }
+    .meal-item .kc { color: #9CA3AF; font-size: 13px; flex-shrink: 0; }
+    .meal-item .del { background: none; border: none; color: #D1D5DB; font-size: 16px; cursor: pointer; padding: 2px 6px; font-family: inherit; }
+    .meal-item .del:hover { color: #991B1B; }
+    .meal-empty { color: #D1D5DB; font-size: 13px; padding: 6px 0; }
+
+    .add-row { display: grid; grid-template-columns: 1fr 78px 44px; gap: 6px; margin-top: 8px; }
+    .add-row input {
+      padding: 10px 12px; border: 1.5px solid #E5E7EB; border-radius: 10px;
+      font-size: 14px; font-family: inherit; width: 100%;
+    }
+    .add-row input:focus { outline: none; border-color: #E91E8C; }
+    .add-row input.kcal-in { text-align: center; padding: 10px 6px; }
+    .add-row button {
+      background: #E91E8C; color: #fff; border: none; border-radius: 10px;
+      font-size: 18px; cursor: pointer; font-family: inherit;
+    }
+    .add-row button:disabled { opacity: 0.5; }
+
+    .msg { padding: 12px; border-radius: 10px; font-size: 13px; margin-bottom: 14px; display: none; }
+    .msg.error { background: #FEE2E2; color: #991B1B; display: block; }
+    .loader { display: flex; justify-content: center; padding: 60px 0; }
+    .spinner { width: 36px; height: 36px; border: 3px solid #FCE7F3; border-top-color: #E91E8C; border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="wrap" id="wrap">
+    <div class="loader"><div class="spinner"></div></div>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+    const wrap = document.getElementById('wrap');
+    function render(html) { wrap.innerHTML = html; }
+    function escapeHtml(s) {
+      return String(s == null ? '' : s).replace(/[&<>"']/g, c =>
+        ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+    }
+
+    const MAALTIJDEN = [
+      { key: 'ontbijt', naam: '🍳 Ontbijt' },
+      { key: 'lunch', naam: '🥪 Lunch' },
+      { key: 'diner', naam: '🍽️ Diner' },
+      { key: 'snack', naam: '🍿 Snacks' },
+    ];
+
+    let supabase, authHdr, plan = null;
+    let datum = new Date().toISOString().slice(0, 10);
+    let logs = [];            // logs voor de getoonde datum
+    let recente = {};         // omschrijving (lowercase) → { omschrijving, calories } uit history
+
+    const todayISO = () => new Date().toISOString().slice(0, 10);
+
+    async function main() {
+      const cfg = await (await fetch('/api/config')).json();
+      supabase = createClient(cfg.supabase_url, cfg.supabase_anon_key);
+      const s = await supabase.auth.getSession();
+      if (!s.data?.session) { window.location.href = '/klant/login'; return; }
+      authHdr = { Authorization: 'Bearer ' + s.data.session.access_token };
+
+      const [planRes, histRes] = await Promise.all([
+        fetch('/api/klant/voeding-plan', { headers: authHdr }),
+        fetch('/api/klant/voeding-logs?days=30', { headers: authHdr }),
+      ]);
+      plan = planRes.ok ? (await planRes.json()).plan : null;
+      const hist = histRes.ok ? ((await histRes.json()).logs || []) : [];
+      // Recente items voor snelle suggesties (laatste kcal per omschrijving)
+      for (const l of hist) {
+        const key = (l.omschrijving || '').trim().toLowerCase();
+        if (key && !recente[key]) recente[key] = { omschrijving: l.omschrijving, calories: l.calories };
+      }
+      await loadDag();
+    }
+
+    async function loadDag() {
+      const r = await fetch('/api/klant/voeding-logs?datum=' + datum, { headers: authHdr });
+      logs = r.ok ? ((await r.json()).logs || []) : [];
+      renderPage();
+    }
+
+    function dagLabel() {
+      const d = new Date(datum + 'T12:00:00');
+      const label = d.toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' });
+      return datum === todayISO() ? 'Vandaag' : label.charAt(0).toUpperCase() + label.slice(1);
+    }
+
+    function renderPage() {
+      const totaal = logs.reduce((s, l) => s + (l.calories || 0), 0);
+      const eiwit = logs.reduce((s, l) => s + (l.eiwit_g || 0), 0);
+      const doel = plan?.calories || null;
+      const pct = doel ? Math.min(100, (totaal / doel) * 100) : 0;
+      const over = doel && totaal > doel;
+
+      const meals = MAALTIJDEN.map(m => {
+        const items = logs.filter(l => l.maaltijd === m.key);
+        const mealKcal = items.reduce((s, l) => s + (l.calories || 0), 0);
+        return `
+          <div class="card meal">
+            <div class="meal-head">
+              <span class="naam">${m.naam}</span>
+              <span class="kcal">${mealKcal > 0 ? mealKcal + ' kcal' : ''}</span>
+            </div>
+            ${items.length ? items.map(l => `
+              <div class="meal-item">
+                <span class="oms">${escapeHtml(l.omschrijving)}</span>
+                <span class="kc">${l.calories != null ? l.calories + ' kcal' : '—'}</span>
+                <button class="del" onclick="delLog('${l.id}')" title="Verwijder">&#10005;</button>
+              </div>
+            `).join('') : '<div class="meal-empty">Nog niks gelogd.</div>'}
+            <div class="add-row">
+              <input type="text" id="oms-${m.key}" placeholder="Wat at je? (bv. Griekse yoghurt)" list="recente-items"
+                     onchange="autofillKcal('${m.key}')"
+                     onkeydown="if(event.key==='Enter'){event.preventDefault();addLog('${m.key}')}">
+              <input type="number" class="kcal-in" id="kcal-${m.key}" placeholder="kcal" min="0" max="9999"
+                     onkeydown="if(event.key==='Enter'){event.preventDefault();addLog('${m.key}')}">
+              <button type="button" onclick="addLog('${m.key}')" title="Toevoegen">&#10133;</button>
+            </div>
+          </div>`;
+      }).join('');
+
+      render(`
+        <div class="topbar">
+          <a href="/klant/start" class="back">&larr;</a>
+          <div class="brand">Julia Besten</div>
+        </div>
+        <h1>🍽 Voeding loggen</h1>
+        <p class="intro">Log simpel wat je eet. Calorieën hoeven niet perfect te zijn — een goede schatting is genoeg.</p>
+
+        <div id="msg" class="msg"></div>
+
+        <div class="card day-nav" style="padding:12px 14px;">
+          <button onclick="prevDag()">&larr;</button>
+          <div class="day-label">${dagLabel()}<span class="sub">${datum}</span></div>
+          <button onclick="nextDag()" ${datum >= todayISO() ? 'disabled' : ''}>&rarr;</button>
+        </div>
+
+        <div class="total-card">
+          <div class="total-row">
+            <div class="total-kcal">${totaal}<span class="unit"> kcal</span></div>
+            <div class="total-doel">${doel ? (over ? `${totaal - doel} kcal boven je doel` : `nog ${doel - totaal} kcal te gaan`) + `<br>doel: ${doel} kcal` : 'Julia stelt binnenkort je calorie-doel in'}</div>
+          </div>
+          ${doel ? `<div class="total-bar"><div class="fill" style="width:${pct}%;${over ? 'background:#FBBF24;' : ''}"></div></div>` : ''}
+          ${eiwit > 0 ? `<div class="total-macros"><span>Eiwit: ${eiwit}g${plan?.eiwit_g ? ' / ' + plan.eiwit_g + 'g' : ''}</span></div>` : ''}
+        </div>
+
+        <datalist id="recente-items">
+          ${Object.values(recente).slice(0, 50).map(r => `<option value="${escapeHtml(r.omschrijving)}">`).join('')}
+        </datalist>
+
+        ${meals}
+      `);
+    }
+
+    window.prevDag = () => {
+      const d = new Date(datum + 'T12:00:00'); d.setDate(d.getDate() - 1);
+      datum = d.toISOString().slice(0, 10);
+      loadDag();
+    };
+    window.nextDag = () => {
+      if (datum >= todayISO()) return;
+      const d = new Date(datum + 'T12:00:00'); d.setDate(d.getDate() + 1);
+      datum = d.toISOString().slice(0, 10);
+      loadDag();
+    };
+
+    // Bekend item gekozen uit suggesties → kcal automatisch invullen
+    window.autofillKcal = (meal) => {
+      const oms = (document.getElementById('oms-' + meal).value || '').trim().toLowerCase();
+      const kcalEl = document.getElementById('kcal-' + meal);
+      if (oms && recente[oms] && recente[oms].calories != null && !kcalEl.value) {
+        kcalEl.value = recente[oms].calories;
+      }
+    };
+
+    window.addLog = async (meal) => {
+      const omsEl = document.getElementById('oms-' + meal);
+      const kcalEl = document.getElementById('kcal-' + meal);
+      const omschrijving = (omsEl.value || '').trim();
+      if (!omschrijving) { omsEl.focus(); return; }
+      const calories = kcalEl.value === '' ? null : parseInt(kcalEl.value, 10);
+      const msg = document.getElementById('msg');
+      msg.className = 'msg'; msg.textContent = '';
+      try {
+        const r = await fetch('/api/klant/voeding-logs', {
+          method: 'POST',
+          headers: { ...authHdr, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ datum, maaltijd: meal, omschrijving, calories }),
+        });
+        const data = await r.json();
+        if (!r.ok || data.error) throw new Error(data.error || 'Opslaan mislukt');
+        const key = omschrijving.toLowerCase();
+        if (!recente[key]) recente[key] = { omschrijving, calories };
+        await loadDag();
+        // Focus terug op het invoerveld van dezelfde maaltijd — snel doorloggen
+        const el = document.getElementById('oms-' + meal);
+        if (el) el.focus();
+      } catch (e) {
+        msg.className = 'msg error'; msg.textContent = e.message;
+      }
+    };
+
+    window.delLog = async (id) => {
+      try {
+        const r = await fetch('/api/klant/voeding-logs/' + id, { method: 'DELETE', headers: authHdr });
+        if (!r.ok) { const j = await r.json().catch(() => ({})); throw new Error(j.error || 'HTTP ' + r.status); }
+        logs = logs.filter(l => l.id !== id);
+        renderPage();
+      } catch (e) { alert('Verwijderen mislukt: ' + e.message); }
+    };
+
+    main().catch(err => {
+      console.error('[klant-voeding]', err);
+      render(`<div class="card"><h1>Er ging iets mis</h1><p class="intro">${escapeHtml(err.message || String(err))}</p><a href="/klant/start" class="back">&larr; Terug naar dashboard</a></div>`);
+    });
+  </script>
+</body>
+</html>

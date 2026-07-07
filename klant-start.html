@@ -1313,13 +1313,14 @@
       }
 
       const authHdr = { Authorization: 'Bearer ' + session.access_token };
-      const [r, cr, tr, vr, chr, vidR] = await Promise.all([
+      const [r, cr, tr, vr, chr, vidR, tdR] = await Promise.all([
         fetch('/api/klant/me', { headers: authHdr }),
         fetch('/api/klant/checkins', { headers: authHdr }),
         fetch('/api/klant/training-schemas', { headers: authHdr }),
         fetch('/api/klant/voeding-plan', { headers: authHdr }),
         fetch('/api/klant/chat', { headers: authHdr }),
         fetch('/api/klant/videos', { headers: authHdr }),
+        fetch('/api/klant/training-dagen', { headers: authHdr }),
       ]);
 
       if (r.status === 404) {
@@ -1342,6 +1343,8 @@
       const voedingPlan = (vr && vr.ok ? (await vr.json()).plan : null);
       const chatData = (chr && chr.ok ? await chr.json() : { messages: [], unread: 0 });
       const videos = (vidR && vidR.ok ? (await vidR.json()).videos : []) || [];
+      const trainingDagen = (tdR && tdR.ok ? (await tdR.json()).dagen : []) || [];
+      window.__trainingDagen = trainingDagen;
       window.__trainingSchemas = trainingSchemas;
       window.__chatMessages = chatData.messages || [];
       window.__chatUnread = chatData.unread || 0;
@@ -1359,6 +1362,7 @@
       const nowMs = Date.now();
       const msPerWeek = 7 * 24 * 60 * 60 * 1000;
       const weekNum = Math.min(16, Math.max(1, Math.ceil((nowMs - startMs) / msPerWeek)));
+      window.__currentWeekNum = weekNum;
       const daysLeft = Math.max(0, Math.ceil((new Date(klant.eind_datum).getTime() - nowMs) / (24 * 60 * 60 * 1000)));
       const progressPct = Math.min(100, (weekNum / 16) * 100);
 
@@ -1738,15 +1742,79 @@
     }, 10000);
 
     // ===== Training card =====
+    const DAG_NAMEN_KORT = ['Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za', 'Zo'];
+    const DAG_NAMEN_LANG = ['Maandag', 'Dinsdag', 'Woensdag', 'Donderdag', 'Vrijdag', 'Zaterdag', 'Zondag'];
+    // JS getDay(): 0=zo..6=za → onze notatie 1=ma..7=zo
+    function vandaagDagNr() { return ((new Date().getDay() + 6) % 7) + 1; }
+
+    // Dag-gebaseerde weekweergave: per dag een training of rustdag
+    function renderWeekDagen(wk, isCurrentWeek) {
+      const dagen = (window.__trainingDagen || []).filter(d => d.week_nr === wk);
+      if (!dagen.length) return null;
+      const byDag = {};
+      dagen.forEach(d => { byDag[d.dag] = d; });
+      const vandaag = vandaagDagNr();
+      const rows = Array.from({ length: 7 }, (_, i) => {
+        const dagNr = i + 1;
+        const d = byDag[dagNr];
+        const isVandaag = isCurrentWeek && dagNr === vandaag;
+        const stijl = isVandaag
+          ? 'background:#FDF2F8;border:1.5px solid #F9A8D4;border-radius:12px;'
+          : 'border-bottom:1px solid #F9FAFB;';
+        let inhoud;
+        if (!d || (!d.titel && !d.is_rustdag && !(d.oefeningen || []).length)) {
+          inhoud = '<span style="color:#D1D5DB;">—</span>';
+        } else if (d.is_rustdag) {
+          inhoud = '<span style="color:#9CA3AF;">🛌 Rustdag</span>';
+        } else {
+          const oefs = (d.oefeningen || []).map(o => {
+            const doel = [o.sets ? o.sets + '×' + (o.reps || '?') : (o.reps || '')].filter(Boolean).join('');
+            return `<div style="font-size:12px;color:#6B7280;padding:1px 0;">• ${escapeHtml(o.naam)}${doel ? ' <span style="color:#9CA3AF;">' + escapeHtml(doel) + '</span>' : ''}</div>`;
+          }).join('');
+          inhoud = `<strong style="color:#E91E8C;">${escapeHtml(d.titel || 'Training')}</strong>${oefs}`;
+        }
+        return `
+          <div style="display:flex;gap:12px;padding:9px 10px;${stijl}">
+            <div style="width:34px;flex-shrink:0;font-weight:700;font-size:13px;color:${isVandaag ? '#E91E8C' : '#9CA3AF'};">${DAG_NAMEN_KORT[i]}</div>
+            <div style="flex:1;font-size:14px;">${inhoud}${isVandaag && d && !d.is_rustdag && (d.oefeningen || []).length ? '<a href="/klant/workout" style="display:inline-block;margin-top:6px;background:#E91E8C;color:#fff;text-decoration:none;padding:5px 12px;border-radius:8px;font-size:12px;font-weight:600;">🏋 Log deze workout</a>' : ''}</div>
+          </div>`;
+      }).join('');
+      return rows;
+    }
+
+    function weekHasContent(wk) {
+      const dagen = (window.__trainingDagen || []).some(d => d.week_nr === wk && (d.titel || d.is_rustdag || (d.oefeningen || []).length));
+      const schema = (window.__trainingSchemas || []).some(s => s.week_nr === wk && (s.content_markdown || '').trim());
+      return dagen || schema;
+    }
+
+    function trainingWeekHtml(wk, currentWeek) {
+      const isCurrentWeek = wk === currentWeek;
+      const dagenHtml = renderWeekDagen(wk, isCurrentWeek);
+      const s = (window.__trainingSchemas || []).find(x => x.week_nr === wk);
+      const kop = `
+        <div style="font-family:'Playfair Display',serif;font-weight:700;font-size:18px;margin-bottom:8px;">
+          Week ${wk}${s && s.titel ? ' · ' + escapeHtml(s.titel) : ''}
+        </div>`;
+      if (dagenHtml) {
+        return kop + dagenHtml + (s && (s.content_markdown || '').trim() ? `
+          <details style="margin-top:10px;">
+            <summary style="font-size:13px;color:#9CA3AF;cursor:pointer;">📝 Weeknotities van Julia</summary>
+            <div class="md-render" style="margin-top:6px;">${renderMarkdown(s.content_markdown)}</div>
+          </details>` : '');
+      }
+      if (s && (s.content_markdown || '').trim()) {
+        return kop + `<div class="md-render">${renderMarkdown(s.content_markdown)}</div>`;
+      }
+      return `<div class="empty-plan">📌 Week ${wk} is nog niet ingevuld.</div>`;
+    }
+
     function renderTrainingCard(schemas, currentWeek) {
-      const byWeek = {};
-      (schemas || []).forEach(s => { byWeek[s.week_nr] = s; });
-      const hasAny = Object.keys(byWeek).length > 0;
-      const current = byWeek[currentWeek];
+      const hasAny = Array.from({ length: 16 }, (_, i) => i + 1).some(weekHasContent);
 
       const weekButtons = Array.from({ length: 16 }, (_, i) => {
         const wk = i + 1;
-        const has = !!byWeek[wk];
+        const has = weekHasContent(wk);
         const cur = wk === currentWeek;
         return `<button class="wk-btn ${has ? 'has-content' : ''} ${cur ? 'current' : ''}"
                   onclick="showTrainingWeek(${wk})">${wk}</button>`;
@@ -1756,12 +1824,7 @@
         <div class="section-title">🏋️ Jouw training</div>
         <div class="card" style="margin-bottom:16px;">
           <div id="trainingDisplay">
-            ${current ? `
-              <div style="font-family:'Playfair Display',serif;font-weight:700;font-size:18px;margin-bottom:8px;">
-                Week ${currentWeek}${current.titel ? ' · ' + escapeHtml(current.titel) : ''}
-              </div>
-              <div class="md-render">${renderMarkdown(current.content_markdown)}</div>
-            ` : hasAny ? `
+            ${weekHasContent(currentWeek) ? trainingWeekHtml(currentWeek, currentWeek) : hasAny ? `
               <div class="empty-plan">📌 Deze week staat nog geen schema klaar. Klik op een week hieronder om eentje te bekijken.</div>
             ` : `
               <div class="empty-plan">🏋️ Julia zet hier binnenkort je trainingsschema.<br><span style="font-size:12px;color:#9CA3AF;">Je ziet 'm zodra het klaar staat.</span></div>
@@ -1778,20 +1841,9 @@
     }
 
     window.showTrainingWeek = function(wk) {
-      const schemas = window.__trainingSchemas || [];
-      const s = schemas.find(x => x.week_nr === wk);
       const display = document.getElementById('trainingDisplay');
       if (!display) return;
-      if (!s) {
-        display.innerHTML = `<div class="empty-plan">📌 Week ${wk} is nog niet ingevuld.</div>`;
-        return;
-      }
-      display.innerHTML = `
-        <div style="font-family:'Playfair Display',serif;font-weight:700;font-size:18px;margin-bottom:8px;">
-          Week ${wk}${s.titel ? ' · ' + escapeHtml(s.titel) : ''}
-        </div>
-        <div class="md-render">${renderMarkdown(s.content_markdown)}</div>
-      `;
+      display.innerHTML = trainingWeekHtml(wk, window.__currentWeekNum || wk);
       // Update current highlight
       document.querySelectorAll('.weken-list .wk-btn').forEach((btn, i) => {
         btn.classList.toggle('current', i + 1 === wk);
@@ -1800,11 +1852,13 @@
 
     // ===== Voeding card =====
     function renderVoedingCard(plan) {
+      const logBtn = `<a href="/klant/voeding" class="cta-btn secondary" style="margin-top:12px;padding:12px 16px;font-size:14px;">🍽 Log wat je vandaag at</a>`;
       if (!plan) {
         return `
           <div class="section-title">🥗 Jouw voeding</div>
           <div class="card" style="margin-bottom:16px;">
             <div class="empty-plan">🥗 Julia stelt binnenkort je voedingsplan op.<br><span style="font-size:12px;color:#9CA3AF;">Je ziet 'm zodra het klaar staat.</span></div>
+            ${logBtn}
           </div>
         `;
       }
@@ -1820,6 +1874,7 @@
           ${plan.titel ? `<div style="font-family:'Playfair Display',serif;font-weight:700;font-size:18px;margin-bottom:10px;">${escapeHtml(plan.titel)}</div>` : ''}
           ${pills ? `<div class="macro-pills">${pills}</div>` : ''}
           ${plan.content_markdown ? `<div class="md-render">${renderMarkdown(plan.content_markdown)}</div>` : ''}
+          ${logBtn}
         </div>
       `;
     }
