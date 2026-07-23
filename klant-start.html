@@ -1368,11 +1368,16 @@
 
       // Goal-aware delta: afvallen doelen = daling positief, aankomen = stijging positief
       const afvalDoelen = new Set(['afvallen', 'slanker_worden', 'recomposition']);
-      const willDown = afvalDoelen.has(klant.doel);
 
-      const start = klant.start_gewicht_kg;
-      const doel = klant.doel_gewicht_kg;
+      const start = klant.start_gewicht_kg != null ? parseFloat(klant.start_gewicht_kg) : null;
+      const doel = klant.doel_gewicht_kg != null ? parseFloat(klant.doel_gewicht_kg) : null;
       const hasGoal = doel != null;
+      // Richting: het doelgewicht is leidend (doel onder start = afvallen), het
+      // doel-type is alleen fallback. Anders staat de balk op 0% bij bv. doel-type
+      // "billen aankomen" met een doelgewicht ONDER het startgewicht.
+      const willDown = (hasGoal && start != null && doel !== start)
+        ? doel < start
+        : afvalDoelen.has(klant.doel);
       const laatste = checkins.length ? checkins[checkins.length - 1] : null;
       const huidig = laatste ? parseFloat(laatste.gewicht_kg) : start;
       const delta = +(huidig - start).toFixed(1);
