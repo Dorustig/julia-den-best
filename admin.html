@@ -414,7 +414,7 @@
                 <li><a href="#" data-filter="nieuw" onclick="sidebarFilter(event, 'nieuw')">📞 Te bellen</a></li>
                 <li><a href="#" data-filter="afspraak" onclick="sidebarFilter(event, 'afspraak')">📅 Afspraken</a></li>
                 <li><a href="#" data-filter="klant" onclick="sidebarFilter(event, 'klant')">✅ Klanten (lead)</a></li>
-                <li style="margin-top:10px;padding-top:10px;border-top:1px solid #374151">
+                <li style="margin-top:10px;padding-top:10px;border-top:1px solid #374151" data-admin-only>
                     <a href="#" onclick="goToCoachDashboard(event)" style="color:#F472B6">🏋🏻‍♀️ Coach Dashboard →</a>
                 </li>
                 <li><a href="index.html">🌐 Landingspagina</a></li>
@@ -546,7 +546,7 @@
 
             <!-- Coach dashboard-link: alle 16-weken programma features staan
                  in een apart dashboard, zodat dit portaal puur lead-management is. -->
-            <div class="backup-section" style="margin-top:24px;background:linear-gradient(135deg,#FFF1F7,#FCE7F3);border:1px solid #F9A8D4">
+            <div class="backup-section" data-admin-only style="margin-top:24px;background:linear-gradient(135deg,#FFF1F7,#FCE7F3);border:1px solid #F9A8D4">
                 <h2 style="color:#9D174D">&#127947;&#127996;&#8205;&#9792;&#65039; Klanten &amp; 16-weken programma</h2>
                 <p style="font-size:13px;color:#831843;margin-bottom:12px">
                     Klanten, chat, training, voeding, video library en analytics staan in het aparte Coach Dashboard.
@@ -555,7 +555,7 @@
             </div>
 
             <!-- Tracking Pixels Config -->
-            <div class="backup-section" style="margin-top:24px">
+            <div class="backup-section" data-admin-only style="margin-top:24px">
                 <h2>&#128202; Tracking Pixels (voor advertenties)</h2>
                 <p style="font-size:13px;color:#6B7280;margin-bottom:12px">
                     Vul je pixel-IDs in om Google Analytics, Meta/Facebook Ads en TikTok Ads te koppelen.
@@ -1163,6 +1163,18 @@
         loadLeads();
         loadBackups();
         loadTrackingConfig();
+
+        // Setter-accounts (Romy) zien alleen leads: verberg coach/tracking-secties.
+        (async () => {
+            try {
+                const r = await fetch('/api/me', { credentials: 'include' });
+                if (!r.ok) return;
+                const me = await r.json();
+                if (me.role === 'setter') {
+                    document.querySelectorAll('[data-admin-only]').forEach(el => el.style.display = 'none');
+                }
+            } catch {}
+        })();
     </script>
 </body>
 </html>

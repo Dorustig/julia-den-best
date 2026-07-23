@@ -81,11 +81,17 @@ const ADMIN_PASS = process.env.ADMIN_PASS || 'Deurenzijncool123';
 // Tweede admin: Julia (coach zelf). Krijgt dezelfde rechten als Dorus.
 const ADMIN_USER_2 = process.env.ADMIN_USER_2 || 'Julia';
 const ADMIN_PASS_2 = process.env.ADMIN_PASS_2 || '#Cheesy123';
+// Appointment setter: Romy (romyroelofsen@gmail.com). Rol 'setter' = alleen
+// leads inzien/aanpassen + setter playbook. Geen toegang tot het coach-
+// dashboard (klantdata: check-ins, foto's, chat).
+const ADMIN_USER_3 = process.env.ADMIN_USER_3 || 'Romy';
+const ADMIN_PASS_3 = process.env.ADMIN_PASS_3 || 'Bellenmaar2026';
 
-// Lijst van toegestane (user, pass) combinaties. Alleen Dorus en Julia.
+// Lijst van toegestane (user, pass, role) combinaties.
 const ADMIN_CREDENTIALS = [
-  { user: ADMIN_USER,   pass: ADMIN_PASS },
-  { user: ADMIN_USER_2, pass: ADMIN_PASS_2 },
+  { user: ADMIN_USER,   pass: ADMIN_PASS,   role: 'admin' },
+  { user: ADMIN_USER_2, pass: ADMIN_PASS_2, role: 'admin' },
+  { user: ADMIN_USER_3, pass: ADMIN_PASS_3, role: 'setter' },
 ];
 
 // Session secret used to sign cookies. Generated once and persisted to the
@@ -163,11 +169,31 @@ function clearSessionCookie(req, res) {
   res.setHeader('Set-Cookie',
     `${SESSION_COOKIE}=; Path=/; HttpOnly; SameSite=Lax${secure}; Max-Age=0`);
 }
+// Paden die een setter-account mag gebruiken: alles rond leads, plus de
+// leads-portal helpers. Al het andere (klantdata, training, voeding, chat,
+// video's, todos) blijft admin-only.
+const SETTER_ALLOWED_PATHS = [
+  '/api/leads',            // GET lijst + PUT/DELETE /api/leads/:id
+  '/api/stats',            // leads-statistieken
+  '/api/analytics/sources',
+  '/api/export/',          // leads export json/csv
+  '/api/backup/',          // leads-backups (zelfde data als de lijst)
+  '/api/admin/portal-url',
+];
+
 function requireAuth(req, res) {
   const session = getSession(req);
   if (!session) {
     jsonRes(res, 401, { error: 'Auth required' });
     return false;
+  }
+  if (session.role === 'setter') {
+    const p = url.parse(req.url).pathname;
+    const allowed = SETTER_ALLOWED_PATHS.some(pre => p === pre || p.startsWith(pre));
+    if (!allowed) {
+      jsonRes(res, 403, { error: 'Geen toegang met een setter-account' });
+      return false;
+    }
   }
   return true;
 }
@@ -315,7 +341,7 @@ const server = http.createServer(async (req, res) => {
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   // Version-stamp om te kunnen debuggen welke deploy draait.
-  res.setHeader('X-App-Version', 'voeding-lifesum-v5');
+  res.setHeader('X-App-Version', 'setter-role-v6');
 
   if (req.method === 'OPTIONS') {
     res.writeHead(204);
@@ -376,22 +402,22 @@ const server = http.createServer(async (req, res) => {
     // al matcht — zodat response-tijd niet verraadt welke user geprobeerd is.
     const userBuf = Buffer.from(user.padEnd(64, '\0').slice(0, 64));
     const passBuf = Buffer.from(pass.padEnd(64, '\0').slice(0, 64));
-    let matchedUser = null;
+    let matched = null;
     for (const cred of ADMIN_CREDENTIALS) {
       const expectedUser = Buffer.from(cred.user.toLowerCase().padEnd(64, '\0').slice(0, 64));
       const expectedPass = Buffer.from(cred.pass.padEnd(64, '\0').slice(0, 64));
       const uOk = crypto.timingSafeEqual(userBuf, expectedUser);
       const pOk = crypto.timingSafeEqual(passBuf, expectedPass);
-      if (uOk && pOk && !matchedUser) matchedUser = cred.user;
+      if (uOk && pOk && !matched) matched = cred;
     }
-    if (!matchedUser) {
+    if (!matched) {
       return jsonRes(res, 401, { error: 'Ongeldige gebruikersnaam of wachtwoord' });
     }
-    const token = signToken({ user: matchedUser, role: 'admin', exp: Date.now() + SESSION_TTL_MS });
+    const token = signToken({ user: matched.user, role: matched.role, exp: Date.now() + SESSION_TTL_MS });
     setSessionCookie(req, res, token);
-    // Default post-login destination is the coach dashboard (primary daily workflow).
-    // The leads/admin portal is a secondary page, reachable from the coach sidebar.
-    return jsonRes(res, 200, { success: true, redirect: '/coach' });
+    // Admin → coach dashboard (primary daily workflow). Setter → leads portal.
+    const redirect = matched.role === 'setter' ? `/${ADMIN_SLUG}` : '/coach';
+    return jsonRes(res, 200, { success: true, redirect });
   }
 
   // POST /api/logout — clear session cookie
@@ -2118,10 +2144,17 @@ const server = http.createServer(async (req, res) => {
   };
 
   let filePath;
+  const pageSession = getSession(req);
   if (isAdminSlug) {
-    filePath = getSession(req) ? '/admin.html' : '/login.html';
+    filePath = pageSession ? '/admin.html' : '/login.html';
   } else if (isCoachSlug) {
-    filePath = getSession(req) ? '/coach.html' : '/login.html';
+    // Setter-accounts horen niet in het coach-dashboard (klantdata) —
+    // stuur ze door naar de leads-portal.
+    if (pageSession && pageSession.role === 'setter') {
+      res.writeHead(302, { Location: `/${ADMIN_SLUG}` });
+      return res.end();
+    }
+    filePath = pageSession ? '/coach.html' : '/login.html';
   } else if (isSetterSlug) {
     filePath = getSession(req) ? '/setter.html' : '/login.html';
   } else if (isDebateSlug) {
