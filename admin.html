@@ -939,6 +939,7 @@
         function openLead(id) {
             const l = leads.find(x => x.id === id);
             if (!l) return;
+            window.__noteEditRaw = false;
             const mc = document.getElementById('leadModalContent');
             mc.innerHTML = `
                 <div class="lead-modal-header">
@@ -969,7 +970,11 @@
                 </div></div>
                 <div class="lead-field">
                     <label>Notities</label>
-                    <textarea id="noteField" placeholder="Voeg notities toe...">${esc(l.notities || '')}</textarea>
+                    ${l.notities ? `
+                        <div id="noteHistory" style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:10px;padding:10px 12px;font-size:13px;color:#374151;white-space:pre-wrap;max-height:220px;overflow-y:auto;margin-bottom:8px;">${esc(l.notities)}</div>
+                    ` : ''}
+                    <textarea id="noteField" placeholder="Nieuwe notitie... (datum en je naam worden er automatisch bij gezet)"></textarea>
+                    ${l.notities ? `<button type="button" class="btn-admin btn-status" style="margin-top:6px;font-size:12px;padding:4px 10px;" onclick="editNotesRaw('${l.id}')">&#9998; Oude notities bewerken</button>` : ''}
                 </div>
                 <div class="lead-field"><label>Status wijzigen</label></div>
                 <div class="lead-actions">
@@ -981,7 +986,7 @@
                 </div>
                 <div style="margin-top:16px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap">
                     <button class="btn-admin" style="color:#991B1B;border-color:#FECACA;background:#FEF2F2" onclick="deleteLead('${l.id}')">&#128465; Verwijder lead</button>
-                    <button class="btn-admin btn-export" onclick="saveNote('${l.id}')">Opslaan</button>
+                    <button class="btn-admin btn-export" id="noteSaveBtn" onclick="saveNote('${l.id}')">Notitie toevoegen</button>
                 </div>
             `;
             document.getElementById('leadModal').classList.add('active');
@@ -1028,14 +1033,48 @@
             } catch (e) { alert('Verwijderen mislukt: ' + e.message); }
         }
 
+        // Nieuwe notitie: krijgt automatisch een datum + naam van wie hem schreef,
+        // en wordt onder de bestaande notities geplakt (blijft 1 tekstveld in de DB).
         async function saveNote(id) {
             const idx = leads.findIndex(l => l.id === id);
             if (idx === -1) return;
-            const notities = document.getElementById('noteField').value;
+            const ta = document.getElementById('noteField');
+            const txt = (ta.value || '').trim();
+
+            let notities;
+            if (window.__noteEditRaw) {
+                // Bewerk-modus: het hele blok is aangepast, 1-op-1 opslaan.
+                notities = txt;
+            } else {
+                if (!txt) { closeModal(); return; } // niks getypt → gewoon sluiten
+                const now = new Date();
+                const stamp = now.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', year: 'numeric' })
+                    + ' ' + now.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
+                const who = window.__me?.user ? ' · ' + window.__me.user : '';
+                const entry = `[${stamp}${who}] ${txt}`;
+                const bestaand = (leads[idx].notities || '').trim();
+                notities = bestaand ? bestaand + '\n\n' + entry : entry;
+            }
+            window.__noteEditRaw = false;
             leads[idx].notities = notities;
             try { await fetch(`/api/leads/${id}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ notities }) }); }
             catch (e) { console.warn('Backend update failed:', e); }
             closeModal();
+        }
+
+        // Oude notities corrigeren: maak het hele blok bewerkbaar in het tekstveld.
+        function editNotesRaw(id) {
+            const l = leads.find(x => x.id === id);
+            if (!l) return;
+            window.__noteEditRaw = true;
+            const hist = document.getElementById('noteHistory');
+            if (hist) hist.style.display = 'none';
+            const ta = document.getElementById('noteField');
+            ta.value = l.notities || '';
+            ta.style.minHeight = '160px';
+            ta.focus();
+            const btn = document.getElementById('noteSaveBtn');
+            if (btn) btn.textContent = 'Wijzigingen opslaan';
         }
 
         function downloadServer(format) {
@@ -1170,6 +1209,7 @@
                 const r = await fetch('/api/me', { credentials: 'include' });
                 if (!r.ok) return;
                 const me = await r.json();
+                window.__me = me; // gebruikt voor naam bij notities
                 if (me.role === 'setter') {
                     document.querySelectorAll('[data-admin-only]').forEach(el => el.style.display = 'none');
                 }
