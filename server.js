@@ -315,7 +315,7 @@ const server = http.createServer(async (req, res) => {
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   // Version-stamp om te kunnen debuggen welke deploy draait.
-  res.setHeader('X-App-Version', 'voeding-trainingdagen-v4');
+  res.setHeader('X-App-Version', 'voeding-lifesum-v5');
 
   if (req.method === 'OPTIONS') {
     res.writeHead(204);

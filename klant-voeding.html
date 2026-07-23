@@ -13,62 +13,112 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: 'Inter', sans-serif; color: #1F2937; min-height: 100vh;
-      background: linear-gradient(135deg, #FFF1F7 0%, #FFE4EF 50%, #FFEDE4 100%);
-      padding: 20px 16px 60px;
+      background: linear-gradient(180deg, #FDE7F1 0%, #FFF1F7 45%, #FAF7F5 100%);
+      padding: 16px 16px 60px;
     }
     .wrap { max-width: 640px; margin: 0 auto; }
-    .topbar { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+    .topbar { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
     .back { font-size: 22px; color: #E91E8C; text-decoration: none; padding: 4px 8px; }
     .brand { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: #E91E8C; flex: 1; }
-    h1 { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; margin-bottom: 6px; }
-    .intro { color: #6B7280; font-size: 14px; line-height: 1.5; margin-bottom: 16px; }
-
-    .card { background: #fff; border-radius: 20px; padding: 20px; box-shadow: 0 10px 40px rgba(233,30,140,0.08); margin-bottom: 14px; }
 
     /* Dag-navigatie */
-    .day-nav { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
+    .day-nav { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 6px; }
     .day-nav button {
-      width: 42px; height: 42px; border-radius: 12px; border: 1.5px solid #FBCFE8;
-      background: #fff; color: #E91E8C; font-size: 18px; cursor: pointer; font-family: inherit;
+      width: 38px; height: 38px; border-radius: 50%; border: none;
+      background: transparent; color: #E91E8C; font-size: 20px; cursor: pointer; font-family: inherit;
     }
-    .day-nav button:disabled { opacity: 0.35; cursor: default; }
-    .day-nav .day-label { font-weight: 700; font-size: 15px; text-align: center; flex: 1; }
-    .day-nav .day-label .sub { display: block; font-weight: 400; font-size: 12px; color: #9CA3AF; }
+    .day-nav button:disabled { opacity: 0.25; cursor: default; }
+    .day-nav .day-label {
+      font-weight: 700; font-size: 14px; letter-spacing: 1.5px; text-transform: uppercase;
+      color: #1F2937; text-align: center; min-width: 200px;
+    }
 
-    /* Dagtotaal */
-    .total-card { background: linear-gradient(135deg, #E91E8C 0%, #F06292 100%); color: #fff; border-radius: 20px; padding: 18px 20px; margin-bottom: 14px; box-shadow: 0 12px 32px rgba(233,30,140,0.25); }
-    .total-row { display: flex; justify-content: space-between; align-items: baseline; }
-    .total-kcal { font-family: 'Playfair Display', serif; font-size: 34px; font-weight: 700; line-height: 1; }
-    .total-kcal .unit { font-size: 14px; font-family: 'Inter', sans-serif; opacity: 0.85; font-weight: 500; }
-    .total-doel { font-size: 13px; opacity: 0.9; text-align: right; }
-    .total-bar { height: 8px; background: rgba(255,255,255,0.25); border-radius: 4px; margin-top: 12px; overflow: hidden; }
-    .total-bar .fill { height: 100%; background: #fff; border-radius: 4px; transition: width 0.4s ease; }
-    .total-macros { display: flex; gap: 14px; margin-top: 10px; font-size: 12px; opacity: 0.9; }
+    /* Hero: ring + gegeten/doel */
+    .hero-ring { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 4px; margin-bottom: 16px; }
+    .hero-side { text-align: center; }
+    .hero-side .lbl { font-size: 13px; color: #6B7280; font-weight: 500; margin-bottom: 4px; }
+    .hero-side .val { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; color: #1F2937; }
+    .ring-wrap { position: relative; width: 210px; height: 210px; }
+    .ring-wrap svg { width: 100%; height: 100%; transform: rotate(135deg); }
+    .ring-bg { fill: none; stroke: rgba(233,30,140,0.15); stroke-width: 14; stroke-linecap: round; }
+    .ring-fill { fill: none; stroke: #E91E8C; stroke-width: 14; stroke-linecap: round; transition: stroke-dashoffset 0.6s ease; }
+    .ring-fill.over { stroke: #F59E0B; }
+    .ring-center {
+      position: absolute; inset: 0; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; text-align: center;
+    }
+    .ring-center .lbl { font-size: 14px; color: #6B7280; font-weight: 500; }
+    .ring-center .num { font-family: 'Playfair Display', serif; font-size: 52px; font-weight: 700; line-height: 1.05; color: #1F2937; }
+    .ring-center .doel { font-size: 12.5px; color: #9CA3AF; margin-top: 2px; font-family: 'SF Mono', Menlo, monospace; }
+    @media (max-width: 480px) {
+      .ring-wrap { width: 170px; height: 170px; }
+      .ring-center .num { font-size: 42px; }
+      .hero-side .val { font-size: 22px; }
+    }
 
-    /* Maaltijd-sectie */
-    .meal { margin-bottom: 4px; }
-    .meal-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
-    .meal-head .naam { font-weight: 700; font-size: 15px; }
-    .meal-head .kcal { font-size: 13px; color: #E91E8C; font-weight: 600; }
-    .meal-item { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid #FDF2F8; font-size: 14px; }
-    .meal-item .oms { flex: 1; }
-    .meal-item .kc { color: #9CA3AF; font-size: 13px; flex-shrink: 0; }
+    /* Macro-kaarten */
+    .macro-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+    .macro-card { background: #fff; border-radius: 16px; padding: 14px 14px 12px; box-shadow: 0 6px 20px rgba(233,30,140,0.07); }
+    .macro-card .naam { font-size: 13px; font-weight: 600; color: #1F2937; margin-bottom: 6px; }
+    .macro-card .vals { font-size: 14px; color: #374151; font-family: 'SF Mono', Menlo, monospace; margin-bottom: 8px; }
+    .macro-card .bar { height: 5px; border-radius: 3px; background: #F3F4F6; overflow: hidden; }
+    .macro-card .bar .fill { height: 100%; border-radius: 3px; transition: width 0.4s ease; }
+    .macro-card.kh .fill { background: #818CF8; }
+    .macro-card.eiwit .fill { background: #F472B6; }
+    .macro-card.vet .fill { background: #A78BFA; }
+    @media (max-width: 400px) {
+      .macro-card { padding: 10px; }
+      .macro-card .vals { font-size: 12px; }
+    }
+
+    .sect-label { font-size: 13px; font-weight: 700; color: #6B7280; letter-spacing: 1.5px; text-transform: uppercase; margin: 0 4px 10px; }
+
+    /* Maaltijd-kaarten */
+    .meal-card { background: #fff; border-radius: 18px; padding: 16px 18px; box-shadow: 0 6px 20px rgba(233,30,140,0.07); margin-bottom: 12px; }
+    .meal-top { display: flex; align-items: center; gap: 14px; }
+    .meal-emoji {
+      width: 52px; height: 52px; border-radius: 50%; background: #FDF2F8;
+      display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0;
+    }
+    .meal-info { flex: 1; min-width: 0; }
+    .meal-info .naam { font-size: 17px; font-weight: 700; color: #1F2937; }
+    .meal-info .sub { font-size: 12.5px; color: #9CA3AF; margin-top: 2px; }
+    .meal-info .sub.logged { color: #E91E8C; font-weight: 600; }
+    .meal-add {
+      width: 44px; height: 44px; border-radius: 50%; border: none; flex-shrink: 0;
+      background: #F5F0EC; color: #6B7280; font-size: 22px; cursor: pointer; font-family: inherit;
+      transition: all 0.15s;
+    }
+    .meal-add:hover, .meal-add.open { background: #E91E8C; color: #fff; }
+
+    .meal-items { margin-top: 10px; border-top: 1px solid #FDF2F8; }
+    .meal-item { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 9px 0; border-bottom: 1px solid #FDF2F8; }
+    .meal-item:last-child { border-bottom: none; }
+    .meal-item .oms { flex: 1; font-size: 14px; color: #1F2937; }
+    .meal-item .macros { font-size: 11.5px; color: #9CA3AF; margin-top: 2px; }
+    .meal-item .kc { color: #E91E8C; font-weight: 600; font-size: 13px; flex-shrink: 0; }
     .meal-item .del { background: none; border: none; color: #D1D5DB; font-size: 16px; cursor: pointer; padding: 2px 6px; font-family: inherit; }
     .meal-item .del:hover { color: #991B1B; }
-    .meal-empty { color: #D1D5DB; font-size: 13px; padding: 6px 0; }
 
-    .add-row { display: grid; grid-template-columns: 1fr 78px 44px; gap: 6px; margin-top: 8px; }
-    .add-row input {
-      padding: 10px 12px; border: 1.5px solid #E5E7EB; border-radius: 10px;
-      font-size: 14px; font-family: inherit; width: 100%;
+    /* Toevoeg-formulier (uitklapbaar) */
+    .add-form { display: none; margin-top: 12px; background: #FDF7FA; border-radius: 14px; padding: 12px; }
+    .add-form.open { display: block; }
+    .add-form input {
+      padding: 11px 12px; border: 1.5px solid #E5E7EB; border-radius: 10px;
+      font-size: 14px; font-family: inherit; width: 100%; background: #fff;
     }
-    .add-row input:focus { outline: none; border-color: #E91E8C; }
-    .add-row input.kcal-in { text-align: center; padding: 10px 6px; }
-    .add-row button {
-      background: #E91E8C; color: #fff; border: none; border-radius: 10px;
-      font-size: 18px; cursor: pointer; font-family: inherit;
+    .add-form input:focus { outline: none; border-color: #E91E8C; }
+    .add-form .oms-in { margin-bottom: 8px; }
+    .num-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 8px; }
+    .num-grid .num-field .nlbl { font-size: 10.5px; font-weight: 700; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 3px; text-align: center; }
+    .num-grid input { text-align: center; padding: 10px 4px; -moz-appearance: textfield; }
+    .num-grid input::-webkit-outer-spin-button, .num-grid input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .add-form .save-btn {
+      width: 100%; padding: 12px; background: #E91E8C; color: #fff; border: none;
+      border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit;
     }
-    .add-row button:disabled { opacity: 0.5; }
+    .add-form .save-btn:hover { background: #D01680; }
+    .add-form .hint { font-size: 11.5px; color: #9CA3AF; margin-top: 6px; text-align: center; }
 
     .msg { padding: 12px; border-radius: 10px; font-size: 13px; margin-bottom: 14px; display: none; }
     .msg.error { background: #FEE2E2; color: #991B1B; display: block; }
@@ -92,17 +142,19 @@
         ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
     }
 
+    // Aanbevolen kcal-verdeling per maaltijd (zoals Lifesum): % van dagdoel
     const MAALTIJDEN = [
-      { key: 'ontbijt', naam: '🍳 Ontbijt' },
-      { key: 'lunch', naam: '🥪 Lunch' },
-      { key: 'diner', naam: '🍽️ Diner' },
-      { key: 'snack', naam: '🍿 Snacks' },
+      { key: 'ontbijt', naam: 'Ontbijt', emoji: '🍳', min: 0.25, max: 0.35 },
+      { key: 'lunch', naam: 'Lunch', emoji: '🥗', min: 0.30, max: 0.40 },
+      { key: 'diner', naam: 'Diner', emoji: '🍽️', min: 0.39, max: 0.51 },
+      { key: 'snack', naam: 'Snacks', emoji: '🍌', min: null, max: null },
     ];
 
     let supabase, authHdr, plan = null;
     let datum = new Date().toISOString().slice(0, 10);
     let logs = [];            // logs voor de getoonde datum
-    let recente = {};         // omschrijving (lowercase) → { omschrijving, calories } uit history
+    let recente = {};         // omschrijving (lowercase) → laatst gebruikte waardes (kcal + macros)
+    let openForm = null;      // welke maaltijd-form staat open
 
     const todayISO = () => new Date().toISOString().slice(0, 10);
 
@@ -119,10 +171,10 @@
       ]);
       plan = planRes.ok ? (await planRes.json()).plan : null;
       const hist = histRes.ok ? ((await histRes.json()).logs || []) : [];
-      // Recente items voor snelle suggesties (laatste kcal per omschrijving)
+      // Recente items → suggesties met autofill van kcal + macro's
       for (const l of hist) {
         const key = (l.omschrijving || '').trim().toLowerCase();
-        if (key && !recente[key]) recente[key] = { omschrijving: l.omschrijving, calories: l.calories };
+        if (key && !recente[key]) recente[key] = l;
       }
       await loadDag();
     }
@@ -134,41 +186,94 @@
     }
 
     function dagLabel() {
+      if (datum === todayISO()) {
+        const d = new Date(datum + 'T12:00:00');
+        return 'Vandaag, ' + d.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' });
+      }
       const d = new Date(datum + 'T12:00:00');
-      const label = d.toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' });
-      return datum === todayISO() ? 'Vandaag' : label.charAt(0).toUpperCase() + label.slice(1);
+      return d.toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'short' });
+    }
+
+    function sum(field) { return logs.reduce((s, l) => s + (l[field] || 0), 0); }
+
+    function macroCard(cls, naam, val, doel) {
+      const pct = doel ? Math.min(100, (val / doel) * 100) : 0;
+      return `
+        <div class="macro-card ${cls}">
+          <div class="naam">${naam}</div>
+          <div class="vals">${val}${doel ? '/' + doel : ''}g</div>
+          <div class="bar"><div class="fill" style="width:${doel ? pct : (val > 0 ? 100 : 0)}%"></div></div>
+        </div>`;
     }
 
     function renderPage() {
-      const totaal = logs.reduce((s, l) => s + (l.calories || 0), 0);
-      const eiwit = logs.reduce((s, l) => s + (l.eiwit_g || 0), 0);
+      const totaal = sum('calories');
+      const eiwit = sum('eiwit_g');
+      const kh = sum('koolhydraten_g');
+      const vet = sum('vetten_g');
       const doel = plan?.calories || null;
-      const pct = doel ? Math.min(100, (totaal / doel) * 100) : 0;
-      const over = doel && totaal > doel;
+      const resterend = doel != null ? doel - totaal : null;
+      const over = doel != null && totaal > doel;
+
+      // Ring: 270° boog (zoals Lifesum). r=90 → omtrek 565.5; boog = 0.75 * omtrek.
+      const R = 90, CIRC = 2 * Math.PI * R, ARC = CIRC * 0.75;
+      const pct = doel ? Math.min(1, totaal / doel) : 0;
+      const dashOffset = ARC * (1 - pct);
 
       const meals = MAALTIJDEN.map(m => {
         const items = logs.filter(l => l.maaltijd === m.key);
         const mealKcal = items.reduce((s, l) => s + (l.calories || 0), 0);
+        let sub, subCls = '';
+        if (mealKcal > 0) {
+          sub = mealKcal + ' kcal gegeten';
+          subCls = 'logged';
+        } else if (doel && m.min) {
+          sub = `Aanbevolen: ${Math.round(doel * m.min)} - ${Math.round(doel * m.max)} kcal`;
+        } else {
+          sub = m.key === 'snack' ? 'Voor tussendoor' : 'Nog niks gelogd';
+        }
+        const itemMacros = (l) => {
+          const parts = [];
+          if (l.eiwit_g != null) parts.push('E ' + l.eiwit_g);
+          if (l.koolhydraten_g != null) parts.push('K ' + l.koolhydraten_g);
+          if (l.vetten_g != null) parts.push('V ' + l.vetten_g);
+          return parts.length ? `<div class="macros">${parts.join(' · ')} g</div>` : '';
+        };
         return `
-          <div class="card meal">
-            <div class="meal-head">
-              <span class="naam">${m.naam}</span>
-              <span class="kcal">${mealKcal > 0 ? mealKcal + ' kcal' : ''}</span>
-            </div>
-            ${items.length ? items.map(l => `
-              <div class="meal-item">
-                <span class="oms">${escapeHtml(l.omschrijving)}</span>
-                <span class="kc">${l.calories != null ? l.calories + ' kcal' : '—'}</span>
-                <button class="del" onclick="delLog('${l.id}')" title="Verwijder">&#10005;</button>
+          <div class="meal-card">
+            <div class="meal-top">
+              <div class="meal-emoji">${m.emoji}</div>
+              <div class="meal-info">
+                <div class="naam">${m.naam}</div>
+                <div class="sub ${subCls}">${sub}</div>
               </div>
-            `).join('') : '<div class="meal-empty">Nog niks gelogd.</div>'}
-            <div class="add-row">
-              <input type="text" id="oms-${m.key}" placeholder="Wat at je? (bv. Griekse yoghurt)" list="recente-items"
-                     onchange="autofillKcal('${m.key}')"
+              <button class="meal-add ${openForm === m.key ? 'open' : ''}" onclick="toggleForm('${m.key}')" title="Toevoegen">${openForm === m.key ? '&minus;' : '&#43;'}</button>
+            </div>
+            ${items.length ? `
+              <div class="meal-items">
+                ${items.map(l => `
+                  <div class="meal-item">
+                    <div style="flex:1;min-width:0;">
+                      <div class="oms">${escapeHtml(l.omschrijving)}</div>
+                      ${itemMacros(l)}
+                    </div>
+                    <span class="kc">${l.calories != null ? l.calories + ' kcal' : '—'}</span>
+                    <button class="del" onclick="delLog('${l.id}')" title="Verwijder">&#10005;</button>
+                  </div>
+                `).join('')}
+              </div>` : ''}
+            <div class="add-form ${openForm === m.key ? 'open' : ''}" id="form-${m.key}">
+              <input type="text" class="oms-in" id="oms-${m.key}" placeholder="Wat at je? (bv. Griekse yoghurt met havermout)" list="recente-items"
+                     onchange="autofillMacros('${m.key}')"
                      onkeydown="if(event.key==='Enter'){event.preventDefault();addLog('${m.key}')}">
-              <input type="number" class="kcal-in" id="kcal-${m.key}" placeholder="kcal" min="0" max="9999"
-                     onkeydown="if(event.key==='Enter'){event.preventDefault();addLog('${m.key}')}">
-              <button type="button" onclick="addLog('${m.key}')" title="Toevoegen">&#10133;</button>
+              <div class="num-grid">
+                <div class="num-field"><div class="nlbl">kcal</div><input type="number" inputmode="numeric" id="kcal-${m.key}" placeholder="0" min="0" max="9999" onkeydown="if(event.key==='Enter'){event.preventDefault();addLog('${m.key}')}"></div>
+                <div class="num-field"><div class="nlbl">Eiwit g</div><input type="number" inputmode="numeric" id="eiwit-${m.key}" placeholder="0" min="0" max="999" onkeydown="if(event.key==='Enter'){event.preventDefault();addLog('${m.key}')}"></div>
+                <div class="num-field"><div class="nlbl">Koolh g</div><input type="number" inputmode="numeric" id="kh-${m.key}" placeholder="0" min="0" max="999" onkeydown="if(event.key==='Enter'){event.preventDefault();addLog('${m.key}')}"></div>
+                <div class="num-field"><div class="nlbl">Vet g</div><input type="number" inputmode="numeric" id="vet-${m.key}" placeholder="0" min="0" max="999" onkeydown="if(event.key==='Enter'){event.preventDefault();addLog('${m.key}')}"></div>
+              </div>
+              <button type="button" class="save-btn" onclick="addLog('${m.key}')">Toevoegen</button>
+              <div class="hint">Alleen omschrijving is verplicht — schattingen zijn prima 💕</div>
             </div>
           </div>`;
       }).join('');
@@ -178,25 +283,46 @@
           <a href="/klant/start" class="back">&larr;</a>
           <div class="brand">Julia Besten</div>
         </div>
-        <h1>🍽 Voeding loggen</h1>
-        <p class="intro">Log simpel wat je eet. Calorieën hoeven niet perfect te zijn — een goede schatting is genoeg.</p>
 
         <div id="msg" class="msg"></div>
 
-        <div class="card day-nav" style="padding:12px 14px;">
-          <button onclick="prevDag()">&larr;</button>
-          <div class="day-label">${dagLabel()}<span class="sub">${datum}</span></div>
-          <button onclick="nextDag()" ${datum >= todayISO() ? 'disabled' : ''}>&rarr;</button>
+        <div class="day-nav">
+          <button onclick="prevDag()">&#8249;</button>
+          <div class="day-label">📅 ${dagLabel()}</div>
+          <button onclick="nextDag()" ${datum >= todayISO() ? 'disabled' : ''}>&#8250;</button>
         </div>
 
-        <div class="total-card">
-          <div class="total-row">
-            <div class="total-kcal">${totaal}<span class="unit"> kcal</span></div>
-            <div class="total-doel">${doel ? (over ? `${totaal - doel} kcal boven je doel` : `nog ${doel - totaal} kcal te gaan`) + `<br>doel: ${doel} kcal` : 'Julia stelt binnenkort je calorie-doel in'}</div>
+        <div class="hero-ring">
+          <div class="hero-side">
+            <div class="lbl">Gegeten</div>
+            <div class="val">${totaal}</div>
           </div>
-          ${doel ? `<div class="total-bar"><div class="fill" style="width:${pct}%;${over ? 'background:#FBBF24;' : ''}"></div></div>` : ''}
-          ${eiwit > 0 ? `<div class="total-macros"><span>Eiwit: ${eiwit}g${plan?.eiwit_g ? ' / ' + plan.eiwit_g + 'g' : ''}</span></div>` : ''}
+          <div class="ring-wrap">
+            <svg viewBox="0 0 220 220">
+              <circle class="ring-bg" cx="110" cy="110" r="${R}"
+                stroke-dasharray="${ARC} ${CIRC}" />
+              <circle class="ring-fill ${over ? 'over' : ''}" cx="110" cy="110" r="${R}"
+                stroke-dasharray="${ARC} ${CIRC}" stroke-dashoffset="${dashOffset}" />
+            </svg>
+            <div class="ring-center">
+              <div class="lbl">${doel == null ? 'Gegeten' : (over ? 'Boven doel' : 'Resterend')}</div>
+              <div class="num">${doel == null ? totaal : Math.abs(resterend)}</div>
+              <div class="doel">${doel != null ? 'Doel ' + doel + ' kcal' : 'nog geen doel'}</div>
+            </div>
+          </div>
+          <div class="hero-side">
+            <div class="lbl">Doel</div>
+            <div class="val">${doel != null ? doel : '—'}</div>
+          </div>
         </div>
+
+        <div class="macro-cards">
+          ${macroCard('kh', 'Koolhydraten', kh, plan?.koolhydraten_g || null)}
+          ${macroCard('eiwit', 'Eiwit', eiwit, plan?.eiwit_g || null)}
+          ${macroCard('vet', 'Vet', vet, plan?.vetten_g || null)}
+        </div>
+
+        <div class="sect-label">Voedingslogboek</div>
 
         <datalist id="recente-items">
           ${Object.values(recente).slice(0, 50).map(r => `<option value="${escapeHtml(r.omschrijving)}">`).join('')}
@@ -204,51 +330,76 @@
 
         ${meals}
       `);
+
+      // Open form → focus op omschrijving
+      if (openForm) {
+        const el = document.getElementById('oms-' + openForm);
+        if (el && !el.value) el.focus();
+      }
     }
+
+    window.toggleForm = (meal) => {
+      openForm = openForm === meal ? null : meal;
+      renderPage();
+    };
 
     window.prevDag = () => {
       const d = new Date(datum + 'T12:00:00'); d.setDate(d.getDate() - 1);
       datum = d.toISOString().slice(0, 10);
+      openForm = null;
       loadDag();
     };
     window.nextDag = () => {
       if (datum >= todayISO()) return;
       const d = new Date(datum + 'T12:00:00'); d.setDate(d.getDate() + 1);
       datum = d.toISOString().slice(0, 10);
+      openForm = null;
       loadDag();
     };
 
-    // Bekend item gekozen uit suggesties → kcal automatisch invullen
-    window.autofillKcal = (meal) => {
+    // Bekend item gekozen uit suggesties → kcal + macro's automatisch invullen
+    window.autofillMacros = (meal) => {
       const oms = (document.getElementById('oms-' + meal).value || '').trim().toLowerCase();
-      const kcalEl = document.getElementById('kcal-' + meal);
-      if (oms && recente[oms] && recente[oms].calories != null && !kcalEl.value) {
-        kcalEl.value = recente[oms].calories;
-      }
+      const r = recente[oms];
+      if (!r) return;
+      const fill = (id, v) => {
+        const el = document.getElementById(id + '-' + meal);
+        if (el && !el.value && v != null) el.value = v;
+      };
+      fill('kcal', r.calories);
+      fill('eiwit', r.eiwit_g);
+      fill('kh', r.koolhydraten_g);
+      fill('vet', r.vetten_g);
     };
 
     window.addLog = async (meal) => {
+      const val = (id) => {
+        const el = document.getElementById(id + '-' + meal);
+        return el && el.value !== '' ? parseInt(el.value, 10) : null;
+      };
       const omsEl = document.getElementById('oms-' + meal);
-      const kcalEl = document.getElementById('kcal-' + meal);
       const omschrijving = (omsEl.value || '').trim();
       if (!omschrijving) { omsEl.focus(); return; }
-      const calories = kcalEl.value === '' ? null : parseInt(kcalEl.value, 10);
       const msg = document.getElementById('msg');
       msg.className = 'msg'; msg.textContent = '';
       try {
+        const body = {
+          datum, maaltijd: meal, omschrijving,
+          calories: val('kcal'),
+          eiwit_g: val('eiwit'),
+          koolhydraten_g: val('kh'),
+          vetten_g: val('vet'),
+        };
         const r = await fetch('/api/klant/voeding-logs', {
           method: 'POST',
           headers: { ...authHdr, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ datum, maaltijd: meal, omschrijving, calories }),
+          body: JSON.stringify(body),
         });
         const data = await r.json();
         if (!r.ok || data.error) throw new Error(data.error || 'Opslaan mislukt');
-        const key = omschrijving.toLowerCase();
-        if (!recente[key]) recente[key] = { omschrijving, calories };
+        recente[omschrijving.toLowerCase()] = data.log;
+        openForm = meal; // vorm open houden — snel doorloggen
         await loadDag();
-        // Focus terug op het invoerveld van dezelfde maaltijd — snel doorloggen
-        const el = document.getElementById('oms-' + meal);
-        if (el) el.focus();
       } catch (e) {
         msg.className = 'msg error'; msg.textContent = e.message;
       }
@@ -265,7 +416,7 @@
 
     main().catch(err => {
       console.error('[klant-voeding]', err);
-      render(`<div class="card"><h1>Er ging iets mis</h1><p class="intro">${escapeHtml(err.message || String(err))}</p><a href="/klant/start" class="back">&larr; Terug naar dashboard</a></div>`);
+      render(`<div class="meal-card"><h1 style="font-family:'Playfair Display',serif;font-size:22px;margin-bottom:8px;">Er ging iets mis</h1><p style="color:#6B7280;font-size:14px;">${escapeHtml(err.message || String(err))}</p><a href="/klant/start" class="back">&larr; Terug naar dashboard</a></div>`);
     });
   </script>
 </body>
