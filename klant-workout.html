@@ -265,6 +265,9 @@
       // Alleen bij een vers formulier — niet als we een bestaande log bewerken.
       if (dagSchema && !dagSchema.is_rustdag && (dagSchema.oefeningen || []).length) {
         currentWorkout.oefeningen = dagSchema.oefeningen.map(o => {
+          if (isCardio(o)) {
+            return { type: 'cardio', naam: o.naam || 'Hardlopen', km: null, minuten: null, doel_km: o.doel_km ?? null, doel_min: o.doel_min ?? null };
+          }
           const nSets = Math.max(1, Math.min(20, parseInt(o.sets, 10) || 3));
           return { naam: o.naam || '', sets: Array.from({ length: nSets }, emptySet), note: '' };
         });
@@ -273,12 +276,25 @@
       renderPage();
     }
 
-    // Zoek laatste log van dezelfde oefening (case-insensitive) in history.
+    // Centrale type-check: cardio-items hebben type 'cardio' en NOOIT sets.
+    // Alle kracht-logica (PR's, autofill, sets-sync) moet hierop guarden.
+    function isCardio(o) { return !!o && o.type === 'cardio'; }
+
+    function paceTxt(km, min) {
+      if (!km || !min || km <= 0) return '';
+      const p = min / km;
+      const m = Math.floor(p);
+      const s = Math.round((p - m) * 60);
+      return `${m}:${String(s).padStart(2, '0')} /km`;
+    }
+
+    // Zoek laatste KRACHT-log van dezelfde oefening (case-insensitive) in history.
     function findLastLog(naam) {
       if (!naam || !naam.trim()) return null;
       const key = naam.trim().toLowerCase();
       for (const w of history) {
         for (const o of (w.oefeningen || [])) {
+          if (isCardio(o)) continue;
           if ((o.naam || '').trim().toLowerCase() === key) {
             const nonEmpty = (o.sets || []).filter(s => s && (s.reps != null || s.gewicht != null));
             if (nonEmpty.length) return { datum: w.datum, sets: nonEmpty };
@@ -286,6 +302,49 @@
         }
       }
       return null;
+    }
+
+    // Zoek laatste CARDIO-log van dezelfde activiteit in history.
+    function findLastCardio(naam) {
+      if (!naam || !naam.trim()) return null;
+      const key = naam.trim().toLowerCase();
+      for (const w of history) {
+        for (const o of (w.oefeningen || [])) {
+          if (!isCardio(o)) continue;
+          if ((o.naam || '').trim().toLowerCase() === key && (o.km != null || o.minuten != null)) {
+            return { datum: w.datum, km: o.km, minuten: o.minuten };
+          }
+        }
+      }
+      return null;
+    }
+
+    // Verste afstand ooit per cardio-activiteit (exclusief 1 log-id).
+    function maxKmVoor(naam, { excludeId = null } = {}) {
+      const key = (naam || '').trim().toLowerCase();
+      if (!key) return null;
+      let max = null;
+      for (const w of history) {
+        if (excludeId && w.id === excludeId) continue;
+        for (const o of (w.oefeningen || [])) {
+          if (!isCardio(o)) continue;
+          if ((o.naam || '').trim().toLowerCase() !== key) continue;
+          if (o.km != null && (max === null || o.km > max)) max = o.km;
+        }
+      }
+      return max;
+    }
+
+    // Totaal gelogde cardio-km (exclusief 1 log-id) — voor mijlpaal-vieringen.
+    function totaalKm({ excludeId = null } = {}) {
+      let t = 0;
+      for (const w of history) {
+        if (excludeId && w.id === excludeId) continue;
+        for (const o of (w.oefeningen || [])) {
+          if (isCardio(o) && o.km != null) t += o.km;
+        }
+      }
+      return t;
     }
 
     function renderPage() {
@@ -317,7 +376,10 @@
           <div id="oefList">
             ${currentWorkout.oefeningen.map((o, i) => renderOefening(o, i)).join('')}
           </div>
-          <button class="add-oef-btn" onclick="addOefening()">&#10133; Oefening toevoegen</button>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+            <button class="add-oef-btn" style="margin-bottom:0;" onclick="addOefening()">&#10133; Oefening</button>
+            <button class="add-oef-btn" style="margin-bottom:0;color:#059669;border-color:#A7F3D0;" onclick="addCardio()">&#127939; Cardio (km + min)</button>
+          </div>
 
           <div class="field" style="margin-top:10px;">
             <label>Notities (optioneel)</label>
@@ -364,6 +426,10 @@
         }
         if ((dagSchema.oefeningen || []).length) {
           const regels = dagSchema.oefeningen.map(o => {
+            if (isCardio(o)) {
+              const doel = [o.doel_km ? o.doel_km + ' km' : null, o.doel_min ? o.doel_min + ' min' : null].filter(Boolean).join(' · ');
+              return `🏃 ${o.naam}${doel ? ' — ' + doel : ''}`;
+            }
             const doel = o.sets ? o.sets + '×' + (o.reps || '?') : (o.reps || '');
             return `• ${o.naam}${doel ? ' — ' + doel : ''}`;
           }).join('\n');
@@ -393,6 +459,7 @@
     window.toggleSchema = () => { schemaExpanded = !schemaExpanded; renderPage(); };
 
     function renderOefening(o, idx) {
+      if (isCardio(o)) return renderCardio(o, idx);
       const last = findLastLog(o.naam);
       const prevLine = last
         ? `<div class="oef-prev">Vorige keer (${formatKort(last.datum)}): ${last.sets.map(s => `${s.reps ?? '?'}&times;${s.gewicht != null ? s.gewicht + 'kg' : '—'}`).join(' &middot; ')}</div>`
@@ -413,6 +480,45 @@
           </div>
           ${o.sets.map((s, si) => renderSet(s, idx, si)).join('')}
           <button class="add-set-btn" onclick="addSet(${idx})">&#10133; Set toevoegen</button>
+        </div>`;
+    }
+
+    // Cardio-kaart: km + minuten steppers i.p.v. sets/reps. Zelfde look & feel.
+    function renderCardio(o, idx) {
+      const last = findLastCardio(o.naam);
+      const prevLine = last
+        ? `<div class="oef-prev">Vorige keer (${formatKort(last.datum)}): ${last.km != null ? last.km + ' km' : ''}${last.km != null && last.minuten != null ? ' in ' : ''}${last.minuten != null ? last.minuten + ' min' : ''}${paceTxt(last.km, last.minuten) ? ' &middot; ' + paceTxt(last.km, last.minuten) : ''}</div>`
+        : '';
+      const doelLine = (o.doel_km || o.doel_min)
+        ? `<div class="oef-prev" style="font-style:normal;color:#BE185D;">Doel van Julia: ${[o.doel_km ? o.doel_km + ' km' : null, o.doel_min ? o.doel_min + ' min' : null].filter(Boolean).join(' · ')}</div>`
+        : '';
+      return `
+        <div class="oef" data-idx="${idx}" style="background:#ECFDF5;">
+          <div class="oef-head">
+            <span style="font-size:20px;flex-shrink:0;">🏃</span>
+            <input class="naam" placeholder="Activiteit (bv. Hardlopen)" value="${escapeHtml(o.naam || '')}" data-f="naam" style="border-color:#A7F3D0;">
+            <button class="oef-del" onclick="delOefening(${idx})" title="Verwijder">&times;</button>
+          </div>
+          ${doelLine}${prevLine}
+          <div class="sets-header" style="grid-template-columns:1fr 1fr;">
+            <div class="label">Afstand (km)</div>
+            <div class="label">Tijd (min)</div>
+          </div>
+          <div class="set-main" style="grid-template-columns:1fr 1fr;">
+            <div class="stepper" style="border-color:#A7F3D0;">
+              <button type="button" data-cstep="km" data-delta="-0.5" data-idx="${idx}">&minus;</button>
+              <input type="number" inputmode="decimal" min="0" step="0.1" placeholder="0" value="${o.km ?? ''}" data-cf="km" data-idx="${idx}">
+              <span class="unit">km</span>
+              <button type="button" data-cstep="km" data-delta="0.5" data-idx="${idx}">+</button>
+            </div>
+            <div class="stepper" style="border-color:#A7F3D0;">
+              <button type="button" data-cstep="minuten" data-delta="-5" data-idx="${idx}">&minus;</button>
+              <input type="number" inputmode="numeric" min="0" step="1" placeholder="0" value="${o.minuten ?? ''}" data-cf="minuten" data-idx="${idx}">
+              <span class="unit">min</span>
+              <button type="button" data-cstep="minuten" data-delta="5" data-idx="${idx}">+</button>
+            </div>
+          </div>
+          ${(o.km > 0 && o.minuten > 0) ? `<div style="font-size:12px;color:#065F46;text-align:center;margin-top:8px;">Tempo: ${paceTxt(o.km, o.minuten)}</div>` : ''}
         </div>`;
     }
 
@@ -452,11 +558,11 @@
 
     function oefeningSuggesties() {
       const s = new Set();
-      for (const w of history) for (const o of (w.oefeningen || [])) if (o.naam) s.add(o.naam.trim());
+      for (const w of history) for (const o of (w.oefeningen || [])) if (o.naam && !isCardio(o)) s.add(o.naam.trim());
       return [...s].slice(0, 30);
     }
 
-    // Zwaarste gewicht ooit per oefening (uit history, exclusief 1 log-id).
+    // Zwaarste gewicht ooit per KRACHT-oefening (uit history, exclusief 1 log-id).
     function maxGewichtVoor(naam, { excludeId = null } = {}) {
       const key = (naam || '').trim().toLowerCase();
       if (!key) return null;
@@ -464,6 +570,7 @@
       for (const w of history) {
         if (excludeId && w.id === excludeId) continue;
         for (const o of (w.oefeningen || [])) {
+          if (isCardio(o)) continue;
           if ((o.naam || '').trim().toLowerCase() !== key) continue;
           for (const s of (o.sets || [])) {
             if (s && !s.skipped && s.gewicht != null && (max === null || s.gewicht > max)) max = s.gewicht;
@@ -473,14 +580,23 @@
       return max;
     }
 
-    // Progressie-overzicht: per oefening eerste sessie → zwaarste ooit.
+    // Progressie-overzicht: kracht (eerste → zwaarste) én cardio (eerste → verste + totaal-km).
     function renderProgressie() {
       const per = {};
+      const cardioPer = {};
+      let cardioTotaalKm = 0;
       for (let i = history.length - 1; i >= 0; i--) { // oudste eerst
         const w = history[i];
         for (const o of (w.oefeningen || [])) {
           const key = (o.naam || '').trim().toLowerCase();
           if (!key) continue;
+          if (isCardio(o)) {
+            if (o.km == null) continue;
+            cardioTotaalKm += o.km;
+            if (!cardioPer[key]) cardioPer[key] = { naam: o.naam.trim(), eerste: o.km, max: o.km, sessies: 1 };
+            else { cardioPer[key].sessies++; if (o.km > cardioPer[key].max) cardioPer[key].max = o.km; }
+            continue;
+          }
           const kgs = (o.sets || []).filter(s => s && !s.skipped && s.gewicht != null).map(s => s.gewicht);
           if (!kgs.length) continue;
           const maxKg = Math.max(...kgs);
@@ -490,9 +606,27 @@
       }
       const rows = Object.values(per).filter(p => p.sessies >= 2)
         .sort((a, b) => (b.max - b.eerste) - (a.max - a.eerste));
-      if (!rows.length) return '';
+      const cardioRows = Object.values(cardioPer).filter(p => p.sessies >= 2)
+        .sort((a, b) => (b.max - b.eerste) - (a.max - a.eerste));
+      if (!rows.length && !cardioRows.length && cardioTotaalKm === 0) return '';
       return `
         <h2 style="font-family:'Playfair Display',serif;font-size:20px;margin:24px 0 12px;">📈 Jouw progressie</h2>
+        ${cardioTotaalKm > 0 ? `
+          <div class="prog-item" style="background:#ECFDF5;">
+            <div class="naam">🏁 Totaal cardio</div>
+            <div class="delta"><span class="kgs">${cardioTotaalKm.toFixed(1)} km</span><span class="diff" style="color:#065F46;">in je hele traject</span></div>
+          </div>` : ''}
+        ${cardioRows.map(p => {
+          const diff = +(p.max - p.eerste).toFixed(1);
+          return `
+            <div class="prog-item">
+              <div class="naam">🏃 ${escapeHtml(p.naam)}<br><span class="sessies">${p.sessies} sessies</span></div>
+              <div class="delta">
+                <span class="kgs">${p.eerste} &rarr; ${p.max} km</span>
+                <span class="diff" style="color:${diff > 0 ? '#065F46' : '#6B7280'};">${diff > 0 ? '+' + diff + ' km verder dan je start' : 'houd vol!'}</span>
+              </div>
+            </div>`;
+        }).join('')}
         ${rows.map(p => {
           const diff = +(p.max - p.eerste).toFixed(1);
           return `
@@ -512,9 +646,14 @@
       if (!prs.length) return;
       const lines = document.getElementById('prLines');
       if (lines) {
-        lines.innerHTML = prs.map(p =>
-          `Nieuw record op <strong>${escapeHtml(p.naam)}</strong>: <strong>${p.nieuw} kg</strong>${p.oud != null ? ` <span style="color:#9CA3AF;">(was ${p.oud} kg)</span>` : ''}`
-        ).join('<br>') + '<br><span style="color:#6B7280;font-size:13px;">Julia ziet dit ook — she\'s proud 💕</span>';
+        lines.innerHTML = prs.map(p => {
+          if (p.mijlpaal) {
+            return `🏁 Mijlpaal: al <strong>${p.mijlpaal} km</strong> cardio gelogd in je traject! <span style="color:#9CA3AF;">(totaal ${p.totaal.toFixed(1)} km)</span>`;
+          }
+          const unit = p.unit || 'kg';
+          const wat = unit === 'km' ? 'Verste afstand op' : 'Nieuw record op';
+          return `${wat} <strong>${escapeHtml(p.naam)}</strong>: <strong>${p.nieuw} ${unit}</strong>${p.oud != null ? ` <span style="color:#9CA3AF;">(was ${p.oud} ${unit})</span>` : ''}`;
+        }).join('<br>') + '<br><span style="color:#6B7280;font-size:13px;">Julia ziet dit ook — she\'s proud 💕</span>';
       }
       document.getElementById('prOverlay')?.classList.add('active');
       if (typeof confetti === 'function') {
@@ -536,6 +675,11 @@
     function renderHistory(w) {
       const d = new Date(w.datum).toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' });
       const oefs = (w.oefeningen || []).map(o => {
+        if (isCardio(o)) {
+          const delen = [o.km != null ? o.km + ' km' : null, o.minuten != null ? o.minuten + ' min' : null].filter(Boolean).join(' · ');
+          const pace = paceTxt(o.km, o.minuten);
+          return `<div class="oef-line">&#127939; <strong>${escapeHtml(o.naam)}</strong> <span class="muted">${delen}${pace ? ' · ' + pace : ''}</span></div>`;
+        }
         const bestSet = (o.sets || []).reduce((best, s) => {
           if (!s || s.reps == null) return best;
           if (!best || (s.gewicht || 0) > (best.gewicht || 0)) return s;
@@ -662,10 +806,48 @@
           delSet(idx, si);
         });
       });
+
+      // Cardio: km/min typen
+      document.querySelectorAll('[data-cf]').forEach(inp => {
+        inp.addEventListener('input', e => {
+          const idx = parseInt(inp.dataset.idx, 10);
+          const f = inp.dataset.cf;
+          const v = e.target.value === '' ? null : parseFloat(e.target.value);
+          const o = currentWorkout.oefeningen[idx];
+          if (!isCardio(o)) return;
+          o[f] = (v == null || isNaN(v)) ? null : v;
+        });
+        // Tempo-regel verversen zodra ze klaar is met typen
+        inp.addEventListener('blur', () => renderPage());
+      });
+
+      // Cardio: steppers (km ±0.5, min ±5). Leeg → start vanaf vorige keer.
+      document.querySelectorAll('[data-cstep]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const idx = parseInt(btn.dataset.idx, 10);
+          const f = btn.dataset.cstep;
+          const delta = parseFloat(btn.dataset.delta);
+          const o = currentWorkout.oefeningen[idx];
+          if (!isCardio(o)) return;
+          let base = o[f];
+          if (base == null) {
+            const last = findLastCardio(o.naam);
+            base = last?.[f] ?? (f === 'km' ? (o.doel_km || 0) : (o.doel_min || 0));
+          }
+          let next = (base || 0) + delta;
+          if (next < 0) next = 0;
+          o[f] = f === 'minuten' ? Math.round(next) : Math.round(next * 10) / 10;
+          renderPage();
+        });
+      });
     }
 
     window.addOefening = () => {
       currentWorkout.oefeningen.push({ naam: '', sets: [emptySet()], note: '' });
+      renderPage();
+    };
+    window.addCardio = () => {
+      currentWorkout.oefeningen.push({ type: 'cardio', naam: 'Hardlopen', km: null, minuten: null });
       renderPage();
     };
     window.delOefening = (idx) => {
@@ -695,18 +877,24 @@
       const btns = [document.getElementById('saveBtn'), document.getElementById('saveBtnInline')].filter(Boolean);
       const setBtnState = (disabled, label) => btns.forEach(b => { b.disabled = disabled; b.textContent = label; });
       msg.className = 'msg'; msg.textContent = '';
-      // Filter lege oefeningen weg, behoud done/skipped/rating in JSONB
+      // Filter lege oefeningen weg, behoud done/skipped/rating in JSONB.
+      // Cardio-items bewaren km + minuten (nooit sets), kracht-items sets.
       const filtered = currentWorkout.oefeningen
         .filter(o => (o.naam || '').trim().length > 0)
-        .map(o => ({
-          naam: o.naam.trim(),
-          sets: (o.sets || []).filter(s => s.reps != null || s.gewicht != null || s.done || s.skipped),
-          note: o.note || '',
-        }))
-        .filter(o => o.sets.length > 0);
+        .map(o => {
+          if (isCardio(o)) {
+            return { type: 'cardio', naam: o.naam.trim(), km: o.km ?? null, minuten: o.minuten ?? null };
+          }
+          return {
+            naam: o.naam.trim(),
+            sets: (o.sets || []).filter(s => s.reps != null || s.gewicht != null || s.done || s.skipped),
+            note: o.note || '',
+          };
+        })
+        .filter(o => isCardio(o) ? (o.km != null || o.minuten != null) : o.sets.length > 0);
       if (filtered.length === 0) {
         msg.className = 'msg error';
-        msg.textContent = 'Voeg minstens één oefening met sets toe.';
+        msg.textContent = 'Voeg minstens één oefening met sets toe (of cardio met km of minuten).';
         return;
       }
       setBtnState(true, 'Opslaan...');
@@ -735,15 +923,33 @@
         msg.className = 'msg success';
         msg.textContent = '✓ Workout opgeslagen.';
 
-        // PR-detectie: vergelijk met het zwaarste gewicht ooit (vóór deze log).
+        // PR-detectie kracht: vergelijk met het zwaarste gewicht ooit (vóór deze log).
         const prs = [];
         for (const o of filtered) {
+          if (isCardio(o)) continue;
           const kgs = (o.sets || []).filter(s => s && !s.skipped && s.gewicht != null).map(s => s.gewicht);
           if (!kgs.length) continue;
           const nieuw = Math.max(...kgs);
           const oud = maxGewichtVoor(o.naam, { excludeId: currentWorkout.id });
-          if (oud != null && nieuw > oud) prs.push({ naam: o.naam, nieuw, oud });
+          if (oud != null && nieuw > oud) prs.push({ naam: o.naam, nieuw, oud, unit: 'kg' });
         }
+        // PR-detectie cardio: alleen monotone assen — verste afstand per activiteit
+        // (bewust GEEN tempo-PR's: tempo fluctueert, uitblijvende confetti demotiveert).
+        const kmVoorDezeLog = totaalKm({ excludeId: currentWorkout.id });
+        let kmDezeLog = 0;
+        for (const o of filtered) {
+          if (!isCardio(o)) continue;
+          if (o.km != null) {
+            kmDezeLog += o.km;
+            const oud = maxKmVoor(o.naam, { excludeId: currentWorkout.id });
+            if (oud != null && o.km > oud) prs.push({ naam: o.naam, nieuw: o.km, oud, unit: 'km', label: 'Verste' });
+          }
+        }
+        // Totaal-km mijlpaal gepasseerd? (10/25/50/100/150/250 km in het traject)
+        const MIJLPALEN = [10, 25, 50, 100, 150, 250];
+        const totaalNa = kmVoorDezeLog + kmDezeLog;
+        const mijlpaal = MIJLPALEN.filter(m => kmVoorDezeLog < m && totaalNa >= m).pop();
+        if (mijlpaal) prs.push({ mijlpaal, totaal: totaalNa });
 
         // Refresh history + reset form
         const wRes = await fetch('/api/klant/workouts', { headers: authHdr });
@@ -772,6 +978,7 @@
       await supabase.from('workout_sets').delete().eq('workout_log_id', workoutLogId);
       const rows = [];
       for (const o of oefeningen) {
+        if (isCardio(o)) continue; // cardio heeft geen sets — hoort niet in workout_sets
         (o.sets || []).forEach((s, i) => {
           if (s.skipped) return;
           rows.push({
@@ -796,7 +1003,12 @@
       const w = history.find(x => x.id === id);
       if (!w) return;
       const oefs = (w.oefeningen || []).length
-        ? w.oefeningen.map(o => ({
+        ? w.oefeningen.map(o => isCardio(o) ? ({
+            type: 'cardio',
+            naam: o.naam || 'Hardlopen',
+            km: o.km ?? null,
+            minuten: o.minuten ?? null,
+          }) : ({
             naam: o.naam || '',
             sets: (o.sets || []).length
               ? o.sets.map(s => ({ reps: s.reps ?? null, gewicht: s.gewicht ?? null, done: !!s.done, skipped: !!s.skipped, rating: s.rating ?? null }))

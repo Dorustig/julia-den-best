@@ -1021,6 +1021,11 @@
                 const rows = progHtml + workouts.map(w => {
                     const d = new Date(w.datum).toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' });
                     const oefs = (w.oefeningen || []).map(o => {
+                        if (o.type === 'cardio') {
+                            const delen = [o.km != null ? o.km + ' km' : null, o.minuten != null ? o.minuten + ' min' : null].filter(Boolean).join(' · ');
+                            const paceMin = (o.km > 0 && o.minuten > 0) ? (() => { const p = o.minuten / o.km; const m = Math.floor(p); const s = Math.round((p - m) * 60); return ` · ${m}:${String(s).padStart(2, '0')} /km`; })() : '';
+                            return `<div style="padding:4px 0;">&#127939; <strong>${escapeHtml(o.naam)}</strong> <span style="color:#6B7280;font-size:12px">· ${delen || '—'}${paceMin}</span></div>`;
+                        }
                         const key = (o.naam || '').trim().toLowerCase();
                         const maxKgLog = Math.max(...(o.sets || []).filter(s => s && !s.skipped && s.gewicht != null).map(s => s.gewicht), -Infinity);
                         const isPr = progressie[key] && maxKgLog !== -Infinity && maxKgLog >= progressie[key].max && w.datum === progressie[key].maxDatum && progressie[key].sessies >= 2;
@@ -1497,11 +1502,25 @@
             }
         }
 
-        // 1 oefening-rij in de dag-editor
+        // 1 oefening-rij in de dag-editor. Twee vormen: kracht (sets/reps) en
+        // cardio (km/min) — hard gescheiden via data-type op de rij.
         function oefRowHtml(dag, o) {
             o = o || {};
+            if (o.type === 'cardio') {
+                return `
+                    <div class="oef-edit-row" data-type="cardio" style="display:grid;grid-template-columns:28px 1fr 70px 70px 32px;gap:6px;margin-bottom:6px;align-items:center;">
+                        <button type="button" class="btn-small oef-type-toggle" title="Wissel naar kracht-oefening" onclick="toggleOefType(this)" style="padding:6px 4px;background:#D1FAE5;border-color:#A7F3D0;">&#127939;</button>
+                        <select class="filter-input oef-naam" style="width:100%;padding:7px 8px;font-size:13px;">
+                            ${['Hardlopen','Wandelen','Fietsen','Anders (cardio)'].map(a => `<option value="${a}" ${o.naam === a ? 'selected' : ''}>${a}</option>`).join('')}
+                        </select>
+                        <input class="filter-input oef-km" type="number" min="0" step="0.5" placeholder="km" value="${o.doel_km ?? ''}" style="width:100%;padding:7px 6px;font-size:13px;text-align:center;">
+                        <input class="filter-input oef-min" type="number" min="0" placeholder="min" value="${o.doel_min ?? ''}" style="width:100%;padding:7px 6px;font-size:13px;text-align:center;">
+                        <button type="button" class="btn-small danger" onclick="this.closest('.oef-edit-row').remove()" title="Verwijder">&#10005;</button>
+                    </div>`;
+            }
             return `
-                <div class="oef-edit-row" style="display:grid;grid-template-columns:1fr 64px 84px 32px;gap:6px;margin-bottom:6px;align-items:center;">
+                <div class="oef-edit-row" data-type="kracht" style="display:grid;grid-template-columns:28px 1fr 64px 84px 32px;gap:6px;margin-bottom:6px;align-items:center;">
+                    <button type="button" class="btn-small oef-type-toggle" title="Wissel naar cardio (km + min)" onclick="toggleOefType(this)" style="padding:6px 4px;">&#127947;</button>
                     <input class="filter-input oef-naam" placeholder="Oefening (bv. Hip thrust)" value="${escapeHtml(o.naam || '')}" style="width:100%;padding:7px 10px;font-size:13px;">
                     <input class="filter-input oef-sets" type="number" min="1" max="20" placeholder="sets" value="${o.sets ?? ''}" style="width:100%;padding:7px 6px;font-size:13px;text-align:center;">
                     <input class="filter-input oef-reps" placeholder="reps" value="${escapeHtml(o.reps || '')}" style="width:100%;padding:7px 8px;font-size:13px;text-align:center;">
@@ -1511,6 +1530,17 @@
         }
         function addOefRow(btn, dag) {
             btn.insertAdjacentHTML('beforebegin', oefRowHtml(dag, null));
+        }
+        // Wissel een rij tussen kracht en cardio (vervangt de rij, naam blijft waar mogelijk)
+        function toggleOefType(btn) {
+            const row = btn.closest('.oef-edit-row');
+            const isCardio = row.dataset.type === 'cardio';
+            const naam = row.querySelector('.oef-naam')?.value || '';
+            const nieuw = isCardio
+                ? { naam: '' }
+                : { type: 'cardio', naam: 'Hardlopen' };
+            row.insertAdjacentHTML('beforebegin', oefRowHtml(null, nieuw));
+            row.remove();
         }
         function toggleRustdag(dag, isRust) {
             const blok = document.querySelector(`.dag-blok[data-dag="${dag}"]`);
@@ -1629,6 +1659,15 @@
                 blok.querySelectorAll('.oef-edit-row').forEach(row => {
                     const naam = row.querySelector('.oef-naam').value.trim();
                     if (!naam) return;
+                    if (row.dataset.type === 'cardio') {
+                        oefeningen.push({
+                            type: 'cardio',
+                            naam,
+                            doel_km: row.querySelector('.oef-km').value || null,
+                            doel_min: row.querySelector('.oef-min').value || null,
+                        });
+                        return;
+                    }
                     oefeningen.push({
                         naam,
                         sets: row.querySelector('.oef-sets').value || null,
