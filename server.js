@@ -341,7 +341,7 @@ const server = http.createServer(async (req, res) => {
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   // Version-stamp om te kunnen debuggen welke deploy draait.
-  res.setHeader('X-App-Version', 'cardio-v7');
+  res.setHeader('X-App-Version', 'cardio-v8-units');
 
   if (req.method === 'OPTIONS') {
     res.writeHead(204);

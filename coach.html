@@ -1508,14 +1508,21 @@
             o = o || {};
             if (o.type === 'cardio') {
                 return `
-                    <div class="oef-edit-row" data-type="cardio" style="display:grid;grid-template-columns:28px 1fr 70px 70px 32px;gap:6px;margin-bottom:6px;align-items:center;">
+                    <div class="oef-edit-row" data-type="cardio" style="display:grid;grid-template-columns:28px 1fr 88px 88px 32px;gap:6px;margin-bottom:6px;align-items:center;">
                         <button type="button" class="btn-small oef-type-toggle" title="Wissel naar kracht-oefening" onclick="toggleOefType(this)" style="padding:6px 4px;background:#D1FAE5;border-color:#A7F3D0;">&#127939;</button>
-                        <select class="filter-input oef-naam" style="width:100%;padding:7px 8px;font-size:13px;">
+                        <select class="filter-input oef-naam" onchange="updateCardioSummary(this)" style="width:100%;padding:7px 8px;font-size:13px;">
                             ${['Hardlopen','Wandelen','Fietsen','Anders (cardio)'].map(a => `<option value="${a}" ${o.naam === a ? 'selected' : ''}>${a}</option>`).join('')}
                         </select>
-                        <input class="filter-input oef-km" type="number" min="0" step="0.5" placeholder="km" value="${o.doel_km ?? ''}" style="width:100%;padding:7px 6px;font-size:13px;text-align:center;">
-                        <input class="filter-input oef-min" type="number" min="0" placeholder="min" value="${o.doel_min ?? ''}" style="width:100%;padding:7px 6px;font-size:13px;text-align:center;">
+                        <div style="position:relative;">
+                            <input class="filter-input oef-km" type="number" min="0" step="0.5" placeholder="0" value="${o.doel_km ?? ''}" oninput="updateCardioSummary(this)" style="width:100%;padding:7px 34px 7px 6px;font-size:13px;text-align:right;">
+                            <span style="position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:11px;color:#9CA3AF;font-weight:600;pointer-events:none;">km</span>
+                        </div>
+                        <div style="position:relative;">
+                            <input class="filter-input oef-min" type="number" min="0" placeholder="0" value="${o.doel_min ?? ''}" oninput="updateCardioSummary(this)" style="width:100%;padding:7px 34px 7px 6px;font-size:13px;text-align:right;">
+                            <span style="position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:11px;color:#9CA3AF;font-weight:600;pointer-events:none;">min</span>
+                        </div>
                         <button type="button" class="btn-small danger" onclick="this.closest('.oef-edit-row').remove()" title="Verwijder">&#10005;</button>
+                        <div class="cardio-summary" style="grid-column:2 / -1;font-size:11.5px;color:#059669;min-height:14px;">${cardioSummaryTxt(o.naam, o.doel_km, o.doel_min)}</div>
                     </div>`;
             }
             return `
@@ -1530,6 +1537,37 @@
         }
         function addOefRow(btn, dag) {
             btn.insertAdjacentHTML('beforebegin', oefRowHtml(dag, null));
+        }
+        // Leesbare cardio-regel: "5 km in 30 min · tempo 6:00 /km"
+        function coachPaceTxt(km, min) {
+            if (!km || !min || km <= 0) return '';
+            const p = min / km;
+            const m = Math.floor(p);
+            const s = Math.round((p - m) * 60);
+            return `${m}:${String(s).padStart(2, '0')} /km`;
+        }
+        function cardioSummaryTxt(naam, km, min) {
+            km = parseFloat(km) || null;
+            min = parseInt(min, 10) || null;
+            if (!km && !min) return '';
+            const delen = [];
+            if (km && min) delen.push(`${km} km in ${min} minuten`);
+            else if (km) delen.push(`${km} km`);
+            else delen.push(`${min} minuten`);
+            const pace = coachPaceTxt(km, min);
+            if (pace) delen.push(`tempo ${pace}`);
+            return `&#127939; ${escapeHtml(naam || 'Cardio')}: ${delen.join(' &middot; ')}`;
+        }
+        function updateCardioSummary(el) {
+            const row = el.closest('.oef-edit-row');
+            if (!row) return;
+            const out = row.querySelector('.cardio-summary');
+            if (!out) return;
+            out.innerHTML = cardioSummaryTxt(
+                row.querySelector('.oef-naam')?.value,
+                row.querySelector('.oef-km')?.value,
+                row.querySelector('.oef-min')?.value
+            );
         }
         // Wissel een rij tussen kracht en cardio (vervangt de rij, naam blijft waar mogelijk)
         function toggleOefType(btn) {

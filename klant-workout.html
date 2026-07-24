@@ -427,7 +427,10 @@
         if ((dagSchema.oefeningen || []).length) {
           const regels = dagSchema.oefeningen.map(o => {
             if (isCardio(o)) {
-              const doel = [o.doel_km ? o.doel_km + ' km' : null, o.doel_min ? o.doel_min + ' min' : null].filter(Boolean).join(' · ');
+              const pace = paceTxt(o.doel_km, o.doel_min);
+              const doel = (o.doel_km && o.doel_min)
+                ? `${o.doel_km} km in ${o.doel_min} min${pace ? ' · tempo ' + pace : ''}`
+                : [o.doel_km ? o.doel_km + ' km' : null, o.doel_min ? o.doel_min + ' min' : null].filter(Boolean).join(' · ');
               return `🏃 ${o.naam}${doel ? ' — ' + doel : ''}`;
             }
             const doel = o.sets ? o.sets + '×' + (o.reps || '?') : (o.reps || '');
@@ -489,8 +492,12 @@
       const prevLine = last
         ? `<div class="oef-prev">Vorige keer (${formatKort(last.datum)}): ${last.km != null ? last.km + ' km' : ''}${last.km != null && last.minuten != null ? ' in ' : ''}${last.minuten != null ? last.minuten + ' min' : ''}${paceTxt(last.km, last.minuten) ? ' &middot; ' + paceTxt(last.km, last.minuten) : ''}</div>`
         : '';
+      const doelPace = paceTxt(o.doel_km, o.doel_min);
+      const doelTxt = (o.doel_km && o.doel_min)
+        ? `${o.doel_km} km in ${o.doel_min} minuten${doelPace ? ' · tempo ' + doelPace : ''}`
+        : [o.doel_km ? o.doel_km + ' km' : null, o.doel_min ? o.doel_min + ' minuten' : null].filter(Boolean).join(' · ');
       const doelLine = (o.doel_km || o.doel_min)
-        ? `<div class="oef-prev" style="font-style:normal;color:#BE185D;">Doel van Julia: ${[o.doel_km ? o.doel_km + ' km' : null, o.doel_min ? o.doel_min + ' min' : null].filter(Boolean).join(' · ')}</div>`
+        ? `<div class="oef-prev" style="font-style:normal;color:#BE185D;">Doel van Julia: ${doelTxt}</div>`
         : '';
       return `
         <div class="oef" data-idx="${idx}" style="background:#ECFDF5;">

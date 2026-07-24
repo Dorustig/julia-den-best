@@ -1774,7 +1774,9 @@
         } else {
           const oefs = (d.oefeningen || []).map(o => {
             if (o.type === 'cardio') {
-              const doel = [o.doel_km ? o.doel_km + ' km' : null, o.doel_min ? o.doel_min + ' min' : null].filter(Boolean).join(' · ');
+              const doel = (o.doel_km && o.doel_min)
+                ? `${o.doel_km} km in ${o.doel_min} min`
+                : [o.doel_km ? o.doel_km + ' km' : null, o.doel_min ? o.doel_min + ' min' : null].filter(Boolean).join(' · ');
               return `<div style="font-size:12px;color:#6B7280;padding:1px 0;">🏃 ${escapeHtml(o.naam)}${doel ? ' <span style="color:#9CA3AF;">' + escapeHtml(doel) + '</span>' : ''}</div>`;
             }
             const doel = [o.sets ? o.sets + '×' + (o.reps || '?') : (o.reps || '')].filter(Boolean).join('');
