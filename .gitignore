@@ -9,3 +9,6 @@ data/leads-append.jsonl
 data/session-secret.txt
 data/tracking.json
 data/calls-meta.json
+data/activity.jsonl
+data/calendly-webhook.json
+data/mollie-last-seen.txt

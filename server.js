@@ -13,6 +13,7 @@ const supabaseHelper = require('./lib/supabase');
 const emailHelper = require('./lib/email');
 const pushHelper = require('./lib/push');
 const calendlyHelper = require('./lib/calendly');
+const mollieHelper = require('./lib/mollie');
 
 const PORT = process.env.PORT || 3001;
 const ROOT = __dirname;
@@ -26,6 +27,11 @@ const TRACKING_FILE = path.join(DATA_DIR, 'tracking.json');
 const LINK_CLICKS_LOG = path.join(DATA_DIR, 'link-clicks.jsonl');
 // Calls-portaal: per-call overrides (outcome + cash) en config (dealwaarde).
 const CALLS_META_FILE = path.join(DATA_DIR, 'calls-meta.json');
+// Activity-feed: append-only log van calls geboekt + betalingen binnen.
+const ACTIVITY_LOG = path.join(DATA_DIR, 'activity.jsonl');
+// Calendly-webhook: opgeslagen signing key + laatst-geziene Mollie payment.
+const CALENDLY_WEBHOOK_FILE = path.join(DATA_DIR, 'calendly-webhook.json');
+const MOLLIE_SEEN_FILE = path.join(DATA_DIR, 'mollie-last-seen.txt');
 
 // Ensure data + backup directories exist
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -292,6 +298,43 @@ function jsonRes(res, code, data) {
   res.end(JSON.stringify(data));
 }
 
+// ===== ACTIVITY FEED =====
+// Append-only JSONL. Elke regel: { id, ts, type, naam, email, detail, amount }
+// type: 'call_booked' | 'call_canceled' | 'payment'
+function appendActivity(entry) {
+  try {
+    const row = {
+      id: entry.id || (Date.now() + '-' + Math.random().toString(36).slice(2, 8)),
+      ts: entry.ts || new Date().toISOString(),
+      type: entry.type,
+      naam: entry.naam || null,
+      email: entry.email || null,
+      detail: entry.detail || null,
+      amount: entry.amount != null ? entry.amount : null,
+    };
+    fs.appendFileSync(ACTIVITY_LOG, JSON.stringify(row) + '\n');
+    return row;
+  } catch (e) { console.warn('[Activity] append failed:', e.message); return null; }
+}
+function readActivity(limit = 100) {
+  try {
+    const raw = fs.readFileSync(ACTIVITY_LOG, 'utf-8');
+    const lines = raw.split('\n').filter(Boolean);
+    const out = [];
+    for (let i = lines.length - 1; i >= 0 && out.length < limit; i--) {
+      try { out.push(JSON.parse(lines[i])); } catch {}
+    }
+    return out;
+  } catch { return []; }
+}
+// Dedupe-guard: is er al een activity met dit id?
+function activityHasId(id) {
+  try {
+    const raw = fs.readFileSync(ACTIVITY_LOG, 'utf-8');
+    return raw.includes('"id":"' + id + '"');
+  } catch { return false; }
+}
+
 // ===== CALLS META (calls-portaal) =====
 // Structuur: { config: { default_deal_value }, calls: { [eventId]: { outcome, cash_value, notitie } } }
 // outcome: 'open' | 'showed' | 'no_show' | 'canceled' | 'won' | 'lost'
@@ -359,7 +402,7 @@ const server = http.createServer(async (req, res) => {
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   // Version-stamp om te kunnen debuggen welke deploy draait.
-  res.setHeader('X-App-Version', 'calls-portaal-v9');
+  res.setHeader('X-App-Version', 'betalingen-activity-v10');
 
   if (req.method === 'OPTIONS') {
     res.writeHead(204);
@@ -442,6 +485,65 @@ const server = http.createServer(async (req, res) => {
   if (pathname === '/api/logout' && req.method === 'POST') {
     clearSessionCookie(req, res);
     return jsonRes(res, 200, { success: true });
+  }
+
+  // ===== CALENDLY WEBHOOK (nieuwe / geannuleerde boeking) =====
+  // Public endpoint — Calendly POST hierheen. Signature-verificatie met de
+  // opgeslagen signing_key (uit de setup). Nieuwe boeking (geen reschedule)
+  // → activity-feed zodat de admins een in-app notificatie zien.
+  if (pathname === '/api/webhooks/calendly' && req.method === 'POST') {
+    const rawBody = await readBody(req);
+
+    // Signature check (optioneel — alleen als we een signing key hebben).
+    try {
+      const stored = JSON.parse(fs.readFileSync(CALENDLY_WEBHOOK_FILE, 'utf-8'));
+      const signingKey = stored.signing_key;
+      const sigHeader = req.headers['calendly-webhook-signature'] || '';
+      if (signingKey && sigHeader) {
+        const parts = Object.fromEntries(sigHeader.split(',').map(kv => kv.split('=')));
+        const expected = crypto.createHmac('sha256', signingKey)
+          .update(`${parts.t}.${rawBody}`).digest('hex');
+        if (!parts.v1 || parts.v1.length !== expected.length ||
+            !crypto.timingSafeEqual(Buffer.from(parts.v1), Buffer.from(expected))) {
+          console.warn('[Calendly webhook] signature mismatch');
+          return jsonRes(res, 401, { error: 'Invalid signature' });
+        }
+      }
+    } catch { /* geen signing key opgeslagen — accepteer (we controleren de payload zelf) */ }
+
+    let payload;
+    try { payload = JSON.parse(rawBody); }
+    catch { return jsonRes(res, 400, { error: 'Invalid JSON' }); }
+
+    const eventType = payload.event; // 'invitee.created' | 'invitee.canceled'
+    const p = payload.payload || {};
+    const naam = p.name || null;
+    const email = (p.email || '').toLowerCase() || null;
+    const eventUri = p.scheduled_event?.uri || p.event || '';
+    const eventId = eventUri.split('/').pop() || (p.uri || '').split('/').pop();
+    const startTime = p.scheduled_event?.start_time || null;
+    // Reschedule herkennen: Calendly zet 'rescheduled' / 'old_invitee' bij verzette boekingen.
+    const isReschedule = !!(p.rescheduled || p.old_invitee);
+
+    if (eventType === 'invitee.created' && !isReschedule) {
+      const actId = 'cal-' + (eventId || Date.now());
+      if (!activityHasId(actId)) {
+        const wanneer = startTime ? new Date(startTime).toLocaleString('nl-NL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
+        appendActivity({
+          id: actId,
+          type: 'call_booked',
+          naam, email,
+          detail: 'Nieuwe call geboekt' + (wanneer ? ' voor ' + wanneer : ''),
+        });
+      }
+    } else if (eventType === 'invitee.canceled') {
+      appendActivity({
+        type: 'call_canceled',
+        naam, email,
+        detail: 'Call geannuleerd',
+      });
+    }
+    return jsonRes(res, 200, { ok: true });
   }
 
   // GET /api/me — return current session (used by frontend to know who's logged in)
@@ -585,6 +687,14 @@ const server = http.createServer(async (req, res) => {
     }
 
     console.log('[Plug&Pay webhook] klant aangemaakt:', email, 'id:', klantRes.klant.id);
+
+    // Activity-feed: nieuwe betaling / klant binnen (in-app notificatie).
+    appendActivity({
+      type: 'payment',
+      naam, email,
+      detail: 'Nieuwe klant via Plug&Pay' + (productId ? ' (product ' + productId + ')' : ''),
+      amount: null,
+    });
 
     // 4. Welkomstmail met email + wachtwoord — fire and forget
     const siteOrigin = process.env.SITE_ORIGIN || `https://${CANONICAL_HOST}`;
@@ -2102,6 +2212,70 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
+  // GET /api/activity — in-app notificatie-feed (calls geboekt + betalingen)
+  if (pathname === '/api/activity' && req.method === 'GET') {
+    if (!requireAuth(req, res)) return;
+    const limit = Math.min(200, parseInt(parsed.query.limit || '60', 10) || 60);
+    return jsonRes(res, 200, { activity: readActivity(limit) });
+  }
+
+  // GET /api/payments — Mollie betalingen (overzicht + totalen)
+  if (pathname === '/api/payments' && req.method === 'GET') {
+    if (!requireAuth(req, res)) return;
+    if (!mollieHelper.isEnabled()) {
+      return jsonRes(res, 503, { error: 'Mollie niet geconfigureerd (MOLLIE_API_KEY ontbreekt).' });
+    }
+    try {
+      const payments = await mollieHelper.listPayments({ max: 250 });
+      const paid = payments.filter(p => p.status === 'paid');
+      const totals = {
+        aantal_betaald: paid.length,
+        totaal_omzet: paid.reduce((s, p) => s + p.amount, 0),
+        aantal_open: payments.filter(p => ['open', 'pending'].includes(p.status)).length,
+        aantal_mislukt: payments.filter(p => ['expired', 'failed', 'canceled'].includes(p.status)).length,
+      };
+      // Omzet deze maand
+      const nu = new Date();
+      const maandStart = new Date(nu.getFullYear(), nu.getMonth(), 1).toISOString();
+      totals.omzet_deze_maand = paid.filter(p => (p.paid_at || '') >= maandStart).reduce((s, p) => s + p.amount, 0);
+      return jsonRes(res, 200, { totals, payments });
+    } catch (e) {
+      console.warn('[/api/payments] error:', e.message);
+      return jsonRes(res, 500, { error: e.message });
+    }
+  }
+
+  // GET /api/calls/webhook-status — is de Calendly-webhook actief?
+  if (pathname === '/api/calls/webhook-status' && req.method === 'GET') {
+    if (!requireAuth(req, res)) return;
+    if (!calendlyHelper.isEnabled()) return jsonRes(res, 200, { enabled: false, hooks: [] });
+    try {
+      const hooks = await calendlyHelper.listWebhooks();
+      const ours = hooks.filter(h => (h.callback_url || '').includes('/api/webhooks/calendly'));
+      return jsonRes(res, 200, { enabled: ours.length > 0, hooks: ours.map(h => ({ url: h.callback_url, state: h.state, events: h.events })) });
+    } catch (e) { return jsonRes(res, 500, { error: e.message }); }
+  }
+
+  // POST /api/calls/setup-webhook — registreer de Calendly-webhook (1x)
+  if (pathname === '/api/calls/setup-webhook' && req.method === 'POST') {
+    if (!requireAuth(req, res)) return;
+    if (!calendlyHelper.isEnabled()) return jsonRes(res, 503, { error: 'Calendly niet geconfigureerd.' });
+    try {
+      const siteOrigin = process.env.SITE_ORIGIN || `https://${CANONICAL_HOST}`;
+      const callbackUrl = siteOrigin + '/api/webhooks/calendly';
+      // Al bestaand? Dan niet dubbel aanmaken.
+      const existing = (await calendlyHelper.listWebhooks()).filter(h => (h.callback_url || '') === callbackUrl);
+      if (existing.length) return jsonRes(res, 200, { ok: true, already: true, url: callbackUrl });
+      const sub = await calendlyHelper.createWebhook(callbackUrl);
+      // Signing key opslaan voor signature-verificatie van binnenkomende webhooks.
+      fs.writeFileSync(CALENDLY_WEBHOOK_FILE, JSON.stringify({ signing_key: sub.signing_key || null, uri: sub.uri, url: callbackUrl }, null, 2));
+      return jsonRes(res, 200, { ok: true, url: callbackUrl });
+    } catch (e) {
+      console.warn('[setup-webhook] error:', e.message);
+      return jsonRes(res, 500, { error: e.message });
+    }
+  }
+
   // PUT /api/calls/config — default dealwaarde instellen
   if (pathname === '/api/calls/config' && req.method === 'PUT') {
     if (!requireAuth(req, res)) return;
@@ -2306,6 +2480,12 @@ const server = http.createServer(async (req, res) => {
     pathname === '/calls/' ||
     pathname === '/calls.html';
 
+  // Betalingen-overzicht (Mollie). Zelfde admin-only gate als calls.
+  const isBetalingenSlug =
+    pathname === '/betalingen' ||
+    pathname === '/betalingen/' ||
+    pathname === '/betalingen.html';
+
   // Debate — strategiedocument over hoe maximaal calls te halen uit de funnel.
   // Login-protected (zelfde gate als setter playbook).
   const isDebateSlug =
@@ -2354,13 +2534,14 @@ const server = http.createServer(async (req, res) => {
     filePath = pageSession ? '/coach.html' : '/login.html';
   } else if (isSetterSlug) {
     filePath = getSession(req) ? '/setter.html' : '/login.html';
-  } else if (isCallsSlug) {
+  } else if (isCallsSlug || isBetalingenSlug) {
     // Setter → terug naar leads-portal (geen cash-inzage).
     if (pageSession && pageSession.role === 'setter') {
       res.writeHead(302, { Location: `/${ADMIN_SLUG}` });
       return res.end();
     }
-    filePath = pageSession ? '/calls.html' : '/login.html';
+    const page = isBetalingenSlug ? '/betalingen.html' : '/calls.html';
+    filePath = pageSession ? page : '/login.html';
   } else if (isDebateSlug) {
     filePath = getSession(req) ? '/debate.html' : '/login.html';
   } else if (isAntwoordenSlug) {
@@ -2589,6 +2770,53 @@ setTimeout(() => {
   checkReminderCron();
   setInterval(checkReminderCron, 5 * 60 * 1000); // elke 5 min
 }, 30 * 1000);
+
+// =============================================================
+// MOLLIE PAYMENT POLL — nieuwe betalingen → activity-feed
+// =============================================================
+// Mollie is pull-only vanaf onze kant; we pollen elke 3 min en zetten
+// nieuw-betaalde payments in de activity-feed (in-app notificatie).
+function readMollieSeen() {
+  try { return fs.readFileSync(MOLLIE_SEEN_FILE, 'utf-8').trim() || null; } catch { return null; }
+}
+function writeMollieSeen(iso) { try { fs.writeFileSync(MOLLIE_SEEN_FILE, iso); } catch {} }
+
+async function pollMolliePayments() {
+  if (!mollieHelper.isEnabled()) return;
+  try {
+    const seen = readMollieSeen();
+    const nieuw = await mollieHelper.listNewPaid(seen);
+    if (!nieuw.length) {
+      // Eerste run zonder marker: zet marker op nu zodat we niet de hele historie als "nieuw" pushen.
+      if (!seen) writeMollieSeen(new Date().toISOString());
+      return;
+    }
+    // Oud → nieuw verwerken en marker op de nieuwste paid_at zetten.
+    nieuw.sort((a, b) => (a.paid_at || '').localeCompare(b.paid_at || ''));
+    for (const p of nieuw) {
+      const actId = 'mollie-' + p.id;
+      if (activityHasId(actId)) continue;
+      appendActivity({
+        id: actId,
+        ts: p.paid_at || new Date().toISOString(),
+        type: 'payment',
+        naam: p.consumer_name || null,
+        email: null,
+        detail: p.description || 'Betaling ontvangen',
+        amount: p.amount,
+      });
+    }
+    const nieuwste = nieuw[nieuw.length - 1].paid_at;
+    if (nieuwste) writeMollieSeen(nieuwste);
+    console.log(`[Mollie] ${nieuw.length} nieuwe betaling(en) in de feed.`);
+  } catch (e) {
+    console.warn('[Mollie] poll error:', e.message);
+  }
+}
+setTimeout(() => {
+  pollMolliePayments();
+  setInterval(pollMolliePayments, 3 * 60 * 1000); // elke 3 min
+}, 40 * 1000);
 
 // =============================================================
 // DAILY HABIT REMINDER CRON

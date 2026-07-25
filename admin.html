@@ -418,6 +418,9 @@
                     <a href="/calls" style="color:#F472B6">📞 Calls (Calendly) →</a>
                 </li>
                 <li data-admin-only>
+                    <a href="/betalingen" style="color:#F472B6">💰 Betalingen (Mollie) →</a>
+                </li>
+                <li data-admin-only>
                     <a href="#" onclick="goToCoachDashboard(event)" style="color:#F472B6">🏋🏻‍♀️ Coach Dashboard →</a>
                 </li>
                 <li><a href="index.html">🌐 Landingspagina</a></li>
@@ -438,6 +441,18 @@
                     <button class="btn-admin btn-export" onclick="downloadServer('json')">&#8681; JSON</button>
                     <button class="btn-admin btn-refresh" onclick="logout()" title="Uitloggen">&#128682; Uitloggen</button>
                 </div>
+            </div>
+
+            <!-- Activiteitenfeed: nieuwe calls + betalingen (in-app notificatie, admin-only) -->
+            <div class="activity-card" data-admin-only id="activityCard" style="display:none;background:#fff;border:1px solid #E5E7EB;border-radius:14px;padding:18px 20px;margin-bottom:20px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                    <h3 style="font-size:16px;font-weight:700;display:flex;align-items:center;gap:8px;">
+                        🔔 Recente activiteit
+                        <span id="activityBadge" style="display:none;background:#EC4899;color:#fff;font-size:11px;font-weight:700;border-radius:999px;padding:1px 9px;">0 nieuw</span>
+                    </h3>
+                    <button onclick="markActivitySeen()" style="font-size:12px;color:#9CA3AF;background:none;border:none;cursor:pointer;font-family:inherit;">Alles gezien</button>
+                </div>
+                <div id="activityList" style="font-size:13.5px;color:#9CA3AF;">Laden…</div>
             </div>
 
             <!-- Stats -->
@@ -1202,6 +1217,61 @@
             } catch (e) { alert("Kon coach dashboard niet openen: " + e.message); }
         }
 
+        // ===== Activiteitenfeed (nieuwe calls + betalingen) =====
+        function activityIcon(type) {
+            return type === 'call_booked' ? '📅' : type === 'call_canceled' ? '❌' : '💰';
+        }
+        function activityColor(type) {
+            return type === 'call_booked' ? '#1E40AF' : type === 'call_canceled' ? '#9CA3AF' : '#047857';
+        }
+        function timeAgo(iso) {
+            const diff = Date.now() - new Date(iso).getTime();
+            const m = Math.floor(diff / 60000);
+            if (m < 1) return 'zojuist';
+            if (m < 60) return m + ' min geleden';
+            const h = Math.floor(m / 60);
+            if (h < 24) return h + ' uur geleden';
+            const d = Math.floor(h / 24);
+            if (d < 7) return d + ' dag' + (d > 1 ? 'en' : '') + ' geleden';
+            return new Date(iso).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' });
+        }
+        async function loadActivity() {
+            const wrap = document.getElementById('activityList');
+            if (!wrap) return;
+            try {
+                const r = await fetch('/api/activity?limit=25', { credentials: 'include' });
+                if (!r.ok) return;
+                const { activity } = await r.json();
+                if (!activity || !activity.length) {
+                    wrap.innerHTML = '<div style="color:#9CA3AF;padding:6px 0;">Nog geen activiteit. Nieuwe calls en betalingen verschijnen hier automatisch.</div>';
+                    return;
+                }
+                const lastSeen = localStorage.getItem('activitySeen') || '';
+                let nieuw = 0;
+                wrap.innerHTML = activity.map(a => {
+                    const isNew = a.ts > lastSeen;
+                    if (isNew) nieuw++;
+                    const bedrag = a.amount != null ? ` <strong style="color:#047857;">€${Math.round(a.amount * 100) / 100}</strong>` : '';
+                    return `
+                        <div style="display:flex;gap:12px;padding:9px 0;border-bottom:1px solid #F3F4F6;${isNew ? 'background:#FDF2F8;margin:0 -20px;padding-left:20px;padding-right:20px;' : ''}">
+                            <div style="font-size:18px;flex-shrink:0;">${activityIcon(a.type)}</div>
+                            <div style="flex:1;min-width:0;">
+                                <div style="color:${activityColor(a.type)};font-weight:600;">${esc(a.detail || a.type)}${bedrag}</div>
+                                <div style="font-size:12px;color:#9CA3AF;margin-top:1px;">${a.naam ? esc(a.naam) + ' · ' : ''}${timeAgo(a.ts)}</div>
+                            </div>
+                            ${isNew ? '<span style="align-self:center;width:8px;height:8px;border-radius:50%;background:#EC4899;flex-shrink:0;"></span>' : ''}
+                        </div>`;
+                }).join('');
+                const badge = document.getElementById('activityBadge');
+                if (nieuw > 0) { badge.textContent = nieuw + ' nieuw'; badge.style.display = 'inline-block'; }
+                else badge.style.display = 'none';
+            } catch {}
+        }
+        function markActivitySeen() {
+            localStorage.setItem('activitySeen', new Date().toISOString());
+            loadActivity();
+        }
+
         // Init — alleen leads-management; coaching draait in coach.html
         loadLeads();
         loadBackups();
@@ -1216,6 +1286,12 @@
                 window.__me = me; // gebruikt voor naam bij notities
                 if (me.role === 'setter') {
                     document.querySelectorAll('[data-admin-only]').forEach(el => el.style.display = 'none');
+                } else {
+                    // Admin: activiteitenfeed tonen + laden (nieuwe calls + betalingen)
+                    const card = document.getElementById('activityCard');
+                    if (card) card.style.display = 'block';
+                    loadActivity();
+                    setInterval(loadActivity, 60000); // elke minuut verversen
                 }
             } catch {}
         })();

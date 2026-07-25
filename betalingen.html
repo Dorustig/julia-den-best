@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Betalingen · Julia Besten</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #F9FAFB; color: #1F2937; }
+        .admin-layout { display: flex; min-height: 100vh; }
+        .sidebar { width: 240px; background: #1F2937; color: #fff; padding: 24px 16px; position: fixed; top: 0; left: 0; bottom: 0; z-index: 10; }
+        .sidebar-brand { font-size: 16px; font-weight: 700; color: #F472B6; margin-bottom: 32px; padding: 0 8px; }
+        .sidebar-nav { list-style: none; }
+        .sidebar-nav li a { display: flex; align-items: center; gap: 10px; padding: 10px 12px; color: #9CA3AF; text-decoration: none; font-size: 14px; border-radius: 8px; transition: all 0.2s; margin-bottom: 4px; cursor: pointer; }
+        .sidebar-nav li a:hover, .sidebar-nav li a.active { background: #374151; color: #fff; }
+        .sidebar-nav li a.active { color: #F472B6; }
+
+        .main { flex: 1; margin-left: 240px; padding: 28px 32px 60px; min-width: 0; }
+        .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; gap: 14px; flex-wrap: wrap; }
+        .topbar h1 { font-size: 24px; font-weight: 700; }
+        .subtitle { color: #6B7280; font-size: 14px; margin-bottom: 22px; }
+        .btn { padding: 9px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; font-family: inherit; }
+        .btn-ghost { background: #F3F4F6; color: #374151; border: 1px solid #E5E7EB; }
+        .btn-ghost:hover { background: #E5E7EB; }
+
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; margin-bottom: 22px; }
+        .kpi { background: #fff; border: 1px solid #E5E7EB; border-radius: 14px; padding: 18px; }
+        .kpi .label { font-size: 11px; font-weight: 600; color: #6B7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+        .kpi .value { font-family: 'Playfair Display', serif; font-size: 30px; font-weight: 700; line-height: 1; color: #1F2937; }
+        .kpi .sub { font-size: 12px; color: #9CA3AF; margin-top: 6px; }
+        .kpi.cash { background: linear-gradient(135deg, #ECFDF5, #D1FAE5); border-color: #A7F3D0; }
+        .kpi.cash .value { color: #047857; }
+        .kpi.month { background: linear-gradient(135deg, #FDF2F8, #FCE7F3); border-color: #F9A8D4; }
+        .kpi.month .value { color: #BE185D; }
+
+        .filters { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+        .filters .seg { display: inline-flex; background: #F3F4F6; border-radius: 10px; padding: 3px; }
+        .filters .seg button { padding: 7px 14px; border: none; background: none; font-family: inherit; font-size: 13px; font-weight: 600; color: #6B7280; border-radius: 8px; cursor: pointer; }
+        .filters .seg button.active { background: #fff; color: #EC4899; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+
+        .table-wrap { background: #fff; border: 1px solid #E5E7EB; border-radius: 14px; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        thead { background: #F9FAFB; }
+        th { text-align: left; padding: 12px 14px; font-size: 11px; font-weight: 600; color: #6B7280; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #E5E7EB; white-space: nowrap; }
+        td { padding: 12px 14px; font-size: 13.5px; border-bottom: 1px solid #F3F4F6; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #FDF2F8; }
+        .amount { font-weight: 700; font-family: 'Playfair Display', serif; font-size: 15px; white-space: nowrap; }
+        .amount.paid { color: #047857; }
+        .amount.dim { color: #9CA3AF; }
+        .status-badge { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+        .st-paid { background: #D1FAE5; color: #065F46; }
+        .st-open, .st-pending { background: #FEF3C7; color: #92400E; }
+        .st-expired, .st-failed, .st-canceled { background: #F3F4F6; color: #9CA3AF; }
+        .cell-desc { color: #1F2937; }
+        .cell-sub { font-size: 12px; color: #9CA3AF; }
+        .method { font-size: 12px; color: #6B7280; text-transform: capitalize; }
+
+        .loading, .empty, .error-box { padding: 50px 20px; text-align: center; color: #9CA3AF; font-size: 14px; }
+        .error-box { color: #B91C1C; }
+        .spinner { width: 34px; height: 34px; border: 3px solid #FCE7F3; border-top-color: #EC4899; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 14px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .menu-toggle { display: none; position: fixed; top: 14px; left: 14px; z-index: 20; width: 42px; height: 42px; border-radius: 10px; background: #1F2937; color: #fff; border: none; font-size: 20px; cursor: pointer; }
+        @media (max-width: 900px) {
+            .sidebar { transform: translateX(-100%); transition: transform 0.25s; }
+            .sidebar.open { transform: translateX(0); }
+            .main { margin-left: 0; padding: 60px 14px 40px; }
+            .menu-toggle { display: block; }
+        }
+    </style>
+</head>
+<body>
+    <button class="menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">&#9776;</button>
+    <div class="admin-layout">
+        <aside class="sidebar">
+            <div class="sidebar-brand">Julia Besten</div>
+            <ul class="sidebar-nav">
+                <li><a onclick="goLeads()">&#128101; Leads</a></li>
+                <li><a href="/calls">&#128222; Calls</a></li>
+                <li><a class="active">&#128176; Betalingen</a></li>
+                <li><a href="/setter" target="_blank">&#128221; Setter Playbook</a></li>
+                <li><a href="/" target="_blank">&#127760; Landingspagina</a></li>
+                <li><a onclick="logout()" style="margin-top:10px;border-top:1px solid #374151;padding-top:14px;">&#128682; Uitloggen</a></li>
+            </ul>
+        </aside>
+
+        <main class="main">
+            <div class="topbar">
+                <h1>&#128176; Betalingen</h1>
+                <button class="btn btn-ghost" onclick="load()">&#8635; Ververs</button>
+            </div>
+            <div class="subtitle">Alle betalingen uit Mollie — automatisch binnen, betaalde bedragen als "betaald" gemarkeerd. Nieuwe betalingen verschijnen ook in je activiteitenfeed.</div>
+            <div id="content"><div class="loading"><div class="spinner"></div>Betalingen laden…</div></div>
+        </main>
+    </div>
+
+    <script>
+        let state = { filter: 'paid', data: null };
+        function escapeHtml(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+        function euro(n){return '€'+ (Math.round((n||0)*100)/100).toLocaleString('nl-NL',{minimumFractionDigits:2,maximumFractionDigits:2});}
+        function fmtDate(iso){if(!iso)return '—';const d=new Date(iso);return d.toLocaleDateString('nl-NL',{day:'numeric',month:'short',year:'numeric'});}
+
+        async function logout(){try{await fetch('/api/logout',{method:'POST'});}catch{}window.location.href='/';}
+        async function goLeads(){try{const r=await fetch('/api/admin/portal-url',{credentials:'include'});if(r.ok){window.location.href=(await r.json()).url;return;}}catch{}alert('Kon Leads Portal niet openen.');}
+
+        async function load(){
+            const c=document.getElementById('content');
+            c.innerHTML='<div class="loading"><div class="spinner"></div>Betalingen laden…</div>';
+            try{
+                const r=await fetch('/api/payments',{credentials:'include'});
+                if(r.status===401){window.location.href='/';return;}
+                const data=await r.json();
+                if(!r.ok)throw new Error(data.error||('HTTP '+r.status));
+                state.data=data; render();
+            }catch(e){ c.innerHTML='<div class="error-box">Kon betalingen niet laden: '+escapeHtml(e.message)+'</div>'; }
+        }
+
+        const STATUS_LABEL={paid:'Betaald',open:'Open',pending:'In behandeling',expired:'Verlopen',failed:'Mislukt',canceled:'Geannuleerd'};
+
+        function render(){
+            const {totals,payments}=state.data;
+            const shown = state.filter==='all' ? payments : payments.filter(p=>state.filter==='paid'?p.status==='paid':p.status!=='paid');
+            const rows=shown.map(p=>{
+                const paid=p.status==='paid';
+                return `<tr>
+                    <td class="cell-date" style="white-space:nowrap;color:#6B7280;">${fmtDate(p.paid_at||p.created_at)}</td>
+                    <td>
+                        <div class="cell-desc">${escapeHtml(p.description||'—')}</div>
+                        <div class="cell-sub">${escapeHtml(p.consumer_name||'')}${p.sequence_type&&p.sequence_type!=='oneoff'?' · '+escapeHtml(p.sequence_type):''}</div>
+                    </td>
+                    <td class="method">${escapeHtml(p.method||'—')}</td>
+                    <td><span class="status-badge st-${p.status}">${STATUS_LABEL[p.status]||p.status}</span></td>
+                    <td style="text-align:right;"><span class="amount ${paid?'paid':'dim'}">${euro(p.amount)}</span></td>
+                </tr>`;
+            }).join('');
+
+            document.getElementById('content').innerHTML=`
+                <div class="kpi-grid">
+                    <div class="kpi cash">
+                        <div class="label">&#128181; Totale omzet</div>
+                        <div class="value">${euro(totals.totaal_omzet)}</div>
+                        <div class="sub">${totals.aantal_betaald} betaalde transacties</div>
+                    </div>
+                    <div class="kpi month">
+                        <div class="label">&#128197; Omzet deze maand</div>
+                        <div class="value">${euro(totals.omzet_deze_maand)}</div>
+                        <div class="sub">sinds begin van de maand</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="label">&#9203; Open / lopend</div>
+                        <div class="value">${totals.aantal_open}</div>
+                        <div class="sub">nog niet afgerond</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="label">&#10060; Mislukt / verlopen</div>
+                        <div class="value">${totals.aantal_mislukt}</div>
+                        <div class="sub">niet doorgegaan</div>
+                    </div>
+                </div>
+
+                <div class="filters">
+                    <div class="seg" id="seg">
+                        <button data-f="paid" class="${state.filter==='paid'?'active':''}">Betaald</button>
+                        <button data-f="other" class="${state.filter==='other'?'active':''}">Overig</button>
+                        <button data-f="all" class="${state.filter==='all'?'active':''}">Alles</button>
+                    </div>
+                    <span style="font-size:13px;color:#9CA3AF;">${shown.length} betaling${shown.length===1?'':'en'}</span>
+                </div>
+
+                ${shown.length===0?'<div class="empty">Geen betalingen in deze weergave.</div>':`
+                <div class="table-wrap"><table>
+                    <thead><tr><th>Datum</th><th>Omschrijving</th><th>Methode</th><th>Status</th><th style="text-align:right;">Bedrag</th></tr></thead>
+                    <tbody>${rows}</tbody>
+                </table></div>`}
+            `;
+            document.getElementById('seg').addEventListener('click',e=>{
+                const b=e.target.closest('button'); if(!b)return;
+                state.filter=b.dataset.f; render();
+            });
+        }
+        load();
+    </script>
+</body>
+</html>
