@@ -32,6 +32,7 @@ const ACTIVITY_LOG = path.join(DATA_DIR, 'activity.jsonl');
 // Calendly-webhook: opgeslagen signing key + laatst-geziene Mollie payment.
 const CALENDLY_WEBHOOK_FILE = path.join(DATA_DIR, 'calendly-webhook.json');
 const MOLLIE_SEEN_FILE = path.join(DATA_DIR, 'mollie-last-seen.txt');
+const CALENDLY_SEEN_FILE = path.join(DATA_DIR, 'calendly-last-seen.txt');
 
 // Ensure data + backup directories exist
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -402,7 +403,7 @@ const server = http.createServer(async (req, res) => {
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   // Version-stamp om te kunnen debuggen welke deploy draait.
-  res.setHeader('X-App-Version', 'betalingen-activity-v10');
+  res.setHeader('X-App-Version', 'calendly-poll-v11');
 
   if (req.method === 'OPTIONS') {
     res.writeHead(204);
@@ -2817,6 +2818,61 @@ setTimeout(() => {
   pollMolliePayments();
   setInterval(pollMolliePayments, 3 * 60 * 1000); // elke 3 min
 }, 40 * 1000);
+
+// =============================================================
+// CALENDLY BOOKING POLL — nieuwe geboekte calls → activity-feed
+// =============================================================
+// Calendly-webhooks vereisen een betaald plan; daarom pollen we de API elke
+// 3 min en detecteren nieuwe boekingen op basis van invitee-created_at.
+function readCalendlySeen() {
+  try { return fs.readFileSync(CALENDLY_SEEN_FILE, 'utf-8').trim() || null; } catch { return null; }
+}
+function writeCalendlySeen(iso) { try { fs.writeFileSync(CALENDLY_SEEN_FILE, iso); } catch {} }
+
+async function pollCalendlyBookings() {
+  if (!calendlyHelper.isEnabled()) return;
+  try {
+    const seen = readCalendlySeen();
+    // Kijk naar boekingen van de laatste 30 dagen; filter op created_at > marker.
+    const minStart = new Date(Date.now() - 30 * 86400000).toISOString();
+    const calls = await calendlyHelper.listCalls({ minStart });
+    // Sorteer op created_at oplopend zodat we de marker netjes vooruit schuiven.
+    const withCreated = calls.filter(c => c.created_at).sort((a, b) => a.created_at.localeCompare(b.created_at));
+    if (!withCreated.length) return;
+    if (!seen) {
+      // Eerste run: marker op nieuwste zetten, niks als "nieuw" pushen.
+      writeCalendlySeen(withCreated[withCreated.length - 1].created_at);
+      return;
+    }
+    let nieuwste = seen;
+    let count = 0;
+    for (const c of withCreated) {
+      if (c.created_at <= seen) continue;
+      if (c.created_at > nieuwste) nieuwste = c.created_at;
+      if (c.canceled) continue; // geen notificatie voor een al-geannuleerde boeking
+      const actId = 'cal-' + c.event_id;
+      if (activityHasId(actId)) continue;
+      const wanneer = c.start_time ? new Date(c.start_time).toLocaleString('nl-NL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
+      appendActivity({
+        id: actId,
+        ts: c.created_at,
+        type: 'call_booked',
+        naam: c.naam,
+        email: c.email,
+        detail: 'Nieuwe call geboekt' + (wanneer ? ' voor ' + wanneer : ''),
+      });
+      count++;
+    }
+    if (nieuwste !== seen) writeCalendlySeen(nieuwste);
+    if (count) console.log(`[Calendly] ${count} nieuwe boeking(en) in de feed.`);
+  } catch (e) {
+    console.warn('[Calendly] poll error:', e.message);
+  }
+}
+setTimeout(() => {
+  pollCalendlyBookings();
+  setInterval(pollCalendlyBookings, 3 * 60 * 1000); // elke 3 min
+}, 50 * 1000);
 
 // =============================================================
 // DAILY HABIT REMINDER CRON
