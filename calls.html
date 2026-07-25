@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Calls · Julia Besten</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #F9FAFB; color: #1F2937; }
+
+        .admin-layout { display: flex; min-height: 100vh; }
+        .sidebar { width: 240px; background: #1F2937; color: #fff; padding: 24px 16px; position: fixed; top: 0; left: 0; bottom: 0; z-index: 10; }
+        .sidebar-brand { font-size: 16px; font-weight: 700; color: #F472B6; margin-bottom: 32px; padding: 0 8px; }
+        .sidebar-nav { list-style: none; }
+        .sidebar-nav li a { display: flex; align-items: center; gap: 10px; padding: 10px 12px; color: #9CA3AF; text-decoration: none; font-size: 14px; border-radius: 8px; transition: all 0.2s; margin-bottom: 4px; cursor: pointer; }
+        .sidebar-nav li a:hover, .sidebar-nav li a.active { background: #374151; color: #fff; }
+        .sidebar-nav li a.active { color: #F472B6; }
+
+        .main { flex: 1; margin-left: 240px; padding: 28px 32px 60px; min-width: 0; }
+        .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; gap: 14px; flex-wrap: wrap; }
+        .topbar h1 { font-size: 24px; font-weight: 700; }
+        .subtitle { color: #6B7280; font-size: 14px; margin-bottom: 22px; }
+        .topbar-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+        .btn { padding: 9px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; font-family: inherit; transition: all 0.15s; }
+        .btn-pink { background: #EC4899; color: #fff; }
+        .btn-pink:hover { background: #DB2777; }
+        .btn-ghost { background: #F3F4F6; color: #374151; border: 1px solid #E5E7EB; }
+        .btn-ghost:hover { background: #E5E7EB; }
+
+        /* Periode-filter */
+        .period-tabs { display: inline-flex; background: #F3F4F6; border-radius: 10px; padding: 3px; gap: 2px; }
+        .period-tabs button { padding: 7px 14px; border: none; background: none; font-family: inherit; font-size: 13px; font-weight: 600; color: #6B7280; border-radius: 8px; cursor: pointer; }
+        .period-tabs button.active { background: #fff; color: #EC4899; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+
+        /* KPI cards */
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 22px; }
+        .kpi { background: #fff; border: 1px solid #E5E7EB; border-radius: 14px; padding: 18px 18px 16px; }
+        .kpi .label { font-size: 11px; font-weight: 600; color: #6B7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+        .kpi .value { font-family: 'Playfair Display', serif; font-size: 30px; font-weight: 700; line-height: 1; color: #1F2937; }
+        .kpi .value .unit { font-size: 15px; font-family: 'Inter', sans-serif; color: #9CA3AF; font-weight: 500; }
+        .kpi .sub { font-size: 12px; color: #9CA3AF; margin-top: 6px; }
+        .kpi.hero { background: linear-gradient(135deg, #FDF2F8, #FCE7F3); border-color: #F9A8D4; }
+        .kpi.hero .value { color: #BE185D; }
+        .kpi.cash { background: linear-gradient(135deg, #ECFDF5, #D1FAE5); border-color: #A7F3D0; }
+        .kpi.cash .value { color: #047857; }
+
+        /* Config-balk */
+        .config-bar { background: #fff; border: 1px solid #E5E7EB; border-radius: 12px; padding: 14px 18px; margin-bottom: 22px; display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+        .config-bar label { font-size: 13px; color: #374151; font-weight: 500; }
+        .config-bar input { padding: 8px 12px; border: 1px solid #E5E7EB; border-radius: 8px; font-size: 14px; font-family: inherit; width: 130px; }
+        .config-bar input:focus { outline: none; border-color: #EC4899; }
+        .config-bar .hint { font-size: 12px; color: #9CA3AF; }
+
+        /* Tabel */
+        .table-wrap { background: #fff; border: 1px solid #E5E7EB; border-radius: 14px; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        thead { background: #F9FAFB; }
+        th { text-align: left; padding: 12px 14px; font-size: 11px; font-weight: 600; color: #6B7280; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #E5E7EB; white-space: nowrap; }
+        td { padding: 12px 14px; font-size: 13.5px; border-bottom: 1px solid #F3F4F6; vertical-align: middle; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #FDF2F8; }
+        .cell-naam { font-weight: 600; color: #1F2937; }
+        .cell-email { font-size: 12px; color: #9CA3AF; }
+        .cell-date { color: #6B7280; white-space: nowrap; font-size: 12.5px; }
+
+        select.outcome-sel { padding: 5px 8px; border-radius: 8px; border: 1px solid #E5E7EB; font-family: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; background: #fff; }
+        .outcome-open { color: #6B7280; }
+        .outcome-showed { color: #1E40AF; }
+        .outcome-won { color: #047857; }
+        .outcome-lost { color: #B91C1C; }
+        .outcome-no_show { color: #B45309; }
+        .outcome-canceled { color: #9CA3AF; }
+        .cash-input { width: 92px; padding: 5px 8px; border: 1px solid #E5E7EB; border-radius: 8px; font-family: inherit; font-size: 13px; text-align: right; }
+        .cash-input:focus { outline: none; border-color: #10B981; }
+        .klant-chip { display: inline-block; background: #D1FAE5; color: #065F46; padding: 1px 7px; border-radius: 10px; font-size: 10.5px; font-weight: 700; margin-left: 4px; }
+
+        .loading, .empty, .error-box { padding: 50px 20px; text-align: center; color: #9CA3AF; font-size: 14px; }
+        .error-box { color: #B91C1C; }
+        .spinner { width: 34px; height: 34px; border: 3px solid #FCE7F3; border-top-color: #EC4899; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 14px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .save-flash { font-size: 11px; color: #10B981; margin-left: 6px; opacity: 0; transition: opacity 0.2s; }
+        .save-flash.show { opacity: 1; }
+
+        .menu-toggle { display: none; position: fixed; top: 14px; left: 14px; z-index: 20; width: 42px; height: 42px; border-radius: 10px; background: #1F2937; color: #fff; border: none; font-size: 20px; cursor: pointer; }
+        @media (max-width: 900px) {
+            .sidebar { transform: translateX(-100%); transition: transform 0.25s; }
+            .sidebar.open { transform: translateX(0); }
+            .main { margin-left: 0; padding: 60px 14px 40px; }
+            .menu-toggle { display: block; }
+        }
+    </style>
+</head>
+<body>
+    <button class="menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">&#9776;</button>
+    <div class="admin-layout">
+        <aside class="sidebar">
+            <div class="sidebar-brand">Julia Besten</div>
+            <ul class="sidebar-nav">
+                <li><a onclick="goLeads()">&#128101; Leads</a></li>
+                <li><a class="active">&#128222; Calls</a></li>
+                <li><a href="/setter" target="_blank">&#128221; Setter Playbook</a></li>
+                <li><a href="/" target="_blank">&#127760; Landingspagina</a></li>
+                <li><a onclick="logout()" style="margin-top:10px;border-top:1px solid #374151;padding-top:14px;">&#128682; Uitloggen</a></li>
+            </ul>
+        </aside>
+
+        <main class="main">
+            <div class="topbar">
+                <h1>&#128222; Calls</h1>
+                <div class="topbar-actions">
+                    <div class="period-tabs" id="periodTabs">
+                        <button data-period="30d">30 dagen</button>
+                        <button data-period="90d" class="active">90 dagen</button>
+                        <button data-period="ytd">Dit jaar</button>
+                        <button data-period="all">Alles</button>
+                    </div>
+                    <button class="btn btn-ghost" onclick="load()">&#8635; Ververs</button>
+                </div>
+            </div>
+            <div class="subtitle">Geboekte gesprekken uit Calendly, met closing rate en omzet per call. Zet per call de uitkomst en de cash — dan kloppen de cijfers hierboven.</div>
+
+            <div id="content">
+                <div class="loading"><div class="spinner"></div>Calendly-data laden…</div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        let state = { period: '90d', data: null };
+
+        function escapeHtml(s) {
+            return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+        }
+        function euro(n) {
+            return '€' + Math.round(n || 0).toLocaleString('nl-NL');
+        }
+        function pct(v) {
+            return v == null ? '—' : Math.round(v * 100) + '%';
+        }
+        function fmtDate(iso) {
+            if (!iso) return '—';
+            const d = new Date(iso);
+            return d.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' }) + ' ' + d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        async function logout() {
+            try { await fetch('/api/logout', { method: 'POST' }); } catch {}
+            window.location.href = '/';
+        }
+        async function goLeads() {
+            try {
+                const r = await fetch('/api/admin/portal-url', { credentials: 'include' });
+                if (r.ok) { window.location.href = (await r.json()).url; return; }
+            } catch {}
+            alert('Kon Leads Portal niet openen. Log opnieuw in.');
+        }
+
+        const OUTCOMES = [
+            { v: 'open', l: 'Nog te doen' },
+            { v: 'showed', l: 'Gehouden' },
+            { v: 'won', l: 'Klant! (won)' },
+            { v: 'lost', l: 'Niet gesloten' },
+            { v: 'no_show', l: 'No-show' },
+            { v: 'canceled', l: 'Geannuleerd' },
+        ];
+
+        async function load() {
+            const content = document.getElementById('content');
+            content.innerHTML = '<div class="loading"><div class="spinner"></div>Calendly-data laden…</div>';
+            try {
+                const r = await fetch('/api/calls?period=' + state.period, { credentials: 'include' });
+                if (r.status === 401) { window.location.href = '/'; return; }
+                const data = await r.json();
+                if (!r.ok) throw new Error(data.error || ('HTTP ' + r.status));
+                state.data = data;
+                render();
+            } catch (e) {
+                content.innerHTML = '<div class="error-box">Kon calls niet laden: ' + escapeHtml(e.message) + '</div>';
+            }
+        }
+
+        function render() {
+            const { kpi, calls, default_deal_value } = state.data;
+            const rows = calls.map(c => {
+                const oCls = 'outcome-' + c.outcome;
+                const options = OUTCOMES.map(o => `<option value="${o.v}" ${o.v === c.outcome ? 'selected' : ''}>${o.l}</option>`).join('');
+                return `
+                    <tr>
+                        <td>
+                            <div class="cell-naam">${escapeHtml(c.naam || '—')}${c.klant_match ? '<span class="klant-chip">is klant</span>' : ''}</div>
+                            <div class="cell-email">${escapeHtml(c.email || '')}</div>
+                        </td>
+                        <td class="cell-date">${fmtDate(c.start_time)}</td>
+                        <td>
+                            <select class="outcome-sel ${oCls}" onchange="setOutcome('${c.event_id}', this.value, this)">${options}</select>
+                            <span class="save-flash" id="flash-o-${c.event_id}">&#10003;</span>
+                        </td>
+                        <td>
+                            <input class="cash-input" type="number" min="0" placeholder="${c.outcome === 'won' ? default_deal_value : 0}" value="${c.cash_override ? c.cash : ''}" onchange="setCash('${c.event_id}', this.value, this)">
+                            <span class="save-flash" id="flash-c-${c.event_id}">&#10003;</span>
+                        </td>
+                        <td class="cell-email">${escapeHtml(c.utm_source || '—')}</td>
+                    </tr>`;
+            }).join('');
+
+            document.getElementById('content').innerHTML = `
+                <div class="kpi-grid">
+                    <div class="kpi hero">
+                        <div class="label">&#128197; Booked calls</div>
+                        <div class="value">${kpi.booked}</div>
+                        <div class="sub">${kpi.held} gehouden · ${kpi.canceled} geannuleerd · ${kpi.no_show} no-show</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="label">&#127942; Closing rate</div>
+                        <div class="value">${pct(kpi.closing_rate)}</div>
+                        <div class="sub">${kpi.won} klanten uit ${kpi.held} gehouden calls</div>
+                    </div>
+                    <div class="kpi cash">
+                        <div class="label">&#128176; Cash per booked call</div>
+                        <div class="value">${euro(kpi.cash_per_booked)}</div>
+                        <div class="sub">${euro(kpi.cash_per_held)} per gehouden call</div>
+                    </div>
+                    <div class="kpi cash">
+                        <div class="label">&#128184; Totale cash</div>
+                        <div class="value">${euro(kpi.cash_total)}</div>
+                        <div class="sub">uit ${kpi.won} gesloten deals</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="label">&#128101; Show rate</div>
+                        <div class="value">${pct(kpi.show_rate)}</div>
+                        <div class="sub">kwam opdagen vs no-show</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="label">&#9203; Nog te doen</div>
+                        <div class="value">${kpi.open}</div>
+                        <div class="sub">geplande calls in de toekomst</div>
+                    </div>
+                </div>
+
+                <div class="config-bar">
+                    <label for="dealVal">&#128176; Standaard dealwaarde</label>
+                    <input type="number" id="dealVal" min="0" value="${default_deal_value || ''}" placeholder="bv. 1997">
+                    <button class="btn btn-pink" onclick="saveConfig()">Opslaan</button>
+                    <span class="hint">Dit bedrag rekenen we per gesloten deal, tenzij je bij een call een eigen bedrag invult.</span>
+                </div>
+
+                ${calls.length === 0 ? '<div class="empty">Nog geen calls in deze periode.</div>' : `
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>Wie</th><th>Wanneer</th><th>Uitkomst</th><th>Cash (€)</th><th>Bron</th></tr></thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                </div>`}
+            `;
+        }
+
+        function flash(id) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.classList.add('show');
+            setTimeout(() => el.classList.remove('show'), 1200);
+        }
+
+        async function setOutcome(eventId, outcome, sel) {
+            sel.className = 'outcome-sel outcome-' + outcome;
+            try {
+                const r = await fetch('/api/calls/' + eventId + '/meta', {
+                    method: 'PUT', credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ outcome }),
+                });
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                flash('flash-o-' + eventId);
+                // KPI's herberekenen na outcome-wijziging
+                await refreshKpis();
+            } catch (e) { alert('Opslaan mislukt: ' + e.message); }
+        }
+
+        async function setCash(eventId, value, inp) {
+            try {
+                const r = await fetch('/api/calls/' + eventId + '/meta', {
+                    method: 'PUT', credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ cash_value: value === '' ? null : value }),
+                });
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                flash('flash-c-' + eventId);
+                await refreshKpis();
+            } catch (e) { alert('Opslaan mislukt: ' + e.message); }
+        }
+
+        async function saveConfig() {
+            const v = document.getElementById('dealVal').value;
+            try {
+                const r = await fetch('/api/calls/config', {
+                    method: 'PUT', credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ default_deal_value: v === '' ? 0 : v }),
+                });
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                await load(); // dealwaarde raakt alle cash-berekeningen
+            } catch (e) { alert('Opslaan mislukt: ' + e.message); }
+        }
+
+        // Alleen de KPI-blokken verversen (tabel-inputs laten staan zodat focus niet wegspringt)
+        async function refreshKpis() {
+            try {
+                const r = await fetch('/api/calls?period=' + state.period, { credentials: 'include' });
+                if (!r.ok) return;
+                const data = await r.json();
+                state.data.kpi = data.kpi;
+                const { kpi } = data;
+                const grid = document.querySelector('.kpi-grid');
+                if (!grid) return;
+                const vals = grid.querySelectorAll('.kpi');
+                if (vals.length >= 6) {
+                    vals[0].querySelector('.value').textContent = kpi.booked;
+                    vals[0].querySelector('.sub').textContent = `${kpi.held} gehouden · ${kpi.canceled} geannuleerd · ${kpi.no_show} no-show`;
+                    vals[1].querySelector('.value').textContent = pct(kpi.closing_rate);
+                    vals[1].querySelector('.sub').textContent = `${kpi.won} klanten uit ${kpi.held} gehouden calls`;
+                    vals[2].querySelector('.value').textContent = euro(kpi.cash_per_booked);
+                    vals[2].querySelector('.sub').textContent = `${euro(kpi.cash_per_held)} per gehouden call`;
+                    vals[3].querySelector('.value').textContent = euro(kpi.cash_total);
+                    vals[3].querySelector('.sub').textContent = `uit ${kpi.won} gesloten deals`;
+                    vals[4].querySelector('.value').textContent = pct(kpi.show_rate);
+                    vals[5].querySelector('.value').textContent = kpi.open;
+                }
+            } catch {}
+        }
+
+        document.getElementById('periodTabs').addEventListener('click', (e) => {
+            const btn = e.target.closest('button');
+            if (!btn) return;
+            document.querySelectorAll('#periodTabs button').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            state.period = btn.dataset.period;
+            load();
+        });
+
+        load();
+    </script>
+</body>
+</html>

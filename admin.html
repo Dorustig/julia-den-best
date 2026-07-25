@@ -415,6 +415,9 @@
                 <li><a href="#" data-filter="afspraak" onclick="sidebarFilter(event, 'afspraak')">📅 Afspraken</a></li>
                 <li><a href="#" data-filter="klant" onclick="sidebarFilter(event, 'klant')">✅ Klanten (lead)</a></li>
                 <li style="margin-top:10px;padding-top:10px;border-top:1px solid #374151" data-admin-only>
+                    <a href="/calls" style="color:#F472B6">📞 Calls (Calendly) →</a>
+                </li>
+                <li data-admin-only>
                     <a href="#" onclick="goToCoachDashboard(event)" style="color:#F472B6">🏋🏻‍♀️ Coach Dashboard →</a>
                 </li>
                 <li><a href="index.html">🌐 Landingspagina</a></li>
@@ -427,6 +430,7 @@
                 <h1>Leads Dashboard</h1>
                 <div class="topbar-actions">
                     <button class="btn-admin btn-refresh" onclick="loadLeads()">&#8635; Ververs</button>
+                    <a class="btn-admin btn-export" href="/calls" data-admin-only style="text-decoration:none; display:inline-flex; align-items:center; background:#EC4899; color:#fff;" title="Calls dashboard (Calendly)">&#128222; Calls</a>
                     <a class="btn-admin btn-refresh" href="/setter" target="_blank" style="text-decoration:none; display:inline-flex; align-items:center;" title="Setter Playbook">&#128221; Playbook</a>
                     <a class="btn-admin btn-refresh" href="/debate" target="_blank" style="text-decoration:none; display:inline-flex; align-items:center;" title="Debate · Hoe maximaal calls">&#127919; Debate</a>
                     <a class="btn-admin btn-refresh" href="/antwoorden" target="_blank" style="text-decoration:none; display:inline-flex; align-items:center;" title="Antwoorden in DM">&#128172; Antwoorden</a>

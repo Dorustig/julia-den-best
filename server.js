@@ -12,6 +12,7 @@ try { require('dotenv').config({ path: path.join(__dirname, '.env') }); } catch 
 const supabaseHelper = require('./lib/supabase');
 const emailHelper = require('./lib/email');
 const pushHelper = require('./lib/push');
+const calendlyHelper = require('./lib/calendly');
 
 const PORT = process.env.PORT || 3001;
 const ROOT = __dirname;
@@ -23,6 +24,8 @@ const LEADS_FILE = path.join(DATA_DIR, 'leads.json');
 const LEADS_APPEND_LOG = path.join(DATA_DIR, 'leads-append.jsonl');
 const TRACKING_FILE = path.join(DATA_DIR, 'tracking.json');
 const LINK_CLICKS_LOG = path.join(DATA_DIR, 'link-clicks.jsonl');
+// Calls-portaal: per-call overrides (outcome + cash) en config (dealwaarde).
+const CALLS_META_FILE = path.join(DATA_DIR, 'calls-meta.json');
 
 // Ensure data + backup directories exist
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -288,6 +291,21 @@ function jsonRes(res, code, data) {
   res.writeHead(code, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
   res.end(JSON.stringify(data));
 }
+
+// ===== CALLS META (calls-portaal) =====
+// Structuur: { config: { default_deal_value }, calls: { [eventId]: { outcome, cash_value, notitie } } }
+// outcome: 'open' | 'showed' | 'no_show' | 'canceled' | 'won' | 'lost'
+function readCallsMeta() {
+  try {
+    const d = JSON.parse(fs.readFileSync(CALLS_META_FILE, 'utf-8'));
+    return { config: d.config || {}, calls: d.calls || {} };
+  } catch { return { config: {}, calls: {} }; }
+}
+function writeCallsMeta(meta) {
+  const tmp = CALLS_META_FILE + '.tmp';
+  fs.writeFileSync(tmp, JSON.stringify(meta, null, 2));
+  fs.renameSync(tmp, CALLS_META_FILE);
+}
 function readBody(req) {
   return new Promise((resolve, reject) => {
     let body = '';
@@ -341,7 +359,7 @@ const server = http.createServer(async (req, res) => {
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   // Version-stamp om te kunnen debuggen welke deploy draait.
-  res.setHeader('X-App-Version', 'cardio-v8-units');
+  res.setHeader('X-App-Version', 'calls-portaal-v9');
 
   if (req.method === 'OPTIONS') {
     res.writeHead(204);
@@ -1960,6 +1978,178 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
+  // =============================================================
+  // CALLS-PORTAAL — Calendly booked calls + closing rate + cash
+  // =============================================================
+
+  // GET /api/calls?period=30d|90d|all|ytd — Calendly calls verrijkt met
+  // lead/klant-match + opgeslagen outcome/cash, plus berekende KPI's.
+  if (pathname === '/api/calls' && req.method === 'GET') {
+    if (!requireAuth(req, res)) return;
+    if (!calendlyHelper.isEnabled()) {
+      return jsonRes(res, 503, { error: 'Calendly niet geconfigureerd (CALENDLY_TOKEN ontbreekt).' });
+    }
+    try {
+      // Periode → min_start_time
+      const period = parsed.query.period || '90d';
+      let minStart = null;
+      const now = new Date();
+      if (/^\d+d$/.test(period)) {
+        const days = parseInt(period, 10);
+        minStart = new Date(now.getTime() - days * 86400000).toISOString();
+      } else if (period === 'ytd') {
+        minStart = new Date(now.getFullYear(), 0, 1).toISOString();
+      } // 'all' → geen ondergrens
+
+      const [calls, klanten, meta] = await Promise.all([
+        calendlyHelper.listCalls({ minStart }),
+        supabaseHelper.isEnabled() ? supabaseHelper.listKlanten() : Promise.resolve([]),
+        Promise.resolve(readCallsMeta()),
+      ]);
+
+      const leads = readLeads();
+      const leadByEmail = {};
+      for (const l of leads) { if (l.email) leadByEmail[l.email.toLowerCase()] = l; }
+      const klantByEmail = {};
+      for (const k of (klanten || [])) { if (k.email) klantByEmail[k.email.toLowerCase()] = k; }
+
+      const defaultDeal = Number(meta.config.default_deal_value) || 0;
+      const nowMs = Date.now();
+
+      // Verrijk elke call
+      const enriched = calls.map(c => {
+        const m = meta.calls[c.event_id] || {};
+        const klant = c.email ? klantByEmail[c.email] : null;
+        const lead = c.email ? leadByEmail[c.email] : null;
+        const isPast = c.end_time ? new Date(c.end_time).getTime() < nowMs : false;
+
+        // Outcome: handmatige override wint. Anders afleiden:
+        //  canceled → canceled; no_show flag → no_show; klant geworden → won;
+        //  verleden + gehouden → showed; toekomst → open.
+        let outcome = m.outcome;
+        if (!outcome) {
+          if (c.canceled) outcome = 'canceled';
+          else if (c.no_show) outcome = 'no_show';
+          else if (klant) outcome = 'won';
+          else if (isPast) outcome = 'showed';
+          else outcome = 'open';
+        }
+        const cashRaw = m.cash_value;
+        const cash = (cashRaw != null && cashRaw !== '') ? Number(cashRaw)
+          : (outcome === 'won' ? defaultDeal : 0);
+
+        return {
+          event_id: c.event_id,
+          naam: c.naam,
+          email: c.email,
+          start_time: c.start_time,
+          end_time: c.end_time,
+          created_at: c.created_at,
+          utm_source: c.utm_source || (lead && lead.bron) || null,
+          is_past: isPast,
+          calendly_canceled: c.canceled,
+          calendly_no_show: c.no_show,
+          klant_match: !!klant,
+          klant_status: klant ? klant.status : null,
+          outcome,
+          outcome_override: !!m.outcome,
+          cash,
+          cash_override: (cashRaw != null && cashRaw !== ''),
+          notitie: m.notitie || '',
+        };
+      });
+
+      // KPI's
+      const booked = enriched.length;
+      const canceled = enriched.filter(c => c.outcome === 'canceled').length;
+      const noShow = enriched.filter(c => c.outcome === 'no_show').length;
+      const open = enriched.filter(c => c.outcome === 'open').length;
+      const won = enriched.filter(c => c.outcome === 'won').length;
+      // Gehouden = calls die daadwerkelijk plaatsvonden (showed of won).
+      const held = enriched.filter(c => c.outcome === 'showed' || c.outcome === 'won').length;
+      const afgerond = held; // calls met bekende uitkomst waarop een closing rate slaat
+      const cashTotal = enriched.reduce((s, c) => s + (c.cash || 0), 0);
+
+      const kpi = {
+        booked,
+        held,
+        no_show: noShow,
+        canceled,
+        open,
+        won,
+        // Closing rate = gewonnen / gehouden calls (calls die plaatsvonden).
+        closing_rate: afgerond > 0 ? won / afgerond : null,
+        // Show rate = gehouden / (booked - open - canceled) : van de verstreken, niet-gecancelde
+        show_rate: (held + noShow) > 0 ? held / (held + noShow) : null,
+        cash_total: cashTotal,
+        // Cash per booked call en per gehouden call
+        cash_per_booked: booked > 0 ? cashTotal / booked : 0,
+        cash_per_held: held > 0 ? cashTotal / held : 0,
+      };
+
+      // Sorteer nieuwste eerst
+      enriched.sort((a, b) => new Date(b.start_time || b.created_at) - new Date(a.start_time || a.created_at));
+
+      return jsonRes(res, 200, {
+        period,
+        default_deal_value: defaultDeal,
+        kpi,
+        calls: enriched,
+      });
+    } catch (e) {
+      console.warn('[/api/calls] error:', e.message);
+      return jsonRes(res, 500, { error: e.message });
+    }
+  }
+
+  // PUT /api/calls/config — default dealwaarde instellen
+  if (pathname === '/api/calls/config' && req.method === 'PUT') {
+    if (!requireAuth(req, res)) return;
+    let body;
+    try { body = JSON.parse(await readBody(req)); }
+    catch { return jsonRes(res, 400, { error: 'Invalid JSON' }); }
+    const meta = readCallsMeta();
+    const v = Number(body.default_deal_value);
+    meta.config.default_deal_value = (!isNaN(v) && v >= 0) ? v : 0;
+    writeCallsMeta(meta);
+    return jsonRes(res, 200, { ok: true, config: meta.config });
+  }
+
+  // PUT /api/calls/:eventId/meta — outcome + cash + notitie per call
+  {
+    const m = pathname.match(/^\/api\/calls\/([^/]+)\/meta$/);
+    if (m && req.method === 'PUT') {
+      if (!requireAuth(req, res)) return;
+      let body;
+      try { body = JSON.parse(await readBody(req)); }
+      catch { return jsonRes(res, 400, { error: 'Invalid JSON' }); }
+      const eventId = decodeURIComponent(m[1]);
+      const meta = readCallsMeta();
+      const cur = meta.calls[eventId] || {};
+      const VALID = ['open', 'showed', 'no_show', 'canceled', 'won', 'lost'];
+      if (body.outcome !== undefined) {
+        if (body.outcome === null || body.outcome === '') delete cur.outcome; // terug naar auto
+        else if (VALID.includes(body.outcome)) cur.outcome = body.outcome;
+        else return jsonRes(res, 400, { error: 'Ongeldige outcome' });
+      }
+      if (body.cash_value !== undefined) {
+        if (body.cash_value === null || body.cash_value === '') delete cur.cash_value;
+        else {
+          const v = Number(body.cash_value);
+          if (isNaN(v) || v < 0) return jsonRes(res, 400, { error: 'Ongeldig bedrag' });
+          cur.cash_value = v;
+        }
+      }
+      if (body.notitie !== undefined) {
+        cur.notitie = body.notitie ? String(body.notitie).slice(0, 500) : '';
+      }
+      if (Object.keys(cur).length === 0) delete meta.calls[eventId];
+      else meta.calls[eventId] = cur;
+      writeCallsMeta(meta);
+      return jsonRes(res, 200, { ok: true, meta: meta.calls[eventId] || null });
+    }
+  }
+
   // GET /api/tracking-config — tracking pixel IDs (public, read-only)
   if (pathname === '/api/tracking-config' && req.method === 'GET') {
     try { return jsonRes(res, 200, JSON.parse(fs.readFileSync(TRACKING_FILE, 'utf-8'))); }
@@ -2109,6 +2299,13 @@ const server = http.createServer(async (req, res) => {
     pathname === '/playbook' ||
     pathname === '/playbook/';
 
+  // Calls-portaal — Calendly analytics (booked calls, closing rate, cash).
+  // Login-protected; setter-accounts krijgen 'm niet (cash-data is gevoelig).
+  const isCallsSlug =
+    pathname === '/calls' ||
+    pathname === '/calls/' ||
+    pathname === '/calls.html';
+
   // Debate — strategiedocument over hoe maximaal calls te halen uit de funnel.
   // Login-protected (zelfde gate als setter playbook).
   const isDebateSlug =
@@ -2157,6 +2354,13 @@ const server = http.createServer(async (req, res) => {
     filePath = pageSession ? '/coach.html' : '/login.html';
   } else if (isSetterSlug) {
     filePath = getSession(req) ? '/setter.html' : '/login.html';
+  } else if (isCallsSlug) {
+    // Setter → terug naar leads-portal (geen cash-inzage).
+    if (pageSession && pageSession.role === 'setter') {
+      res.writeHead(302, { Location: `/${ADMIN_SLUG}` });
+      return res.end();
+    }
+    filePath = pageSession ? '/calls.html' : '/login.html';
   } else if (isDebateSlug) {
     filePath = getSession(req) ? '/debate.html' : '/login.html';
   } else if (isAntwoordenSlug) {
