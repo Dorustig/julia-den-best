@@ -146,7 +146,7 @@ const T = {
         q8sub: 'Vul je gegevens in zodat ik persoonlijk contact met je kan opnemen',
         labelNaam: 'Volledige naam', phNaam: 'Je voor- en achternaam',
         labelEmail: 'E-mailadres', phEmail: 'naam@voorbeeld.nl',
-        labelTel: 'Telefoonnummer', phTel: '06-12345678',
+        labelTel: 'Telefoonnummer', phTel: '06… (NL) of 04… (BE)',
         labelIg: 'Hoe heet je op Instagram?', phIg: '@jouwnaam',
         btnPrev: 'Vorige', btnNext: 'Volgende',
         btnSubmit: 'Verstuur & Start Jouw Transformatie',
@@ -690,25 +690,33 @@ function validateNLPhone(value) {
     if (digits.startsWith('+')) digits = digits.slice(1);
     if (!/^\d+$/.test(digits)) return { ok: false, msg: 'Alleen cijfers toegestaan' };
 
-    // Normalise to 06XXXXXXXX (10 digits)
+    // Normaliseer naar nationaal 0-formaat (10 cijfers). Accepteert Nederlandse
+    // mobiele nummers (06…) én Belgische mobiele nummers (04…), lokaal of met
+    // landcode (+31 / +32, met of zonder 00).
     let normalized = null;
+    // --- Nederland: mobiel 06XXXXXXXX ---
     if (/^06\d{8}$/.test(digits)) normalized = digits;
     else if (/^316\d{8}$/.test(digits)) normalized = '0' + digits.slice(2);
     else if (/^00316\d{8}$/.test(digits)) normalized = '0' + digits.slice(4);
     else if (/^6\d{8}$/.test(digits)) normalized = '0' + digits;
+    // --- België: mobiel 04XXXXXXXX ---
+    else if (/^04\d{8}$/.test(digits)) normalized = digits;
+    else if (/^324\d{8}$/.test(digits)) normalized = '0' + digits.slice(2);
+    else if (/^00324\d{8}$/.test(digits)) normalized = '0' + digits.slice(4);
 
-    if (!normalized) return { ok: false, msg: 'Vul een geldig 06-nummer in (bijv. 06-12345678)' };
+    if (!normalized) return { ok: false, msg: 'Vul een geldig mobiel nummer in (NL 06… of BE 04…)' };
 
-    // Reject obvious fakes
-    const suffix = normalized.slice(2); // 8 digits after 06
-    // All same digit: 0611111111, 0600000000
-    if (/^(\d)\1{7}$/.test(suffix)) return { ok: false, msg: 'Dit nummer lijkt niet echt. Vul je echte 06-nummer in.' };
-    // Sequential ascending (12345678) or descending (87654321)
+    // Reject obvious fakes — 8 cijfers na het 0X-voorvoegsel
+    const prefix = normalized.slice(0, 2); // '06' of '04'
+    const suffix = normalized.slice(2);
+    // Allemaal hetzelfde cijfer: 0611111111, 0400000000
+    if (/^(\d)\1{7}$/.test(suffix)) return { ok: false, msg: 'Dit nummer lijkt niet echt. Vul je echte nummer in.' };
+    // Oplopend / aflopend
     if (suffix === '12345678' || suffix === '87654321' || suffix === '01234567' || suffix === '23456789') {
-        return { ok: false, msg: 'Dit nummer lijkt niet echt. Vul je echte 06-nummer in.' };
+        return { ok: false, msg: 'Dit nummer lijkt niet echt. Vul je echte nummer in.' };
     }
-    // Display-friendly format: 06-12345678
-    const pretty = '06-' + suffix;
+    // Nette weergave: 06-12345678 / 04-70123456
+    const pretty = prefix + '-' + suffix;
     return { ok: true, normalized: pretty };
 }
 
