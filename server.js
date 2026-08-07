@@ -96,6 +96,12 @@ const ADMIN_PASS_2 = process.env.ADMIN_PASS_2 || '#Cheesy123';
 // dashboard (klantdata: check-ins, foto's, chat).
 const ADMIN_USER_3 = process.env.ADMIN_USER_3 || 'Romy';
 const ADMIN_PASS_3 = process.env.ADMIN_PASS_3 || 'Bellenmaar2026';
+// Extra setters (bijv. Tessa) — puur via env vars, zodat het wachtwoord NIET
+// in de code/git-historie belandt. Alleen actief als beide vars gezet zijn.
+const ADMIN_USER_4 = process.env.ADMIN_USER_4 || '';
+const ADMIN_PASS_4 = process.env.ADMIN_PASS_4 || '';
+const ADMIN_USER_5 = process.env.ADMIN_USER_5 || '';
+const ADMIN_PASS_5 = process.env.ADMIN_PASS_5 || '';
 
 // Lijst van toegestane (user, pass, role) combinaties.
 const ADMIN_CREDENTIALS = [
@@ -103,6 +109,9 @@ const ADMIN_CREDENTIALS = [
   { user: ADMIN_USER_2, pass: ADMIN_PASS_2, role: 'admin' },
   { user: ADMIN_USER_3, pass: ADMIN_PASS_3, role: 'setter' },
 ];
+// Env-only setters toevoegen als ze geconfigureerd zijn.
+if (ADMIN_USER_4 && ADMIN_PASS_4) ADMIN_CREDENTIALS.push({ user: ADMIN_USER_4, pass: ADMIN_PASS_4, role: 'setter' });
+if (ADMIN_USER_5 && ADMIN_PASS_5) ADMIN_CREDENTIALS.push({ user: ADMIN_USER_5, pass: ADMIN_PASS_5, role: 'setter' });
 
 // Session secret used to sign cookies. Generated once and persisted to the
 // data volume so sessions survive deploys. Override with env var if desired.
@@ -403,7 +412,7 @@ const server = http.createServer(async (req, res) => {
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   // Version-stamp om te kunnen debuggen welke deploy draait.
-  res.setHeader('X-App-Version', 'be-phone-v12');
+  res.setHeader('X-App-Version', 'setter-tessa-v13');
 
   if (req.method === 'OPTIONS') {
     res.writeHead(204);
