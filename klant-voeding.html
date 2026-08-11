@@ -356,7 +356,7 @@
                      onchange="autofillMacros('${m.key}')"
                      onkeydown="if(event.key==='Enter'){event.preventDefault();addLog('${m.key}')}">
               <div class="gram-row">
-                <div class="nlbl">Hoeveel gram? (optioneel)</div>
+                <div class="nlbl">Hoeveel gram / ml? (optioneel)</div>
                 <input type="number" inputmode="numeric" id="gram-${m.key}" placeholder="bv. 100" min="0" max="5000" onkeydown="if(event.key==='Enter'){event.preventDefault();addLog('${m.key}')}">
               </div>
               <div class="num-grid">
@@ -533,50 +533,50 @@
 
     // =============================================================
     // BARCODE SCANNEN → Open Food Facts productlookup
+    // We gebruiken ZXing (werkt op iPhone/Safari ÉN Android), niet de native
+    // BarcodeDetector (die ontbreekt op iOS). Zo herkent de camera de barcode
+    // automatisch en vullen we alle voedingswaarden meteen in.
     // =============================================================
-    let scanStream = null, scanRAF = null, scanMeal = null, scanDetector = null;
+    let scanMeal = null, zxingControls = null, zxingReader = null, scanHandled = false;
 
     window.startScan = async (meal) => {
       scanMeal = meal;
+      scanHandled = false;
       const overlay = document.getElementById('scanOverlay');
       const video = document.getElementById('scanVideo');
       const hint = document.getElementById('scanHint');
-      // BarcodeDetector beschikbaar? (Chrome/Android, Safari iOS 17+)
-      if (!('BarcodeDetector' in window)) {
-        // Geen scanner → val terug op handmatig code intypen
-        manualBarcode();
-        return;
-      }
+      overlay.classList.add('active');
+      hint.textContent = 'Barcode-scanner laden…';
       try {
-        scanDetector = new BarcodeDetector({ formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128'] });
-        scanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-        video.srcObject = scanStream;
-        await video.play();
-        overlay.classList.add('active');
+        if (!zxingReader) {
+          const { BrowserMultiFormatReader } = await import('https://esm.sh/@zxing/browser@0.1.5');
+          zxingReader = new BrowserMultiFormatReader();
+        }
         hint.textContent = 'Richt op de streepjescode van het product';
-        const tick = async () => {
-          if (!scanStream) return;
-          try {
-            const codes = await scanDetector.detect(video);
-            if (codes && codes.length) {
-              const code = codes[0].rawValue.replace(/\D/g, '');
-              if (code.length >= 6) { stopScan(); lookupBarcode(code); return; }
+        // Achtercamera; ZXing regelt getUserMedia + continue decoding zelf.
+        zxingControls = await zxingReader.decodeFromConstraints(
+          { video: { facingMode: { ideal: 'environment' } } },
+          video,
+          (result) => {
+            if (result && !scanHandled) {
+              const code = (result.getText ? result.getText() : result.text || '').replace(/\D/g, '');
+              if (code.length >= 6) { scanHandled = true; stopScan(); lookupBarcode(code); }
             }
-          } catch {}
-          scanRAF = requestAnimationFrame(tick);
-        };
-        scanRAF = requestAnimationFrame(tick);
+          }
+        );
       } catch (e) {
         stopScan();
-        // Camera geweigerd/niet beschikbaar → handmatig
+        // Camera geweigerd of niet beschikbaar → handmatig code intypen
+        alert('Kon de camera niet openen. Je kunt de code ook handmatig intypen.');
         manualBarcode();
       }
     };
 
     window.stopScan = () => {
-      if (scanRAF) cancelAnimationFrame(scanRAF), scanRAF = null;
-      if (scanStream) { scanStream.getTracks().forEach(t => t.stop()); scanStream = null; }
-      document.getElementById('scanOverlay').classList.remove('active');
+      try { if (zxingControls) zxingControls.stop(); } catch {}
+      zxingControls = null;
+      const overlay = document.getElementById('scanOverlay');
+      if (overlay) overlay.classList.remove('active');
     };
 
     window.manualBarcode = () => {
@@ -617,9 +617,9 @@
       ].filter(Boolean).join(' · ');
       card.innerHTML = `
         <h3>${escapeHtml(prod.naam)}</h3>
-        <div class="merk">${prod.merk ? escapeHtml(prod.merk) + ' · ' : ''}per 100g: ${per || 'geen macro-data'}</div>
+        <div class="merk">${prod.merk ? escapeHtml(prod.merk) + ' · ' : ''}per 100g/ml: ${per || 'geen macro-data'}</div>
         <div class="prod-gram-row">
-          <label>Hoeveel gram?</label>
+          <label>Hoeveel gram / ml?</label>
           <input type="number" inputmode="numeric" id="prodGram" value="100" min="1" max="5000" oninput="recomputeProd()">
         </div>
         <div class="prod-totaal" id="prodTotaal"></div>
