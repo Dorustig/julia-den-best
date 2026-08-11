@@ -448,9 +448,9 @@
                                 <option value="">Alle statussen</option>
                                 <option value="onboarding">Onboarding</option>
                                 <option value="actief">Actief</option>
-                                <option value="gepauzeerd">Gepauzeerd</option>
+                                <option value="pauze">Gepauzeerd</option>
                                 <option value="afgerond">Afgerond</option>
-                                <option value="gestopt">Gestopt / gearchiveerd</option>
+                                <option value="opgezegd">Gestopt / gearchiveerd</option>
                             </select>
                         </div>
                     </div>
@@ -772,6 +772,19 @@
             } catch {}
         }
 
+        // Klant-statussen. `value` = de echte database-enum waarde (klant_status:
+        // onboarding/actief/pauze/afgerond/opgezegd), `label` = wat Julia ziet.
+        // 'pauze' tonen we als "Gepauzeerd", 'opgezegd' als "Gestopt".
+        const KLANT_STATUS = [
+            { value: 'onboarding', label: 'Onboarding', kleur: '#F59E0B' },
+            { value: 'actief',     label: 'Actief',     kleur: '#10B981' },
+            { value: 'pauze',      label: 'Gepauzeerd', kleur: '#9CA3AF' },
+            { value: 'afgerond',   label: 'Afgerond',   kleur: '#6366F1' },
+            { value: 'opgezegd',   label: 'Gestopt',    kleur: '#EF4444' },
+        ];
+        const KLANT_STATUS_LABEL = Object.fromEntries(KLANT_STATUS.map(s => [s.value, s.label]));
+        const KLANT_STATUS_KLEUR = Object.fromEntries(KLANT_STATUS.map(s => [s.value, s.kleur]));
+
         async function loadKlanten() {
             try {
                 await loadChatUnread();
@@ -810,7 +823,7 @@
 
                 let list = all.slice();
                 // 'actief-set' = alles behalve gestopt/afgerond (de dagelijkse werklijst)
-                if (statusF === 'actief-set') list = list.filter(k => !['gestopt', 'afgerond'].includes(k.status));
+                if (statusF === 'actief-set') list = list.filter(k => !['opgezegd', 'afgerond'].includes(k.status));
                 else if (statusF) list = list.filter(k => k.status === statusF);
                 if (zoek) list = list.filter(k => (k.naam || '').toLowerCase().includes(zoek) || (k.email || '').toLowerCase().includes(zoek));
 
@@ -823,11 +836,8 @@
 
                 tbody.innerHTML = list.map(k => {
                     const week = k.start_datum ? Math.max(1, Math.min(16, Math.ceil((Date.now() - new Date(k.start_datum)) / (7*24*60*60*1000)))) : '—';
-                    const statusColors = {
-                        onboarding: '#F59E0B', actief: '#10B981', afgerond: '#6366F1',
-                        gepauzeerd: '#9CA3AF', gestopt: '#EF4444',
-                    };
-                    const kleur = statusColors[k.status] || '#6B7280';
+                    const kleur = KLANT_STATUS_KLEUR[k.status] || '#6B7280';
+                    const statusLabel = KLANT_STATUS_LABEL[k.status] || k.status;
                     const start = k.start_datum ? new Date(k.start_datum).toLocaleDateString('nl-NL') : '—';
                     const doel = (k.doel || '—').replace(/_/g, ' ');
                     const unread = window.__unreadCounts[k.id] || 0;
@@ -835,11 +845,14 @@
                         <tr>
                             <td><strong>${escapeHtml(k.naam || '—')}</strong></td>
                             <td style="font-size:12px;color:#6B7280">${escapeHtml(k.email)}</td>
-                            <td><span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;background:${kleur}22;color:${kleur}">${k.status}</span></td>
+                            <td><span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;background:${kleur}22;color:${kleur}">${statusLabel}</span></td>
                             <td>${week}/16</td>
                             <td style="font-size:12px">${escapeHtml(doel)}</td>
                             <td style="font-size:12px;color:#6B7280">${start}</td>
                             <td style="white-space:nowrap">
+                                <select onchange="klantStatusWijzig('${k.id}', this.value, this)" title="Status aanpassen" style="padding:4px 8px;font-size:11px;font-weight:600;border-radius:8px;border:1px solid ${kleur}66;background:${kleur}18;color:${kleur};margin-right:6px;cursor:pointer;font-family:inherit;">
+                                    ${KLANT_STATUS.map(s => `<option value="${s.value}" ${s.value===k.status?'selected':''}>${s.label}</option>`).join('')}
+                                </select>
                                 <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#FCE7F3;color:#E91E8C;margin-right:3px;" onclick="klantChat('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#128172;${unread > 0 ? '<span class="unread-badge">' + unread + '</span>' : ''}</button>
                                 <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#FCE7F3;color:#E91E8C;margin-right:3px;" onclick="klantBekijkCheckIns('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#128197;</button>
                                 <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#FCE7F3;color:#E91E8C;margin-right:3px;" onclick="klantTraining('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#127947;</button>
@@ -885,7 +898,7 @@
                         <div><label style="font-size:12px;color:#6B7280">Telefoon</label><input name="telefoon" value="${escapeHtml(v(klant.telefoon))}" class="filter-input" style="width:100%"></div>
                         <div><label style="font-size:12px;color:#6B7280">Status</label>
                             <select name="status" class="filter-input" style="width:100%">
-                                ${['onboarding','actief','gepauzeerd','afgerond','gestopt'].map(s => `<option value="${s}" ${s===klant.status?'selected':''}>${s}</option>`).join('')}
+                                ${KLANT_STATUS.map(s => `<option value="${s.value}" ${s.value===klant.status?'selected':''}>${s.label}</option>`).join('')}
                             </select>
                         </div>
                     </div>
@@ -973,7 +986,7 @@
         }
 
         async function archiveerKlant(klantId, naam) {
-            if (!confirm(`"${naam}" archiveren (status wordt 'gestopt')?`)) return;
+            if (!confirm(`"${naam}" archiveren (status wordt 'Gestopt')?`)) return;
             try {
                 const r = await fetch('/api/admin/klanten/' + klantId, {
                     method: 'DELETE', credentials: 'include',
@@ -982,6 +995,27 @@
                 closeEditKlant();
                 loadKlanten();
             } catch (e) { alert('Mislukt: ' + e.message); }
+        }
+
+        // Status direct aanpassen vanuit de klantenlijst (dropdown tussen de knoppen).
+        async function klantStatusWijzig(klantId, status, sel) {
+            const oud = sel ? sel.dataset.prev : null;
+            try {
+                const r = await fetch('/api/admin/klanten/' + klantId, {
+                    method: 'PUT', credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status }),
+                });
+                const d = await r.json();
+                if (!r.ok || d.error) throw new Error(d.error || 'HTTP ' + r.status);
+                // Cache bijwerken en tabel opnieuw renderen (kleuren + filter volgen mee)
+                const k = (window.__klantenCache || []).find(x => x.id === klantId);
+                if (k) k.status = status;
+                renderKlantenTabel();
+            } catch (e) {
+                alert('Status wijzigen mislukt: ' + e.message);
+                if (sel && oud) sel.value = oud;
+            }
         }
 
         // Permanent verwijderen: klant + alle data (check-ins, workouts, chat,
@@ -2584,7 +2618,7 @@
                         ${stat('Actief', sc.actief || 0, 'green')}
                         ${stat('Onboarding', sc.onboarding || 0, 'amber')}
                         ${stat('Afgerond', sc.afgerond || 0, 'indigo')}
-                        ${stat('Gepauzeerd', (sc.gepauzeerd||0) + (sc.gestopt||0), 'gray')}
+                        ${stat('Gepauzeerd/gestopt', (sc.gepauzeerd||0) + (sc.gestopt||0), 'gray')}
                         ${stat('Nieuw (30d)', s.nieuw30d || 0, 'pink')}
                         ${stat('Gem. &Delta; kg', (s.gemiddeldDelta != null ? (s.gemiddeldDelta > 0 ? '+' : '') + s.gemiddeldDelta.toFixed(1) : '—'), s.gemiddeldDelta < 0 ? 'green' : '')}
                     </div>

@@ -419,7 +419,7 @@ const server = http.createServer(async (req, res) => {
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   // Version-stamp om te kunnen debuggen welke deploy draait.
-  res.setHeader('X-App-Version', 'klanten-overzicht-v16');
+  res.setHeader('X-App-Version', 'klant-status-v17');
 
   if (req.method === 'OPTIONS') {
     res.writeHead(204);
@@ -1131,8 +1131,8 @@ const server = http.createServer(async (req, res) => {
         if (!r.ok) return jsonRes(res, 500, { error: r.error });
         return jsonRes(res, 200, { ok: true, deleted: true, email: r.email });
       }
-      // Zonder hard-flag: soft-delete (status = gestopt), data blijft bewaard.
-      const upd = await supabaseHelper.updateKlantFields(m[1], { status: 'gestopt' });
+      // Zonder hard-flag: soft-delete (status = opgezegd), data blijft bewaard.
+      const upd = await supabaseHelper.updateKlantFields(m[1], { status: 'opgezegd' });
       if (!upd.ok) return jsonRes(res, 500, { error: upd.error });
       return jsonRes(res, 200, { ok: true, klant: upd.klant });
     }
