@@ -439,7 +439,21 @@
 
                 <!-- Klanten tabel -->
                 <div id="klantenLijst" style="display:none">
-                    <div style="font-weight:600;font-size:14px;margin-bottom:10px">Bestaande klanten (<span id="klantenCount">0</span>)</div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px;">
+                        <div style="font-weight:600;font-size:14px">Bestaande klanten (<span id="klantenCount">0</span>)</div>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                            <input type="text" id="klantZoek" class="filter-input" placeholder="🔍 Zoek op naam of email" oninput="renderKlantenTabel()" style="padding:7px 12px;font-size:13px;min-width:200px;">
+                            <select id="klantStatusFilter" class="filter-input" onchange="renderKlantenTabel()" style="padding:7px 12px;font-size:13px;">
+                                <option value="actief-set">Actieve klanten</option>
+                                <option value="">Alle statussen</option>
+                                <option value="onboarding">Onboarding</option>
+                                <option value="actief">Actief</option>
+                                <option value="gepauzeerd">Gepauzeerd</option>
+                                <option value="afgerond">Afgerond</option>
+                                <option value="gestopt">Gestopt / gearchiveerd</option>
+                            </select>
+                        </div>
+                    </div>
                     <div class="table-wrapper">
                         <table>
                             <thead>
@@ -765,10 +779,8 @@
                 if (!r.ok) return;
                 const list = await r.json();
                 window.__klantenCache = list || [];
-                const tbody = document.getElementById('klantenTbody');
                 const wrap = document.getElementById('klantenLijst');
                 const leeg = document.getElementById('klantenLeeg');
-                const count = document.getElementById('klantenCount');
                 const navCount = document.getElementById('navKlantenCount');
 
                 if (!list || list.length === 0) {
@@ -779,9 +791,35 @@
                 }
                 leeg.style.display = 'none';
                 wrap.style.display = 'block';
-                count.textContent = list.length;
                 navCount.textContent = list.length;
                 navCount.classList.remove('hidden');
+                renderKlantenTabel();
+            } catch (e) { console.warn('loadKlanten error:', e); }
+        }
+
+        // Rendert de tabel op basis van cache + zoek/statusfilter. Zo blijft de
+        // lijst overzichtelijk: standaard alleen actieve klanten, gestopte/oude
+        // wegfilteren of zoeken op naam.
+        function renderKlantenTabel() {
+            try {
+                const all = window.__klantenCache || [];
+                const tbody = document.getElementById('klantenTbody');
+                const count = document.getElementById('klantenCount');
+                const zoek = (document.getElementById('klantZoek')?.value || '').trim().toLowerCase();
+                const statusF = document.getElementById('klantStatusFilter')?.value || '';
+
+                let list = all.slice();
+                // 'actief-set' = alles behalve gestopt/afgerond (de dagelijkse werklijst)
+                if (statusF === 'actief-set') list = list.filter(k => !['gestopt', 'afgerond'].includes(k.status));
+                else if (statusF) list = list.filter(k => k.status === statusF);
+                if (zoek) list = list.filter(k => (k.naam || '').toLowerCase().includes(zoek) || (k.email || '').toLowerCase().includes(zoek));
+
+                count.textContent = list.length + (list.length !== all.length ? ' van ' + all.length : '');
+
+                if (!list.length) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#9CA3AF;padding:24px;">Geen klanten in deze weergave. Pas de filter of zoekopdracht aan.</td></tr>';
+                    return;
+                }
 
                 tbody.innerHTML = list.map(k => {
                     const week = k.start_datum ? Math.max(1, Math.min(16, Math.ceil((Date.now() - new Date(k.start_datum)) / (7*24*60*60*1000)))) : '—';
@@ -809,8 +847,8 @@
                                 <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#FEF3C7;color:#92400E;margin-right:3px;" onclick="klantNotities('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#128221;</button>
                                 <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#EDE9FE;color:#5B21B6;margin-right:3px;" title="Workouts bekijken" onclick="klantWorkouts('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#128170;</button>
                                 <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#E0E7FF;color:#3730A3;margin-right:3px;" title="Bewerk klant" onclick="klantBewerken('${k.id}')">&#9998;</button>
-                                <button class="btn-admin btn-export" style="padding:4px 10px;font-size:11px;margin-right:3px;" title="Nieuw wachtwoord" onclick="klantResetWachtwoord('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#128273;</button>
-                                <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#FEE2E2;color:#991B1B;" title="Verwijder klant" onclick="klantVerwijderen('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#128465;</button>
+                                <button class="btn-admin btn-export" style="padding:4px 10px;font-size:11px;margin-right:6px;" title="Nieuw wachtwoord" onclick="klantResetWachtwoord('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#128273;</button>
+                                <button class="btn-admin" style="padding:4px 12px;font-size:11px;font-weight:600;background:#FEE2E2;color:#991B1B;border:1px solid #FCA5A5;" title="Klant permanent verwijderen" onclick="klantVerwijderen('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#128465; Verwijder</button>
                             </td>
                         </tr>
                     `;
