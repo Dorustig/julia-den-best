@@ -17,7 +17,7 @@
             width: 240px; background: #1F2937; color: #fff; padding: 24px 16px;
             position: fixed; top: 0; left: 0; bottom: 0; z-index: 10;
         }
-        .sidebar-brand { font-size: 16px; font-weight: 700; color: #cdae9c; margin-bottom: 32px; padding: 0 8px; }
+        .sidebar-brand { font-size: 16px; font-weight: 700; color: #d3a39d; margin-bottom: 32px; padding: 0 8px; }
         .sidebar-nav { list-style: none; }
         .sidebar-nav li a {
             display: flex; align-items: center; gap: 10px; padding: 10px 12px;
@@ -25,7 +25,7 @@
             transition: all 0.2s; margin-bottom: 4px;
         }
         .sidebar-nav li a:hover, .sidebar-nav li a.active { background: #374151; color: #fff; }
-        .sidebar-nav li a.active { color: #cdae9c; }
+        .sidebar-nav li a.active { color: #d3a39d; }
 
         /* Main */
         .main { flex: 1; margin-left: 240px; padding: 24px 32px; }
@@ -226,7 +226,7 @@
             flex: 1; height: 22px; background: #F3F4F6; border-radius: 6px; overflow: hidden; position: relative;
         }
         .src-bar {
-            height: 100%; background: linear-gradient(90deg, #a17a5e, #cdae9c); border-radius: 6px;
+            height: 100%; background: linear-gradient(90deg, #a17a5e, #d3a39d); border-radius: 6px;
             transition: width 0.4s ease;
         }
         .src-count { width: 50px; text-align: right; color: #1F2937; font-weight: 700; font-variant-numeric: tabular-nums; }
@@ -236,7 +236,7 @@
             border-bottom: 1px solid #E5E7EB; padding-bottom: 4px; margin-bottom: 8px;
         }
         .chart-bar {
-            flex: 1; min-width: 0; background: linear-gradient(180deg, #cdae9c, #a17a5e);
+            flex: 1; min-width: 0; background: linear-gradient(180deg, #d3a39d, #a17a5e);
             border-radius: 4px 4px 0 0; position: relative; min-height: 2px;
             transition: height 0.4s ease; cursor: default;
         }
@@ -261,8 +261,8 @@
             background: #F9FAFB; text-align: center; cursor: pointer;
             font-size: 13px; color: #6B7280; transition: all 0.15s;
         }
-        .week-cell:hover { background: #f2e7d9; border-color: #cdae9c; color: #a17a5e; }
-        .week-cell.filled { background: #faf4ea; border-color: #cdae9c; color: #8a6a4f; }
+        .week-cell:hover { background: #f6e6e4; border-color: #d3a39d; color: #a17a5e; }
+        .week-cell.filled { background: #faf4ea; border-color: #d3a39d; color: #8a6a4f; }
         .week-cell .wk-nr { font-size: 16px; font-weight: 700; display: block; }
         .week-cell.filled .wk-nr { color: #8a6a4f; }
         .week-cell .wk-dot {
@@ -285,7 +285,7 @@
             padding: 10px 12px; border: 1px solid #E5E7EB; border-radius: 8px;
             margin-bottom: 6px; background: #fff;
         }
-        .tmpl-row:hover { background: #faf4ea; border-color: #cdae9c; }
+        .tmpl-row:hover { background: #faf4ea; border-color: #d3a39d; }
         .tmpl-row .tmpl-name { font-weight: 600; font-size: 14px; color: #1F2937; }
         .tmpl-row .tmpl-meta { font-size: 12px; color: #6B7280; margin-top: 2px; }
         .tmpl-row .tmpl-actions { display: flex; gap: 6px; flex-shrink: 0; }
@@ -309,7 +309,7 @@
             flex-wrap: wrap; font-size: 13px;
         }
         .tmpl-picker select {
-            flex: 1; min-width: 200px; padding: 6px 8px; border: 1px solid #cdae9c;
+            flex: 1; min-width: 200px; padding: 6px 8px; border: 1px solid #d3a39d;
             border-radius: 6px; background: #fff; font-size: 13px;
         }
 
@@ -415,13 +415,13 @@
                 <li><a href="#" data-filter="afspraak" onclick="sidebarFilter(event, 'afspraak')">📅 Afspraken</a></li>
                 <li><a href="#" data-filter="klant" onclick="sidebarFilter(event, 'klant')">✅ Klanten (lead)</a></li>
                 <li style="margin-top:10px;padding-top:10px;border-top:1px solid #374151" data-admin-only>
-                    <a href="/calls" style="color:#cdae9c">📞 Calls (Calendly) →</a>
+                    <a href="/calls" style="color:#d3a39d">📞 Calls (Calendly) →</a>
                 </li>
                 <li data-admin-only>
-                    <a href="/betalingen" style="color:#cdae9c">💰 Betalingen (Mollie) →</a>
+                    <a href="/betalingen" style="color:#d3a39d">💰 Betalingen (Mollie) →</a>
                 </li>
                 <li data-admin-only>
-                    <a href="#" onclick="goToCoachDashboard(event)" style="color:#cdae9c">🏋🏻‍♀️ Coach Dashboard →</a>
+                    <a href="#" onclick="goToCoachDashboard(event)" style="color:#d3a39d">🏋🏻‍♀️ Coach Dashboard →</a>
                 </li>
                 <li><a href="index.html">🌐 Landingspagina</a></li>
             </ul>
@@ -565,7 +565,7 @@
 
             <!-- Coach dashboard-link: alle 16-weken programma features staan
                  in een apart dashboard, zodat dit portaal puur lead-management is. -->
-            <div class="backup-section" data-admin-only style="margin-top:24px;background:linear-gradient(135deg,#faf5ec,#f2e7d9);border:1px solid #d9bfa6">
+            <div class="backup-section" data-admin-only style="margin-top:24px;background:linear-gradient(135deg,#faf5ec,#f6e6e4);border:1px solid #dcb9b4">
                 <h2 style="color:#6f543c">&#127947;&#127996;&#8205;&#9792;&#65039; Klanten &amp; 16-weken programma</h2>
                 <p style="font-size:13px;color:#5c4632;margin-bottom:12px">
                     Klanten, chat, training, voeding, video library en analytics staan in het aparte Coach Dashboard.

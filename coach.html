@@ -21,7 +21,7 @@
         }
         .sidebar-brand {
             font-family: 'Playfair Display', serif;
-            font-size: 18px; font-weight: 700; color: #cdae9c;
+            font-size: 18px; font-weight: 700; color: #d3a39d;
             margin-bottom: 6px; padding: 0 8px;
         }
         .sidebar-sub { font-size: 11px; color: #6B7280; padding: 0 8px; margin-bottom: 28px; letter-spacing: 0.4px; text-transform: uppercase; }
@@ -33,7 +33,7 @@
             margin-bottom: 4px; cursor: pointer;
         }
         .sidebar-nav a:hover { background: #374151; color: #fff; }
-        .sidebar-nav a.active { background: #374151; color: #cdae9c; }
+        .sidebar-nav a.active { background: #374151; color: #d3a39d; }
         .sidebar-nav a .nav-label { display: flex; align-items: center; gap: 10px; }
         .sidebar-foot { border-top: 1px solid #374151; padding-top: 14px; margin-top: 14px; }
         .sidebar-foot a, .sidebar-foot button {
@@ -136,7 +136,7 @@
         }
         .bericht-row:hover { background: #faf4ea; }
         .bericht-avatar {
-            width: 40px; height: 40px; border-radius: 50%; background: #f2e7d9;
+            width: 40px; height: 40px; border-radius: 50%; background: #f6e6e4;
             display: flex; align-items: center; justify-content: center;
             color: #8a6a4f; font-weight: 700; font-size: 14px; flex-shrink: 0;
         }
@@ -211,8 +211,8 @@
             background: #F9FAFB; text-align: center; cursor: pointer;
             font-size: 13px; color: #6B7280; transition: all 0.15s;
         }
-        .week-cell:hover { background: #f2e7d9; border-color: #cdae9c; color: #a17a5e; }
-        .week-cell.filled { background: #faf4ea; border-color: #cdae9c; color: #8a6a4f; }
+        .week-cell:hover { background: #f6e6e4; border-color: #d3a39d; color: #a17a5e; }
+        .week-cell.filled { background: #faf4ea; border-color: #d3a39d; color: #8a6a4f; }
         .week-cell .wk-nr { font-size: 16px; font-weight: 700; display: block; }
         .week-cell.filled .wk-nr { color: #8a6a4f; }
         .week-cell .wk-dot {
@@ -235,7 +235,7 @@
             padding: 10px 12px; border: 1px solid #E5E7EB; border-radius: 8px;
             margin-bottom: 6px; background: #fff; gap: 8px;
         }
-        .tmpl-row:hover { background: #faf4ea; border-color: #cdae9c; }
+        .tmpl-row:hover { background: #faf4ea; border-color: #d3a39d; }
         .tmpl-row .tmpl-name { font-weight: 600; font-size: 14px; color: #1F2937; }
         .tmpl-row .tmpl-meta { font-size: 12px; color: #6B7280; margin-top: 2px; }
         .tmpl-row .tmpl-actions { display: flex; gap: 6px; flex-shrink: 0; }
@@ -262,7 +262,7 @@
             flex-wrap: wrap; font-size: 13px;
         }
         .tmpl-picker select {
-            flex: 1; min-width: 200px; padding: 6px 8px; border: 1px solid #cdae9c;
+            flex: 1; min-width: 200px; padding: 6px 8px; border: 1px solid #d3a39d;
             border-radius: 6px; background: #fff; font-size: 13px;
         }
 
@@ -333,7 +333,7 @@
                 <li><a data-section="videos" onclick="navigate('videos')"><span class="nav-label">&#127916; Video's</span></a></li>
             </ul>
             <div class="sidebar-foot">
-                <a href="/klant/login" target="_blank" style="color:#cdae9c">&#128100; Klant Portaal &#8599;</a>
+                <a href="/klant/login" target="_blank" style="color:#d3a39d">&#128100; Klant Portaal &#8599;</a>
                 <a href="#" onclick="goToLeadsPortal(event)">&#128202; Leads Portal &rarr;</a>
                 <a href="/" target="_blank">&#127760; Landingspagina</a>
                 <button onclick="logout()">&#128682; Uitloggen</button>
@@ -358,13 +358,13 @@
                 </div>
 
                 <!-- Klant Portaal info — URL die je naar klanten stuurt -->
-                <div class="card-block" style="background:linear-gradient(135deg,#faf5ec,#f2e7d9);border:1px solid #d9bfa6;margin-bottom:20px">
+                <div class="card-block" style="background:linear-gradient(135deg,#faf5ec,#f6e6e4);border:1px solid #dcb9b4;margin-bottom:20px">
                     <h2 style="color:#6f543c">&#128100; Klant Portaal</h2>
                     <p class="hint" style="color:#5c4632">
                         Hier loggen je klanten in. Stuur ze deze link (of gebruik de sleutel-knop bij de klant in de tabel om een nieuw wachtwoord te zetten).
                     </p>
                     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px">
-                        <input id="klantPortaalUrl" readonly value="" onclick="this.select()" style="flex:1;min-width:260px;padding:8px 12px;border:1px solid #d9bfa6;border-radius:8px;font-family:monospace;font-size:13px;background:#fff">
+                        <input id="klantPortaalUrl" readonly value="" onclick="this.select()" style="flex:1;min-width:260px;padding:8px 12px;border:1px solid #dcb9b4;border-radius:8px;font-family:monospace;font-size:13px;background:#fff">
                         <button class="btn-admin btn-export" onclick="copyKlantPortaalUrl(this)" style="background:#a17a5e;color:#fff">&#128203; Kopieer</button>
                         <a class="btn-admin btn-refresh" id="klantPortaalOpen" href="/klant/login" target="_blank" rel="noopener">&#8599; Open</a>
                     </div>
@@ -853,10 +853,10 @@
                                 <select onchange="klantStatusWijzig('${k.id}', this.value, this)" title="Status aanpassen" style="padding:4px 8px;font-size:11px;font-weight:600;border-radius:8px;border:1px solid ${kleur}66;background:${kleur}18;color:${kleur};margin-right:6px;cursor:pointer;font-family:inherit;">
                                     ${KLANT_STATUS.map(s => `<option value="${s.value}" ${s.value===k.status?'selected':''}>${s.label}</option>`).join('')}
                                 </select>
-                                <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#f2e7d9;color:#a17a5e;margin-right:3px;" onclick="klantChat('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#128172;${unread > 0 ? '<span class="unread-badge">' + unread + '</span>' : ''}</button>
-                                <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#f2e7d9;color:#a17a5e;margin-right:3px;" onclick="klantBekijkCheckIns('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#128197;</button>
-                                <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#f2e7d9;color:#a17a5e;margin-right:3px;" onclick="klantTraining('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#127947;</button>
-                                <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#f2e7d9;color:#a17a5e;margin-right:3px;" onclick="klantVoeding('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#129382;</button>
+                                <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#f6e6e4;color:#a17a5e;margin-right:3px;" onclick="klantChat('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#128172;${unread > 0 ? '<span class="unread-badge">' + unread + '</span>' : ''}</button>
+                                <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#f6e6e4;color:#a17a5e;margin-right:3px;" onclick="klantBekijkCheckIns('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#128197;</button>
+                                <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#f6e6e4;color:#a17a5e;margin-right:3px;" onclick="klantTraining('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#127947;</button>
+                                <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#f6e6e4;color:#a17a5e;margin-right:3px;" onclick="klantVoeding('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#129382;</button>
                                 <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#FEF3C7;color:#92400E;margin-right:3px;" onclick="klantNotities('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#128221;</button>
                                 <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#EDE9FE;color:#5B21B6;margin-right:3px;" title="Workouts bekijken" onclick="klantWorkouts('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#128170;</button>
                                 <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#E0E7FF;color:#3730A3;margin-right:3px;" title="Bewerk klant" onclick="klantBewerken('${k.id}')">&#9998;</button>
@@ -1077,7 +1077,7 @@
                     .filter(p => p.sessies >= 2)
                     .sort((a, b) => (b.max - b.eerste) - (a.max - a.eerste));
                 const progHtml = progRows.length ? `
-                    <div style="background:#faf4ea;border:1px solid #e8d7c4;border-radius:12px;padding:14px;margin-bottom:14px;">
+                    <div style="background:#faf4ea;border:1px solid #eed7d4;border-radius:12px;padding:14px;margin-bottom:14px;">
                         <div style="font-weight:700;font-size:13px;color:#6f543c;margin-bottom:8px;">&#128200; Progressie per oefening</div>
                         ${progRows.map(p => {
                             const diff = +(p.max - p.eerste).toFixed(1);
@@ -1700,7 +1700,7 @@
                         </div>
                         <div class="dag-body" style="${isRust ? 'display:none;' : ''}">
                             ${oefs.map(o => oefRowHtml(dag, o)).join('')}
-                            <button type="button" class="btn-small" style="width:100%;border-style:dashed;color:#a17a5e;border-color:#d9bfa6;" onclick="addOefRow(this, ${dag})">&#10133; Oefening</button>
+                            <button type="button" class="btn-small" style="width:100%;border-style:dashed;color:#a17a5e;border-color:#dcb9b4;" onclick="addOefRow(this, ${dag})">&#10133; Oefening</button>
                         </div>
                     </div>`;
             }).join('');
@@ -2228,7 +2228,7 @@
                     wrap.innerHTML = '<div style="color:#9CA3AF;padding:8px 0;">Nog geen video\'s.</div>';
                     return;
                 }
-                const catColors = { techniek:'#DBEAFE', mindset:'#f2e7d9', voeding:'#D1FAE5', algemeen:'#F3F4F6' };
+                const catColors = { techniek:'#DBEAFE', mindset:'#f6e6e4', voeding:'#D1FAE5', algemeen:'#F3F4F6' };
                 wrap.innerHTML = `
                     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;">
                       ${videos.map(v => {

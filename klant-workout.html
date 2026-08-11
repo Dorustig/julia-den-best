@@ -14,7 +14,7 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: 'Inter', sans-serif; color: #1F2937; min-height: 100vh;
-      background: linear-gradient(135deg, #faf5ec 0%, #f3e4da 50%, #f5ebdd 100%);
+      background: linear-gradient(135deg, #faf5ec 0%, #f9e5e4 50%, #f5ebdd 100%);
       padding: 20px 16px 60px;
     }
     .wrap { max-width: 720px; margin: 0 auto; }
@@ -40,7 +40,7 @@
     }
 
     /* Schema header (Julia's plan) */
-    .schema-card { background: linear-gradient(135deg, #f2e7d9 0%, #faf5ec 100%); border: 1.5px solid #d9bfa6; border-radius: 14px; padding: 14px 16px; margin-bottom: 14px; }
+    .schema-card { background: linear-gradient(135deg, #f6e6e4 0%, #faf5ec 100%); border: 1.5px solid #dcb9b4; border-radius: 14px; padding: 14px 16px; margin-bottom: 14px; }
     .schema-card .schema-label { font-size: 11px; font-weight: 700; color: #6f543c; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
     .schema-card .schema-title { font-size: 15px; font-weight: 600; color: #1F2937; margin-bottom: 8px; }
     .schema-card .schema-body { font-size: 13px; color: #4B5563; line-height: 1.5; white-space: pre-wrap; max-height: 140px; overflow-y: auto; }
@@ -50,7 +50,7 @@
     .oef { background: #faf4ea; border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; position: relative; }
     .oef-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 10px; }
     .oef-head input.naam {
-      flex: 1; padding: 8px 10px; border: 1.5px solid #d9bfa6; border-radius: 8px;
+      flex: 1; padding: 8px 10px; border: 1.5px solid #dcb9b4; border-radius: 8px;
       font-size: 15px; font-weight: 600; color: #1F2937; background: #fff;
     }
     .oef-head input.naam:focus { border-color: #a17a5e; }
@@ -62,7 +62,7 @@
     .oef-prev { font-size: 11px; color: #6f543c; margin: -4px 0 8px; font-style: italic; }
 
     /* Set row: twee regels: invoer + actie-knoppen */
-    .set-row { display: grid; grid-template-rows: auto auto; gap: 6px; padding: 8px 4px; border-bottom: 1px solid #f2e7d9; }
+    .set-row { display: grid; grid-template-rows: auto auto; gap: 6px; padding: 8px 4px; border-bottom: 1px solid #f6e6e4; }
     .set-row:last-of-type { border-bottom: none; }
     .set-row.done { background: #ECFDF5; border-radius: 10px; }
     .set-row.skipped { opacity: 0.45; }
@@ -72,24 +72,24 @@
     .set-main .num-idx { font-size: 13px; color: #6f543c; font-weight: 700; text-align: center; }
 
     /* Stepper */
-    .stepper { display: flex; align-items: center; gap: 0; background: #fff; border: 1.5px solid #e8d7c4; border-radius: 10px; overflow: hidden; height: 42px; }
+    .stepper { display: flex; align-items: center; gap: 0; background: #fff; border: 1.5px solid #eed7d4; border-radius: 10px; overflow: hidden; height: 42px; }
     .stepper:focus-within { border-color: #a17a5e; }
     .stepper button { flex: 0 0 34px; height: 100%; background: transparent; border: none; color: #a17a5e; font-size: 18px; font-weight: 700; cursor: pointer; padding: 0; font-family: inherit; user-select: none; -webkit-tap-highlight-color: transparent; }
-    .stepper button:active { background: #f2e7d9; }
+    .stepper button:active { background: #f6e6e4; }
     .stepper input { flex: 1; min-width: 0; padding: 8px 4px; border: none; background: transparent; font-size: 15px; font-family: inherit; font-weight: 600; text-align: center; color: #1F2937; -moz-appearance: textfield; }
     .stepper input::-webkit-outer-spin-button, .stepper input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     .stepper .unit { font-size: 10px; color: #9CA3AF; font-weight: 600; text-transform: uppercase; padding-right: 6px; letter-spacing: 0.5px; }
 
     /* Done + skip + rating */
-    .set-check { width: 40px; height: 42px; border-radius: 10px; background: #fff; border: 1.5px solid #e8d7c4; color: #d9bfa6; font-size: 20px; cursor: pointer; font-family: inherit; padding: 0; }
+    .set-check { width: 40px; height: 42px; border-radius: 10px; background: #fff; border: 1.5px solid #eed7d4; color: #dcb9b4; font-size: 20px; cursor: pointer; font-family: inherit; padding: 0; }
     .set-check:active { transform: scale(0.95); }
     .set-row.done .set-check { background: #10B981; border-color: #10B981; color: #fff; }
 
     .set-actions { display: flex; gap: 4px; justify-content: space-between; align-items: center; padding-left: 28px; }
     .rating-group { display: flex; gap: 4px; }
-    .rating-btn { background: #fff; border: 1.5px solid #e8d7c4; border-radius: 8px; padding: 4px 8px; font-size: 15px; cursor: pointer; font-family: inherit; min-width: 36px; }
+    .rating-btn { background: #fff; border: 1.5px solid #eed7d4; border-radius: 8px; padding: 4px 8px; font-size: 15px; cursor: pointer; font-family: inherit; min-width: 36px; }
     .rating-btn:active { transform: scale(0.95); }
-    .rating-btn.selected { background: #f2e7d9; border-color: #a17a5e; }
+    .rating-btn.selected { background: #f6e6e4; border-color: #a17a5e; }
     .set-skip, .set-delete { background: transparent; border: none; color: #9CA3AF; font-size: 12px; cursor: pointer; padding: 4px 8px; border-radius: 6px; font-family: inherit; }
     .set-skip:hover, .set-delete:hover { background: #fff; color: #374151; }
     .set-skip.active { color: #9CA3AF; font-style: italic; }
@@ -114,11 +114,11 @@
     }
 
     .add-set-btn, .add-oef-btn {
-      background: none; border: 1.5px dashed #d9bfa6; color: #a17a5e;
+      background: none; border: 1.5px dashed #dcb9b4; color: #a17a5e;
       padding: 10px 16px; border-radius: 10px; font-family: inherit; font-size: 13px;
       font-weight: 600; cursor: pointer; width: 100%; margin-top: 8px;
     }
-    .add-set-btn:hover, .add-oef-btn:hover { background: #f2e7d9; }
+    .add-set-btn:hover, .add-oef-btn:hover { background: #f6e6e4; }
     .add-oef-btn { margin-top: 4px; margin-bottom: 14px; }
 
     .submit {
@@ -193,7 +193,7 @@
     .prog-item .delta .kgs { font-family: 'Playfair Display', serif; font-weight: 700; color: #a17a5e; }
     .prog-item .delta .diff { display: block; font-size: 11px; font-weight: 600; }
     .loader { display: flex; justify-content: center; padding: 60px 0; }
-    .spinner { width: 36px; height: 36px; border: 3px solid #f2e7d9; border-top-color: #a17a5e; border-radius: 50%; animation: spin 0.8s linear infinite; }
+    .spinner { width: 36px; height: 36px; border: 3px solid #f6e6e4; border-top-color: #a17a5e; border-radius: 50%; animation: spin 0.8s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
@@ -666,7 +666,7 @@
       if (typeof confetti === 'function') {
         const fire = (opts) => { try { confetti(Object.assign({
           particleCount: 80, spread: 75, origin: { y: 0.6 },
-          colors: ['#a17a5e', '#cdae9c', '#FBBF24', '#f2e7d9', '#FFD700'],
+          colors: ['#a17a5e', '#d3a39d', '#FBBF24', '#f6e6e4', '#FFD700'],
         }, opts || {})); } catch {} };
         fire();
         setTimeout(() => fire({ angle: 60, origin: { x: 0, y: 0.7 } }), 250);

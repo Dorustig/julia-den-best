@@ -21,7 +21,7 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: 'Inter', sans-serif; color: #1F2937; min-height: 100vh;
-      background: linear-gradient(135deg, #faf5ec 0%, #f3e4da 50%, #f5ebdd 100%);
+      background: linear-gradient(135deg, #faf5ec 0%, #f9e5e4 50%, #f5ebdd 100%);
       padding: 20px 16px 40px;
     }
     .wrap { max-width: 640px; margin: 0 auto; }
@@ -38,7 +38,7 @@
     .goal-bar-head .lbl { color: #6B7280; font-weight: 500; }
     .goal-bar-head .pct { color: #a17a5e; font-weight: 700; font-family: 'Playfair Display', serif; font-size: 18px; }
     .goal-bar { height: 10px; background: #F3F4F6; border-radius: 5px; overflow: hidden; position: relative; }
-    .goal-bar-fill { height: 100%; background: linear-gradient(90deg, #cdae9c, #a17a5e); border-radius: 5px; transition: width 0.5s ease; }
+    .goal-bar-fill { height: 100%; background: linear-gradient(90deg, #d3a39d, #a17a5e); border-radius: 5px; transition: width 0.5s ease; }
     .goal-bar-ends { display: flex; justify-content: space-between; margin-top: 6px; font-size: 11px; color: #9CA3AF; }
 
     /* Account modal */
@@ -90,8 +90,8 @@
     .compare-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
     @media (max-width: 640px) { .compare-grid { grid-template-columns: 1fr; } }
 
-    .btn-compare { background: none; border: 1.5px solid #d9bfa6; color: #a17a5e; padding: 6px 14px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; }
-    .btn-compare:hover { background: #f2e7d9; }
+    .btn-compare { background: none; border: 1.5px solid #dcb9b4; color: #a17a5e; padding: 6px 14px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; }
+    .btn-compare:hover { background: #f6e6e4; }
 
     /* PWA install banner */
     .install-banner {
@@ -125,7 +125,7 @@
     }
     .habit .emoji { font-size: 24px; line-height: 1; }
     .habit .lbl { font-size: 11px; color: #6B7280; font-weight: 600; line-height: 1.2; }
-    .habit.on { background: #f2e7d9; border-color: #a17a5e; }
+    .habit.on { background: #f6e6e4; border-color: #a17a5e; }
     .habit.on .lbl { color: #6f543c; }
     .habit:hover { transform: translateY(-1px); }
 
@@ -136,7 +136,7 @@
       background: #fff; border-radius: 10px; resize: vertical;
       font-family: inherit; font-size: 14px; color: #1F2937; min-height: 56px;
     }
-    .journal-textarea:focus { outline: none; border-color: #cdae9c; }
+    .journal-textarea:focus { outline: none; border-color: #d3a39d; }
     .journal-status { font-size: 11px; color: #9CA3AF; margin-top: 6px; text-align: right; min-height: 14px; }
     .journal-status.saved { color: #065F46; }
 
@@ -152,7 +152,7 @@
       transition: transform 0.2s, box-shadow 0.2s;
       cursor: pointer;
     }
-    .badge.unlocked { background: linear-gradient(135deg, #faf4ea 0%, #f2e7d9 100%); box-shadow: 0 4px 14px rgba(161, 122, 94, 0.15); }
+    .badge.unlocked { background: linear-gradient(135deg, #faf4ea 0%, #f6e6e4 100%); box-shadow: 0 4px 14px rgba(161, 122, 94, 0.15); }
     .badge.locked { background: #F9FAFB; opacity: 0.55; }
     .badge:hover { transform: translateY(-2px); }
     .badge .emoji { font-size: 28px; line-height: 1; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.08)); }
@@ -222,7 +222,7 @@
     .data-row .v { font-weight: 500; color: #1F2937; text-align: right; }
 
     .loader { display: flex; justify-content: center; padding: 60px 0; }
-    .spinner { width: 36px; height: 36px; border: 3px solid #f2e7d9; border-top-color: #a17a5e; border-radius: 50%; animation: spin 0.8s linear infinite; }
+    .spinner { width: 36px; height: 36px; border: 3px solid #f6e6e4; border-top-color: #a17a5e; border-radius: 50%; animation: spin 0.8s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
     .msg { padding: 14px; border-radius: 12px; font-size: 14px; line-height: 1.5; margin-bottom: 16px; }
@@ -266,7 +266,7 @@
       transition: all 0.15s;
     }
     .weken-list .wk-btn:hover { background: #faf5ec; color: #a17a5e; }
-    .weken-list .wk-btn.has-content { background: #faf4ea; color: #8a6a4f; border-color: #e8d7c4; }
+    .weken-list .wk-btn.has-content { background: #faf4ea; color: #8a6a4f; border-color: #eed7d4; }
     .weken-list .wk-btn.current { background: #a17a5e; color: #fff; border-color: #a17a5e; }
     .empty-plan { text-align: center; color: #9CA3AF; padding: 20px 0; font-size: 14px; }
 
@@ -288,8 +288,8 @@
 
     /* Reminder banner (Fase 2.6 B) */
     .reminder-banner {
-      background: linear-gradient(135deg, #faf4ea 0%, #f2e7d9 100%);
-      border: 1px solid #e8d7c4;
+      background: linear-gradient(135deg, #faf4ea 0%, #f6e6e4 100%);
+      border: 1px solid #eed7d4;
       border-radius: 16px;
       padding: 14px 18px;
       margin-bottom: 16px;
@@ -304,8 +304,8 @@
 
     /* Onboarding welcome card — eerste login flow */
     .onboarding-card {
-      background: linear-gradient(135deg, #faf4ea 0%, #f3e4da 100%);
-      border: 1px solid #d9bfa6;
+      background: linear-gradient(135deg, #faf4ea 0%, #f9e5e4 100%);
+      border: 1px solid #dcb9b4;
       border-radius: 20px;
       padding: 22px 24px;
       margin-bottom: 20px;
@@ -326,14 +326,14 @@
     .onb-steps { list-style: none; padding: 0; margin: 0 0 12px; }
     .onb-steps li {
       display: flex; align-items: center; gap: 12px;
-      padding: 10px 0; border-bottom: 1px solid #e8d7c4;
+      padding: 10px 0; border-bottom: 1px solid #eed7d4;
       font-size: 14px; color: #1F2937;
     }
     .onb-steps li:last-child { border-bottom: none; }
     .onb-steps li.done { color: #065F46; }
     .onb-steps .dot {
       flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%;
-      background: #fff; border: 2px solid #d9bfa6;
+      background: #fff; border: 2px solid #dcb9b4;
       display: flex; align-items: center; justify-content: center;
       font-size: 13px; font-weight: 700; color: #6f543c;
     }
@@ -1764,7 +1764,7 @@
         const d = byDag[dagNr];
         const isVandaag = isCurrentWeek && dagNr === vandaag;
         const stijl = isVandaag
-          ? 'background:#faf4ea;border:1.5px solid #d9bfa6;border-radius:12px;'
+          ? 'background:#faf4ea;border:1.5px solid #dcb9b4;border-radius:12px;'
           : 'border-bottom:1px solid #F9FAFB;';
         let inhoud;
         if (!d || (!d.titel && !d.is_rustdag && !(d.oefeningen || []).length)) {
@@ -1949,12 +1949,12 @@
 
           <!-- Rust-dag / training-dag toggle -->
           <div id="rustdagRow" style="display:flex;gap:8px;margin-bottom:14px;font-size:13px;">
-            <button type="button" id="btnTrain" onclick="setRustdag(false)" style="flex:1;padding:10px;background:#f2e7d9;border:1.5px solid transparent;border-radius:12px;font-family:inherit;font-weight:600;color:#6f543c;cursor:pointer;">⚡ Trainingsdag</button>
+            <button type="button" id="btnTrain" onclick="setRustdag(false)" style="flex:1;padding:10px;background:#f6e6e4;border:1.5px solid transparent;border-radius:12px;font-family:inherit;font-weight:600;color:#6f543c;cursor:pointer;">⚡ Trainingsdag</button>
             <button type="button" id="btnRust" onclick="setRustdag(true)" style="flex:1;padding:10px;background:#F9FAFB;border:1.5px solid transparent;border-radius:12px;font-family:inherit;font-weight:600;color:#6B7280;cursor:pointer;">🛌 Rustdag</button>
           </div>
 
           <!-- Workout CTA — alleen zichtbaar op trainingsdag als nog niet gelogd -->
-          <a href="/klant/workout" id="workoutCta" style="display:none;background:linear-gradient(135deg,#a17a5e,#cdae9c);color:#fff;padding:14px 16px;border-radius:14px;text-decoration:none;margin-bottom:12px;align-items:center;justify-content:space-between;">
+          <a href="/klant/workout" id="workoutCta" style="display:none;background:linear-gradient(135deg,#a17a5e,#d3a39d);color:#fff;padding:14px 16px;border-radius:14px;text-decoration:none;margin-bottom:12px;align-items:center;justify-content:space-between;">
             <span><strong>🏋 Log je workout</strong><span style="display:block;font-size:12px;opacity:0.85;margin-top:2px;">Oefeningen, sets + reps</span></span>
             <span style="font-size:20px;">→</span>
           </a>
@@ -1986,7 +1986,7 @@
       const btnTrain = document.getElementById('btnTrain');
       const btnRust = document.getElementById('btnRust');
       if (btnTrain) {
-        btnTrain.style.background = isRust ? '#F9FAFB' : '#f2e7d9';
+        btnTrain.style.background = isRust ? '#F9FAFB' : '#f6e6e4';
         btnTrain.style.color = isRust ? '#6B7280' : '#6f543c';
         btnTrain.style.borderColor = isRust ? 'transparent' : '#a17a5e';
       }
@@ -2175,7 +2175,7 @@
               particleCount: 60,
               spread: 75,
               origin: { y: 0.7 },
-              colors: ['#a17a5e', '#cdae9c', '#f2e7d9', '#faf4ea', '#FBBF24'],
+              colors: ['#a17a5e', '#d3a39d', '#f6e6e4', '#faf4ea', '#FBBF24'],
             }, opts || {}));
           } catch {}
         };

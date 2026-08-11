@@ -2,7 +2,7 @@
 
 :root {
     --pink: #a17a5e;
-    --pink-light: #cdae9c;
+    --pink-light: #d3a39d;
     --pink-soft: #faf4ea;
     --pink-bg: #fdf9f2;
     --pink-glow: rgba(161, 122, 94, 0.15);
@@ -85,7 +85,7 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', Georgia, serif; font-weight: 7
 /* ===== HERO ===== */
 .hero {
     padding-top: 80px;
-    background: linear-gradient(135deg, #faf4ea 0%, #f2e7d9 30%, #e8d7c4 60%, #d9bfa6 100%);
+    background: linear-gradient(135deg, #faf4ea 0%, #f6e6e4 30%, #eed7d4 60%, #dcb9b4 100%);
     overflow: hidden;
 }
 .hero-grid {
@@ -514,7 +514,7 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', Georgia, serif; font-weight: 7
 }
 
 .commitment-section { margin-top: 24px; }
-.commitment-card { text-align: center; padding: 40px 24px; background: linear-gradient(135deg, var(--pink-soft), #f2e7d9); border-radius: var(--radius); border: 2px solid var(--pink-light); }
+.commitment-card { text-align: center; padding: 40px 24px; background: linear-gradient(135deg, var(--pink-soft), #f6e6e4); border-radius: var(--radius); border: 2px solid var(--pink-light); }
 .commitment-emoji { font-size: 48px; display: block; margin-bottom: 16px; }
 .commitment-card h4 { font-size: 24px; margin-bottom: 8px; }
 .commitment-card p { color: var(--gray-dark); margin-bottom: 24px; }
@@ -539,7 +539,7 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', Georgia, serif; font-weight: 7
 .reviews-section { padding: 80px 0; background: var(--white); }
 .reviews-section h2 { text-align: center; font-size: 32px; margin-bottom: 40px; }
 .reviews-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
-.review-card { background: var(--pink-soft); border-radius: var(--radius); padding: 28px; border: 1px solid #f2e7d9; }
+.review-card { background: var(--pink-soft); border-radius: var(--radius); padding: 28px; border: 1px solid #f6e6e4; }
 .review-stars { color: #FBBF24; font-size: 18px; margin-bottom: 12px; }
 .review-text { font-size: 15px; line-height: 1.6; color: var(--gray-dark); margin-bottom: 16px; font-style: italic; }
 .review-author { display: flex; align-items: center; gap: 12px; }
@@ -558,7 +558,7 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', Georgia, serif; font-weight: 7
 .ba-side { flex: 1; text-align: center; }
 .ba-label { display: block; font-size: 12px; font-weight: 600; color: var(--gray-text); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
 .ba-placeholder { aspect-ratio: 3 / 4; background: var(--gray); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 14px; color: var(--gray-text); }
-.ba-placeholder.glow { background: linear-gradient(135deg, var(--pink-soft), #f2e7d9); color: var(--pink); font-weight: 600; }
+.ba-placeholder.glow { background: linear-gradient(135deg, var(--pink-soft), #f6e6e4); color: var(--pink); font-weight: 600; }
 a.transformation-card { text-decoration: none; color: inherit; display: block; transition: transform .2s ease, box-shadow .2s ease; }
 a.transformation-card:hover { transform: translateY(-4px); box-shadow: 0 16px 36px rgba(161, 122, 94,0.18); }
 a.transformation-card:hover .jouw-reis-arrow { transform: translateX(4px); }
@@ -586,7 +586,7 @@ a.transformation-card:hover .jouw-reis-arrow { transform: translateX(4px); }
 .community-card {
     display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 48px;
     align-items: center; background: var(--pink-soft);
-    border-radius: 24px; padding: 48px; border: 2px solid #f2e7d9;
+    border-radius: 24px; padding: 48px; border: 2px solid #f6e6e4;
 }
 .community-text h2 { font-size: 28px; margin-bottom: 16px; }
 .community-text p { font-size: 15px; color: var(--gray-dark); line-height: 1.7; margin-bottom: 24px; }
@@ -627,7 +627,7 @@ a.transformation-card:hover .jouw-reis-arrow { transform: translateX(4px); }
     top: 24px;
     bottom: 24px;
     width: 3px;
-    background: #f2e7d9;
+    background: #f6e6e4;
     border-radius: 3px;
 }
 /* Scroll-driven fill (JS updates --fill from 0 to 1) */
@@ -755,7 +755,7 @@ a.transformation-card:hover .jouw-reis-arrow { transform: translateX(4px); }
     border-radius: 16px;
     padding: 14px 18px;
     box-shadow: 0 2px 12px rgba(161, 122, 94, 0.06);
-    border: 1px solid #f2e7d9;
+    border: 1px solid #f6e6e4;
     transition: var(--transition);
 }
 .timeline-content:hover {
@@ -797,7 +797,7 @@ a.transformation-card:hover .jouw-reis-arrow { transform: translateX(4px); }
 .testimonial-author span { font-size: 13px; color: var(--gray-text); }
 
 /* ===== CTA SECTION ===== */
-.cta-section { padding: 80px 0; background: linear-gradient(135deg, #faf4ea, #f2e7d9, #e8d7c4); text-align: center; }
+.cta-section { padding: 80px 0; background: linear-gradient(135deg, #faf4ea, #f6e6e4, #eed7d4); text-align: center; }
 .cta-section h2 { font-size: 36px; margin-bottom: 12px; }
 .cta-section p { font-size: 18px; color: var(--gray-dark); margin-bottom: 32px; }
 .cta-guarantee { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 16px; font-size: 14px; color: var(--green); font-weight: 500; }
@@ -854,7 +854,7 @@ a.transformation-card:hover .jouw-reis-arrow { transform: translateX(4px); }
 .success-reminder-card {
     display: flex; align-items: center; gap: 14px;
     background: var(--pink-soft);
-    border: 1px solid #f2e7d9;
+    border: 1px solid #f6e6e4;
     border-radius: 16px;
     padding: 14px 16px;
     margin-bottom: 18px;
@@ -895,7 +895,7 @@ a.transformation-card:hover .jouw-reis-arrow { transform: translateX(4px); }
     box-shadow: 0 6px 28px rgba(161, 122, 94, 0.14);
     transition: var(--transition);
     background: var(--white);
-    border: 1px solid #f2e7d9;
+    border: 1px solid #f6e6e4;
     text-align: left;
 }
 .video-card:hover { transform: translateY(-3px); box-shadow: 0 10px 36px rgba(161, 122, 94, 0.22); }
@@ -1441,7 +1441,7 @@ a.transformation-card:hover .jouw-reis-arrow { transform: translateX(4px); }
 }
 .timeline-week.btd .timeline-dot { /* Body Transformation Dag = extra groot + sterren */
     width: 48px; height: 48px; font-size: 18px;
-    background: linear-gradient(135deg, #a17a5e, #cdae9c);
+    background: linear-gradient(135deg, #a17a5e, #d3a39d);
     box-shadow: 0 0 0 5px #fff, 0 0 0 8px var(--pink), 0 0 40px rgba(161, 122, 94,0.65);
 }
 .timeline-week.btd .timeline-dot::after {
@@ -1449,7 +1449,7 @@ a.transformation-card:hover .jouw-reis-arrow { transform: translateX(4px); }
     color: var(--pink); font-size: 14px;
 }
 .timeline-week.btd .timeline-content {
-    background: linear-gradient(135deg, #FFF 0%, #faf5ec 50%, #f2e7d9 100%);
+    background: linear-gradient(135deg, #FFF 0%, #faf5ec 50%, #f6e6e4 100%);
     border: 2px solid var(--pink);
 }
 .timeline-week.btd .timeline-content h4 { color: var(--pink); font-size: 19px; }
