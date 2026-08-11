@@ -652,7 +652,7 @@ function validateCurrentStep() {
 
 // ===== FIELD VALIDATION HELPERS =====
 function showFieldError(input, msg) {
-    input.style.borderColor = '#E91E8C';
+    input.style.borderColor = '#a17a5e';
     let err = input.parentElement.querySelector('.field-error');
     if (!err) {
         err = document.createElement('div');

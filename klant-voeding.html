@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
   <title>Voeding loggen · Julia Besten</title>
-  <meta name="theme-color" content="#E91E8C">
+  <meta name="theme-color" content="#a17a5e">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
@@ -13,19 +13,19 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: 'Inter', sans-serif; color: #1F2937; min-height: 100vh;
-      background: linear-gradient(180deg, #FDE7F1 0%, #FFF1F7 45%, #FAF7F5 100%);
+      background: linear-gradient(180deg, #f2e7d9 0%, #faf5ec 45%, #FAF7F5 100%);
       padding: 16px 16px 60px;
     }
     .wrap { max-width: 640px; margin: 0 auto; }
     .topbar { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
-    .back { font-size: 22px; color: #E91E8C; text-decoration: none; padding: 4px 8px; }
-    .brand { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: #E91E8C; flex: 1; }
+    .back { font-size: 22px; color: #a17a5e; text-decoration: none; padding: 4px 8px; }
+    .brand { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: #a17a5e; flex: 1; }
 
     /* Dag-navigatie */
     .day-nav { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 6px; }
     .day-nav button {
       width: 38px; height: 38px; border-radius: 50%; border: none;
-      background: transparent; color: #E91E8C; font-size: 20px; cursor: pointer; font-family: inherit;
+      background: transparent; color: #a17a5e; font-size: 20px; cursor: pointer; font-family: inherit;
     }
     .day-nav button:disabled { opacity: 0.25; cursor: default; }
     .day-nav .day-label {
@@ -40,8 +40,8 @@
     .hero-side .val { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; color: #1F2937; }
     .ring-wrap { position: relative; width: 210px; height: 210px; }
     .ring-wrap svg { width: 100%; height: 100%; transform: rotate(135deg); }
-    .ring-bg { fill: none; stroke: rgba(233,30,140,0.15); stroke-width: 14; stroke-linecap: round; }
-    .ring-fill { fill: none; stroke: #E91E8C; stroke-width: 14; stroke-linecap: round; transition: stroke-dashoffset 0.6s ease; }
+    .ring-bg { fill: none; stroke: rgba(161, 122, 94,0.15); stroke-width: 14; stroke-linecap: round; }
+    .ring-fill { fill: none; stroke: #a17a5e; stroke-width: 14; stroke-linecap: round; transition: stroke-dashoffset 0.6s ease; }
     .ring-fill.over { stroke: #F59E0B; }
     .ring-center {
       position: absolute; inset: 0; display: flex; flex-direction: column;
@@ -58,13 +58,13 @@
 
     /* Macro-kaarten */
     .macro-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
-    .macro-card { background: #fff; border-radius: 16px; padding: 14px 14px 12px; box-shadow: 0 6px 20px rgba(233,30,140,0.07); }
+    .macro-card { background: #fff; border-radius: 16px; padding: 14px 14px 12px; box-shadow: 0 6px 20px rgba(161, 122, 94,0.07); }
     .macro-card .naam { font-size: 13px; font-weight: 600; color: #1F2937; margin-bottom: 6px; }
     .macro-card .vals { font-size: 14px; color: #374151; font-family: 'SF Mono', Menlo, monospace; margin-bottom: 8px; }
     .macro-card .bar { height: 5px; border-radius: 3px; background: #F3F4F6; overflow: hidden; }
     .macro-card .bar .fill { height: 100%; border-radius: 3px; transition: width 0.4s ease; }
     .macro-card.kh .fill { background: #818CF8; }
-    .macro-card.eiwit .fill { background: #F472B6; }
+    .macro-card.eiwit .fill { background: #cdae9c; }
     .macro-card.vet .fill { background: #A78BFA; }
     @media (max-width: 400px) {
       .macro-card { padding: 10px; }
@@ -74,29 +74,29 @@
     .sect-label { font-size: 13px; font-weight: 700; color: #6B7280; letter-spacing: 1.5px; text-transform: uppercase; margin: 0 4px 10px; }
 
     /* Maaltijd-kaarten */
-    .meal-card { background: #fff; border-radius: 18px; padding: 16px 18px; box-shadow: 0 6px 20px rgba(233,30,140,0.07); margin-bottom: 12px; }
+    .meal-card { background: #fff; border-radius: 18px; padding: 16px 18px; box-shadow: 0 6px 20px rgba(161, 122, 94,0.07); margin-bottom: 12px; }
     .meal-top { display: flex; align-items: center; gap: 14px; }
     .meal-emoji {
-      width: 52px; height: 52px; border-radius: 50%; background: #FDF2F8;
+      width: 52px; height: 52px; border-radius: 50%; background: #faf4ea;
       display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0;
     }
     .meal-info { flex: 1; min-width: 0; }
     .meal-info .naam { font-size: 17px; font-weight: 700; color: #1F2937; }
     .meal-info .sub { font-size: 12.5px; color: #9CA3AF; margin-top: 2px; }
-    .meal-info .sub.logged { color: #E91E8C; font-weight: 600; }
+    .meal-info .sub.logged { color: #a17a5e; font-weight: 600; }
     .meal-add {
       width: 44px; height: 44px; border-radius: 50%; border: none; flex-shrink: 0;
       background: #F5F0EC; color: #6B7280; font-size: 22px; cursor: pointer; font-family: inherit;
       transition: all 0.15s;
     }
-    .meal-add:hover, .meal-add.open { background: #E91E8C; color: #fff; }
+    .meal-add:hover, .meal-add.open { background: #a17a5e; color: #fff; }
 
-    .meal-items { margin-top: 10px; border-top: 1px solid #FDF2F8; }
-    .meal-item { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 9px 0; border-bottom: 1px solid #FDF2F8; }
+    .meal-items { margin-top: 10px; border-top: 1px solid #faf4ea; }
+    .meal-item { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 9px 0; border-bottom: 1px solid #faf4ea; }
     .meal-item:last-child { border-bottom: none; }
     .meal-item .oms { flex: 1; font-size: 14px; color: #1F2937; }
     .meal-item .macros { font-size: 11.5px; color: #9CA3AF; margin-top: 2px; }
-    .meal-item .kc { color: #E91E8C; font-weight: 600; font-size: 13px; flex-shrink: 0; }
+    .meal-item .kc { color: #a17a5e; font-weight: 600; font-size: 13px; flex-shrink: 0; }
     .meal-item .del { background: none; border: none; color: #D1D5DB; font-size: 16px; cursor: pointer; padding: 2px 6px; font-family: inherit; }
     .meal-item .del:hover { color: #991B1B; }
 
@@ -107,23 +107,23 @@
       padding: 11px 12px; border: 1.5px solid #E5E7EB; border-radius: 10px;
       font-size: 14px; font-family: inherit; width: 100%; background: #fff;
     }
-    .add-form input:focus { outline: none; border-color: #E91E8C; }
+    .add-form input:focus { outline: none; border-color: #a17a5e; }
     .add-form .oms-in { margin-bottom: 8px; }
     .num-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 8px; }
     .num-grid .num-field .nlbl { font-size: 10.5px; font-weight: 700; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 3px; text-align: center; }
     .num-grid input { text-align: center; padding: 10px 4px; -moz-appearance: textfield; }
     .num-grid input::-webkit-outer-spin-button, .num-grid input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     .add-form .save-btn {
-      width: 100%; padding: 12px; background: #E91E8C; color: #fff; border: none;
+      width: 100%; padding: 12px; background: #a17a5e; color: #fff; border: none;
       border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit;
     }
-    .add-form .save-btn:hover { background: #D01680; }
+    .add-form .save-btn:hover { background: #7d5a41; }
     .add-form .hint { font-size: 11.5px; color: #9CA3AF; margin-top: 6px; text-align: center; }
 
     .msg { padding: 12px; border-radius: 10px; font-size: 13px; margin-bottom: 14px; display: none; }
     .msg.error { background: #FEE2E2; color: #991B1B; display: block; }
     .loader { display: flex; justify-content: center; padding: 60px 0; }
-    .spinner { width: 36px; height: 36px; border: 3px solid #FCE7F3; border-top-color: #E91E8C; border-radius: 50%; animation: spin 0.8s linear infinite; }
+    .spinner { width: 36px; height: 36px; border: 3px solid #f2e7d9; border-top-color: #a17a5e; border-radius: 50%; animation: spin 0.8s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>

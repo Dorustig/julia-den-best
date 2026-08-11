@@ -13,11 +13,11 @@
         body { font-family: 'Inter', sans-serif; background: #F9FAFB; color: #1F2937; }
         .admin-layout { display: flex; min-height: 100vh; }
         .sidebar { width: 240px; background: #1F2937; color: #fff; padding: 24px 16px; position: fixed; top: 0; left: 0; bottom: 0; z-index: 10; }
-        .sidebar-brand { font-size: 16px; font-weight: 700; color: #F472B6; margin-bottom: 32px; padding: 0 8px; }
+        .sidebar-brand { font-size: 16px; font-weight: 700; color: #cdae9c; margin-bottom: 32px; padding: 0 8px; }
         .sidebar-nav { list-style: none; }
         .sidebar-nav li a { display: flex; align-items: center; gap: 10px; padding: 10px 12px; color: #9CA3AF; text-decoration: none; font-size: 14px; border-radius: 8px; transition: all 0.2s; margin-bottom: 4px; cursor: pointer; }
         .sidebar-nav li a:hover, .sidebar-nav li a.active { background: #374151; color: #fff; }
-        .sidebar-nav li a.active { color: #F472B6; }
+        .sidebar-nav li a.active { color: #cdae9c; }
 
         .main { flex: 1; margin-left: 240px; padding: 28px 32px 60px; min-width: 0; }
         .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; gap: 14px; flex-wrap: wrap; }
@@ -34,13 +34,13 @@
         .kpi .sub { font-size: 12px; color: #9CA3AF; margin-top: 6px; }
         .kpi.cash { background: linear-gradient(135deg, #ECFDF5, #D1FAE5); border-color: #A7F3D0; }
         .kpi.cash .value { color: #047857; }
-        .kpi.month { background: linear-gradient(135deg, #FDF2F8, #FCE7F3); border-color: #F9A8D4; }
-        .kpi.month .value { color: #BE185D; }
+        .kpi.month { background: linear-gradient(135deg, #faf4ea, #f2e7d9); border-color: #d9bfa6; }
+        .kpi.month .value { color: #8a6a4f; }
 
         .filters { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
         .filters .seg { display: inline-flex; background: #F3F4F6; border-radius: 10px; padding: 3px; }
         .filters .seg button { padding: 7px 14px; border: none; background: none; font-family: inherit; font-size: 13px; font-weight: 600; color: #6B7280; border-radius: 8px; cursor: pointer; }
-        .filters .seg button.active { background: #fff; color: #EC4899; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+        .filters .seg button.active { background: #fff; color: #a17a5e; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
 
         .table-wrap { background: #fff; border: 1px solid #E5E7EB; border-radius: 14px; overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; }
@@ -48,7 +48,7 @@
         th { text-align: left; padding: 12px 14px; font-size: 11px; font-weight: 600; color: #6B7280; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #E5E7EB; white-space: nowrap; }
         td { padding: 12px 14px; font-size: 13.5px; border-bottom: 1px solid #F3F4F6; }
         tr:last-child td { border-bottom: none; }
-        tr:hover td { background: #FDF2F8; }
+        tr:hover td { background: #faf4ea; }
         .amount { font-weight: 700; font-family: 'Playfair Display', serif; font-size: 15px; white-space: nowrap; }
         .amount.paid { color: #047857; }
         .amount.dim { color: #9CA3AF; }
@@ -62,7 +62,7 @@
 
         .loading, .empty, .error-box { padding: 50px 20px; text-align: center; color: #9CA3AF; font-size: 14px; }
         .error-box { color: #B91C1C; }
-        .spinner { width: 34px; height: 34px; border: 3px solid #FCE7F3; border-top-color: #EC4899; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 14px; }
+        .spinner { width: 34px; height: 34px; border: 3px solid #f2e7d9; border-top-color: #a17a5e; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 14px; }
         @keyframes spin { to { transform: rotate(360deg); } }
         .menu-toggle { display: none; position: fixed; top: 14px; left: 14px; z-index: 20; width: 42px; height: 42px; border-radius: 10px; background: #1F2937; color: #fff; border: none; font-size: 20px; cursor: pointer; }
         @media (max-width: 900px) {
