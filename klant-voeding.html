@@ -125,11 +125,72 @@
     .loader { display: flex; justify-content: center; padding: 60px 0; }
     .spinner { width: 36px; height: 36px; border: 3px solid #f6e6e4; border-top-color: #a17a5e; border-radius: 50%; animation: spin 0.8s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Favorieten / vaak-gegeten chips */
+    .fav-wrap { margin-bottom: 10px; }
+    .fav-lbl { font-size: 10.5px; font-weight: 700; color: #a17a5e; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+    .fav-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+    .fav-chip { background: #f9e5e4; border: 1px solid #dcb9b4; color: #5c4632; border-radius: 999px; padding: 6px 12px; font-size: 12.5px; font-family: inherit; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; }
+    .fav-chip:hover { background: #f6e6e4; }
+    .fav-chip .kc { color: #a17a5e; font-weight: 600; font-size: 11px; }
+
+    /* Barcode-scan knop */
+    .scan-btn { width: 100%; padding: 11px; background: #fff; color: #a17a5e; border: 1.5px solid #d3a39d; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; margin-bottom: 10px; }
+    .scan-btn:hover { background: #f9e5e4; }
+
+    /* Gram-rij */
+    .gram-row { margin-bottom: 8px; }
+    .gram-row .nlbl { font-size: 10.5px; font-weight: 700; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 3px; }
+    .gram-row input { width: 100%; padding: 10px 12px; border: 1.5px solid #E5E7EB; border-radius: 10px; font-size: 14px; font-family: inherit; background: #fff; }
+    .gram-row input:focus { outline: none; border-color: #a17a5e; }
+    .meal-item .gram-tag { font-size: 11px; color: #a17a5e; font-weight: 600; }
+
+    /* Scan-overlay (camera) */
+    .scan-overlay { position: fixed; inset: 0; background: #1a1410; z-index: 2000; display: none; flex-direction: column; }
+    .scan-overlay.active { display: flex; }
+    .scan-overlay video { flex: 1; width: 100%; object-fit: cover; }
+    .scan-frame { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 74%; max-width: 320px; height: 150px; border: 3px solid #fff; border-radius: 16px; box-shadow: 0 0 0 2000px rgba(0,0,0,0.45); }
+    .scan-hint { position: absolute; bottom: 90px; left: 0; right: 0; text-align: center; color: #fff; font-size: 14px; padding: 0 24px; }
+    .scan-close { position: absolute; top: 16px; right: 16px; width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.15); border: none; color: #fff; font-size: 22px; cursor: pointer; }
+    .scan-manual { position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.4); border-radius: 10px; padding: 10px 16px; font-size: 13px; font-family: inherit; cursor: pointer; }
+
+    /* Product-resultaat kaart */
+    .prod-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2100; display: none; align-items: flex-end; justify-content: center; }
+    .prod-modal.active { display: flex; }
+    .prod-card { background: #fff; border-radius: 22px 22px 0 0; width: 100%; max-width: 640px; padding: 22px 20px calc(22px + env(safe-area-inset-bottom)); box-shadow: 0 -10px 40px rgba(0,0,0,0.2); }
+    .prod-card h3 { font-family: 'Playfair Display', serif; font-size: 20px; color: #1F2937; margin-bottom: 2px; }
+    .prod-card .merk { font-size: 13px; color: #9CA3AF; margin-bottom: 14px; }
+    .prod-per100 { display: flex; gap: 10px; flex-wrap: wrap; font-size: 12px; color: #6B7280; background: #faf5ec; border-radius: 10px; padding: 8px 12px; margin-bottom: 14px; }
+    .prod-gram-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+    .prod-gram-row label { font-size: 14px; font-weight: 600; color: #1F2937; }
+    .prod-gram-row input { flex: 1; padding: 12px; border: 1.5px solid #d3a39d; border-radius: 12px; font-size: 16px; font-family: inherit; text-align: center; }
+    .prod-totaal { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 16px; text-align: center; }
+    .prod-totaal .box { background: #f9e5e4; border-radius: 12px; padding: 10px 4px; }
+    .prod-totaal .box .n { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; color: #5c4632; }
+    .prod-totaal .box .l { font-size: 10px; color: #a17a5e; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; }
+    .prod-actions { display: flex; gap: 10px; }
+    .prod-actions button { flex: 1; padding: 13px; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit; border: none; }
+    .prod-add { background: #a17a5e; color: #fff; }
+    .prod-cancel { background: #F3F4F6; color: #6B7280; }
   </style>
 </head>
 <body>
   <div class="wrap" id="wrap">
     <div class="loader"><div class="spinner"></div></div>
+  </div>
+
+  <!-- Barcode camera-overlay -->
+  <div class="scan-overlay" id="scanOverlay">
+    <video id="scanVideo" playsinline muted></video>
+    <div class="scan-frame"></div>
+    <div class="scan-hint" id="scanHint">Richt op de streepjescode van het product</div>
+    <button class="scan-close" onclick="stopScan()">✕</button>
+    <button class="scan-manual" onclick="manualBarcode()">Typ de code handmatig</button>
+  </div>
+
+  <!-- Product-resultaat -->
+  <div class="prod-modal" id="prodModal">
+    <div class="prod-card" id="prodCard"></div>
   </div>
 
   <script type="module">
@@ -176,7 +237,33 @@
         const key = (l.omschrijving || '').trim().toLowerCase();
         if (key && !recente[key]) recente[key] = l;
       }
+      // Favorieten = vaakst gelogde items (voor 1-tik toevoegen)
+      window.__fav = computeFavorieten(hist);
       await loadDag();
+    }
+
+    // Meest gelogde items (op omschrijving), met de laatst gebruikte waarden.
+    function computeFavorieten(hist) {
+      const byKey = {};
+      for (const l of hist) {
+        const key = (l.omschrijving || '').trim().toLowerCase();
+        if (!key) continue;
+        if (!byKey[key]) byKey[key] = { count: 0, item: l };
+        byKey[key].count++;
+        // hist is datum-desc → eerste voorkomen is het meest recente; behoud dat
+        if (!byKey[key].item) byKey[key].item = l;
+      }
+      return Object.values(byKey).sort((a, b) => b.count - a.count).slice(0, 12).map(x => x.item);
+    }
+
+    function renderFavorieten(mealKey) {
+      const favs = window.__fav || [];
+      if (!favs.length) return '';
+      const chips = favs.map((f, i) => {
+        const kc = f.calories != null ? `<span class="kc">${f.calories}</span>` : '';
+        return `<button type="button" class="fav-chip" onclick="quickAdd('${mealKey}', ${i})">${escapeHtml(f.omschrijving)}${kc}</button>`;
+      }).join('');
+      return `<div class="fav-wrap"><div class="fav-lbl">⭐ Vaak gegeten — tik om toe te voegen</div><div class="fav-chips">${chips}</div></div>`;
     }
 
     async function loadDag() {
@@ -254,7 +341,7 @@
                 ${items.map(l => `
                   <div class="meal-item">
                     <div style="flex:1;min-width:0;">
-                      <div class="oms">${escapeHtml(l.omschrijving)}</div>
+                      <div class="oms">${escapeHtml(l.omschrijving)}${l.gram != null ? ` <span class="gram-tag">${l.gram}g</span>` : ''}</div>
                       ${itemMacros(l)}
                     </div>
                     <span class="kc">${l.calories != null ? l.calories + ' kcal' : '—'}</span>
@@ -263,9 +350,15 @@
                 `).join('')}
               </div>` : ''}
             <div class="add-form ${openForm === m.key ? 'open' : ''}" id="form-${m.key}">
+              ${renderFavorieten(m.key)}
+              <button type="button" class="scan-btn" onclick="startScan('${m.key}')">📷 Barcode scannen</button>
               <input type="text" class="oms-in" id="oms-${m.key}" placeholder="Wat at je? (bv. Griekse yoghurt met havermout)" list="recente-items"
                      onchange="autofillMacros('${m.key}')"
                      onkeydown="if(event.key==='Enter'){event.preventDefault();addLog('${m.key}')}">
+              <div class="gram-row">
+                <div class="nlbl">Hoeveel gram? (optioneel)</div>
+                <input type="number" inputmode="numeric" id="gram-${m.key}" placeholder="bv. 100" min="0" max="5000" onkeydown="if(event.key==='Enter'){event.preventDefault();addLog('${m.key}')}">
+              </div>
               <div class="num-grid">
                 <div class="num-field"><div class="nlbl">kcal</div><input type="number" inputmode="numeric" id="kcal-${m.key}" placeholder="0" min="0" max="9999" onkeydown="if(event.key==='Enter'){event.preventDefault();addLog('${m.key}')}"></div>
                 <div class="num-field"><div class="nlbl">Eiwit g</div><input type="number" inputmode="numeric" id="eiwit-${m.key}" placeholder="0" min="0" max="999" onkeydown="if(event.key==='Enter'){event.preventDefault();addLog('${m.key}')}"></div>
@@ -366,11 +459,25 @@
         const el = document.getElementById(id + '-' + meal);
         if (el && !el.value && v != null) el.value = v;
       };
+      fill('gram', r.gram);
       fill('kcal', r.calories);
       fill('eiwit', r.eiwit_g);
       fill('kh', r.koolhydraten_g);
       fill('vet', r.vetten_g);
     };
+
+    // Gedeelde opslag-helper (gebruikt door addLog, quickAdd en barcode-flow)
+    async function postLog(body) {
+      const r = await fetch('/api/klant/voeding-logs', {
+        method: 'POST',
+        headers: { ...authHdr, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ datum, ...body }),
+      });
+      const data = await r.json();
+      if (!r.ok || data.error) throw new Error(data.error || 'Opslaan mislukt');
+      if (body.omschrijving) recente[body.omschrijving.toLowerCase()] = data.log;
+      return data.log;
+    }
 
     window.addLog = async (meal) => {
       const val = (id) => {
@@ -383,26 +490,36 @@
       const msg = document.getElementById('msg');
       msg.className = 'msg'; msg.textContent = '';
       try {
-        const body = {
-          datum, maaltijd: meal, omschrijving,
+        await postLog({
+          maaltijd: meal, omschrijving,
+          gram: val('gram'),
           calories: val('kcal'),
           eiwit_g: val('eiwit'),
           koolhydraten_g: val('kh'),
           vetten_g: val('vet'),
-        };
-        const r = await fetch('/api/klant/voeding-logs', {
-          method: 'POST',
-          headers: { ...authHdr, 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
         });
-        const data = await r.json();
-        if (!r.ok || data.error) throw new Error(data.error || 'Opslaan mislukt');
-        recente[omschrijving.toLowerCase()] = data.log;
         openForm = meal; // vorm open houden — snel doorloggen
         await loadDag();
       } catch (e) {
         msg.className = 'msg error'; msg.textContent = e.message;
       }
+    };
+
+    // 1-tik toevoegen vanuit favorieten
+    window.quickAdd = async (meal, idx) => {
+      const f = (window.__fav || [])[idx];
+      if (!f) return;
+      const msg = document.getElementById('msg');
+      msg.className = 'msg'; msg.textContent = '';
+      try {
+        await postLog({
+          maaltijd: meal, omschrijving: f.omschrijving,
+          gram: f.gram, calories: f.calories,
+          eiwit_g: f.eiwit_g, koolhydraten_g: f.koolhydraten_g, vetten_g: f.vetten_g,
+        });
+        openForm = meal;
+        await loadDag();
+      } catch (e) { msg.className = 'msg error'; msg.textContent = e.message; }
     };
 
     window.delLog = async (id) => {
@@ -412,6 +529,143 @@
         logs = logs.filter(l => l.id !== id);
         renderPage();
       } catch (e) { alert('Verwijderen mislukt: ' + e.message); }
+    };
+
+    // =============================================================
+    // BARCODE SCANNEN → Open Food Facts productlookup
+    // =============================================================
+    let scanStream = null, scanRAF = null, scanMeal = null, scanDetector = null;
+
+    window.startScan = async (meal) => {
+      scanMeal = meal;
+      const overlay = document.getElementById('scanOverlay');
+      const video = document.getElementById('scanVideo');
+      const hint = document.getElementById('scanHint');
+      // BarcodeDetector beschikbaar? (Chrome/Android, Safari iOS 17+)
+      if (!('BarcodeDetector' in window)) {
+        // Geen scanner → val terug op handmatig code intypen
+        manualBarcode();
+        return;
+      }
+      try {
+        scanDetector = new BarcodeDetector({ formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128'] });
+        scanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        video.srcObject = scanStream;
+        await video.play();
+        overlay.classList.add('active');
+        hint.textContent = 'Richt op de streepjescode van het product';
+        const tick = async () => {
+          if (!scanStream) return;
+          try {
+            const codes = await scanDetector.detect(video);
+            if (codes && codes.length) {
+              const code = codes[0].rawValue.replace(/\D/g, '');
+              if (code.length >= 6) { stopScan(); lookupBarcode(code); return; }
+            }
+          } catch {}
+          scanRAF = requestAnimationFrame(tick);
+        };
+        scanRAF = requestAnimationFrame(tick);
+      } catch (e) {
+        stopScan();
+        // Camera geweigerd/niet beschikbaar → handmatig
+        manualBarcode();
+      }
+    };
+
+    window.stopScan = () => {
+      if (scanRAF) cancelAnimationFrame(scanRAF), scanRAF = null;
+      if (scanStream) { scanStream.getTracks().forEach(t => t.stop()); scanStream = null; }
+      document.getElementById('scanOverlay').classList.remove('active');
+    };
+
+    window.manualBarcode = () => {
+      stopScan();
+      const code = prompt('Typ de streepjescode (de cijfers onder de barcode):');
+      if (code && code.replace(/\D/g, '').length >= 6) lookupBarcode(code.replace(/\D/g, ''));
+    };
+
+    async function lookupBarcode(barcode) {
+      const msg = document.getElementById('msg');
+      try {
+        const r = await fetch('/api/klant/product/' + barcode, { headers: authHdr });
+        const d = await r.json();
+        if (!d.found) {
+          // Niet in database → open gewoon het formulier met een hint
+          if (msg) { msg.className = 'msg error'; msg.textContent = 'Dit product staat niet in de database. Vul het handmatig in 💕'; }
+          openForm = scanMeal; renderPage();
+          const el = document.getElementById('oms-' + scanMeal); if (el) el.focus();
+          return;
+        }
+        openProductModal(d);
+      } catch (e) {
+        if (msg) { msg.className = 'msg error'; msg.textContent = 'Opzoeken mislukt: ' + e.message; }
+      }
+    }
+
+    // Product gevonden → toon per-100g + gram-invoer met live berekende totalen
+    window.__prod = null;
+    function openProductModal(prod) {
+      window.__prod = prod;
+      const card = document.getElementById('prodCard');
+      const p = prod.per100g || {};
+      const per = [
+        p.kcal != null ? `${p.kcal} kcal` : null,
+        p.eiwit != null ? `E ${p.eiwit}g` : null,
+        p.koolhydraten != null ? `K ${p.koolhydraten}g` : null,
+        p.vet != null ? `V ${p.vet}g` : null,
+      ].filter(Boolean).join(' · ');
+      card.innerHTML = `
+        <h3>${escapeHtml(prod.naam)}</h3>
+        <div class="merk">${prod.merk ? escapeHtml(prod.merk) + ' · ' : ''}per 100g: ${per || 'geen macro-data'}</div>
+        <div class="prod-gram-row">
+          <label>Hoeveel gram?</label>
+          <input type="number" inputmode="numeric" id="prodGram" value="100" min="1" max="5000" oninput="recomputeProd()">
+        </div>
+        <div class="prod-totaal" id="prodTotaal"></div>
+        <div class="prod-actions">
+          <button class="prod-cancel" onclick="closeProd()">Annuleer</button>
+          <button class="prod-add" onclick="prodAdd()">Toevoegen</button>
+        </div>`;
+      document.getElementById('prodModal').classList.add('active');
+      recomputeProd();
+    }
+
+    window.recomputeProd = () => {
+      const prod = window.__prod; if (!prod) return;
+      const gram = parseFloat(document.getElementById('prodGram').value) || 0;
+      const f = gram / 100;
+      const p = prod.per100g || {};
+      const calc = (v) => v == null ? null : Math.round(v * f);
+      window.__prodCalc = {
+        gram: Math.round(gram),
+        calories: calc(p.kcal), eiwit_g: calc(p.eiwit),
+        koolhydraten_g: calc(p.koolhydraten), vetten_g: calc(p.vet),
+      };
+      const c = window.__prodCalc;
+      document.getElementById('prodTotaal').innerHTML = `
+        <div class="box"><div class="n">${c.calories ?? '–'}</div><div class="l">kcal</div></div>
+        <div class="box"><div class="n">${c.eiwit_g ?? '–'}</div><div class="l">eiwit</div></div>
+        <div class="box"><div class="n">${c.koolhydraten_g ?? '–'}</div><div class="l">koolh</div></div>
+        <div class="box"><div class="n">${c.vetten_g ?? '–'}</div><div class="l">vet</div></div>`;
+    };
+
+    window.closeProd = () => { document.getElementById('prodModal').classList.remove('active'); window.__prod = null; };
+
+    window.prodAdd = async () => {
+      const prod = window.__prod, c = window.__prodCalc;
+      if (!prod || !c) return;
+      try {
+        await postLog({
+          maaltijd: scanMeal || 'snack',
+          omschrijving: prod.naam,
+          gram: c.gram, calories: c.calories,
+          eiwit_g: c.eiwit_g, koolhydraten_g: c.koolhydraten_g, vetten_g: c.vetten_g,
+        });
+        closeProd();
+        openForm = scanMeal;
+        await loadDag();
+      } catch (e) { alert('Toevoegen mislukt: ' + e.message); }
     };
 
     main().catch(err => {

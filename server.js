@@ -419,7 +419,7 @@ const server = http.createServer(async (req, res) => {
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   // Version-stamp om te kunnen debuggen welke deploy draait.
-  res.setHeader('X-App-Version', 'rebrand-blush-v19');
+  res.setHeader('X-App-Version', 'voeding-barcode-v20');
 
   if (req.method === 'OPTIONS') {
     res.writeHead(204);
@@ -999,6 +999,7 @@ const server = http.createServer(async (req, res) => {
       datum: body.datum,
       maaltijd: body.maaltijd,
       omschrijving: body.omschrijving,
+      gram: body.gram,
       calories: body.calories,
       eiwit_g: body.eiwit_g,
       koolhydraten_g: body.koolhydraten_g,
@@ -1006,6 +1007,46 @@ const server = http.createServer(async (req, res) => {
     });
     if (!r.ok) return jsonRes(res, 400, { error: r.error });
     return jsonRes(res, 200, { ok: true, log: r.log });
+  }
+
+  // GET /api/klant/product/:barcode — productlookup via Open Food Facts.
+  // Gratis open database (zoals Lifesum), geen key nodig. Retourneert per-100g
+  // macro's zodat de klant alleen nog het aantal gram hoeft in te vullen.
+  {
+    const m = pathname.match(/^\/api\/klant\/product\/([0-9]{6,14})$/);
+    if (m && req.method === 'GET') {
+      const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+      const user = await supabaseHelper.verifyUserToken(token);
+      if (!user) return jsonRes(res, 401, { error: 'Not logged in' });
+      const barcode = m[1];
+      try {
+        const url = `https://world.openfoodfacts.org/api/v2/product/${barcode}.json?fields=product_name,product_name_nl,brands,nutriments,quantity`;
+        const off = await fetch(url, { headers: { 'User-Agent': 'JuliaBesten/1.0 (coaching app)' } });
+        if (!off.ok) return jsonRes(res, 200, { found: false });
+        const data = await off.json();
+        const p = data.product;
+        if (!(data.status === 1 && p)) return jsonRes(res, 200, { found: false });
+        const n = p.nutriments || {};
+        const naam = (p.product_name_nl || p.product_name || '').trim();
+        if (!naam) return jsonRes(res, 200, { found: false });
+        const numOr = (v) => (v === undefined || v === null || v === '' || isNaN(parseFloat(v))) ? null : Math.round(parseFloat(v) * 10) / 10;
+        return jsonRes(res, 200, {
+          found: true,
+          barcode,
+          naam: naam.slice(0, 120),
+          merk: (p.brands || '').split(',')[0].trim() || null,
+          per100g: {
+            kcal: numOr(n['energy-kcal_100g']),
+            eiwit: numOr(n.proteins_100g),
+            koolhydraten: numOr(n.carbohydrates_100g),
+            vet: numOr(n.fat_100g),
+          },
+        });
+      } catch (e) {
+        console.warn('[product lookup]', e.message);
+        return jsonRes(res, 200, { found: false, error: 'lookup mislukt' });
+      }
+    }
   }
   {
     const m = pathname.match(/^\/api\/klant\/voeding-logs\/([0-9a-f-]+)$/i);
