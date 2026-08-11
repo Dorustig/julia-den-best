@@ -96,10 +96,13 @@ const ADMIN_PASS_2 = process.env.ADMIN_PASS_2 || '#Cheesy123';
 // dashboard (klantdata: check-ins, foto's, chat).
 const ADMIN_USER_3 = process.env.ADMIN_USER_3 || 'Romy';
 const ADMIN_PASS_3 = process.env.ADMIN_PASS_3 || 'Bellenmaar2026';
-// Extra setters (bijv. Tessa) — puur via env vars, zodat het wachtwoord NIET
-// in de code/git-historie belandt. Alleen actief als beide vars gezet zijn.
-const ADMIN_USER_4 = process.env.ADMIN_USER_4 || '';
-const ADMIN_PASS_4 = process.env.ADMIN_PASS_4 || '';
+// Extra setter: Tessa (elsengatessa@gmail.com). Zelfde default-pattern als Romy
+// hierboven — hardcoded fallback zodat het account gegarandeerd werkt, óók
+// zonder Railway env vars (die bleven struikelen). Env var overschrijft indien
+// gezet. Repo is privé; secret-rotatie is al een openstaand punt voor alle keys.
+const ADMIN_USER_4 = process.env.ADMIN_USER_4 || 'elsengatessa@gmail.com';
+const ADMIN_PASS_4 = process.env.ADMIN_PASS_4 || 'zygo-qyki-1534';
+// Vrije slot voor een volgende setter, puur via env vars.
 const ADMIN_USER_5 = process.env.ADMIN_USER_5 || '';
 const ADMIN_PASS_5 = process.env.ADMIN_PASS_5 || '';
 
@@ -416,7 +419,7 @@ const server = http.createServer(async (req, res) => {
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   // Version-stamp om te kunnen debuggen welke deploy draait.
-  res.setHeader('X-App-Version', 'setter-trim-v14');
+  res.setHeader('X-App-Version', 'setter-tessa-live-v15');
 
   if (req.method === 'OPTIONS') {
     res.writeHead(204);
