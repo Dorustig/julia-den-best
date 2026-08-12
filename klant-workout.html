@@ -109,6 +109,7 @@
     .demo-anim { width: 220px; height: 220px; margin: 0 auto; background: #faf5ec; border-radius: 16px; }
     .demo-anim svg { display: block; width: 100%; height: 100%; }
     .demo-title { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: #a17a5e; margin-top: 12px; }
+    .demo-doel { font-size: 13px; color: #9c5f56; font-weight: 600; margin-top: 6px; }
     .demo-cue { font-size: 14px; color: #6f543c; line-height: 1.5; margin-top: 8px; }
     .demo-close { position: absolute; top: 8px; right: 12px; background: none; border: none; font-size: 26px; color: #9CA3AF; cursor: pointer; line-height: 1; padding: 4px; }
 
@@ -213,94 +214,140 @@
     // beweegt tussen start- en eindstand (SMIL, werkt op iOS Safari).
     const ExAnim = (() => {
       const D2R = Math.PI / 180;
-      const COL = { limb:'#a17a5e', torso:'#7d5a41', head:'#a17a5e', gear:'#c17d75', bench:'#d3a39d', rear:'#c9a99a', floor:'#e3cfc8' };
-      const DUR = 2.6, TH = 24, SH = 24, TL = 30, UA = 14, FA = 13, HR = 7;
-      const fk = (p, len, a) => ({ x: p.x + len * Math.sin(a * D2R), y: p.y + len * Math.cos(a * D2R) });
-      function ik(A, C, L1, L2, prefer) {
-        let dx = C.x - A.x, dy = C.y - A.y, d = Math.hypot(dx, dy) || 0.001;
-        const dmax = L1 + L2 - 0.01; if (d > dmax) d = dmax;
-        const dmin = Math.abs(L1 - L2) + 0.01; if (d < dmin) d = dmin;
-        const hyp = Math.hypot(dx, dy) || 0.001, ux = dx / hyp, uy = dy / hyp;
+      const C = { limb:'#a17a5e', torso:'#7d5a41', head:'#a17a5e', gear:'#c17d75', bench:'#d3a39d', rear:'#c9a99a', floor:'#e3cfc8' };
+      const DUR = 2.6, TH = 24, SH = 24, TL = 30, UA = 14, FA = 13, HR = 7, GY = 104;
+      const fk = (p, l, a) => ({ x: p.x + l * Math.sin(a * D2R), y: p.y + l * Math.cos(a * D2R) });
+      function ik(A, Cc, L1, L2, pf) {
+        let dx = Cc.x - A.x, dy = Cc.y - A.y, d = Math.hypot(dx, dy) || 0.001;
+        const mx = L1 + L2 - 0.01; if (d > mx) d = mx; const mn = Math.abs(L1 - L2) + 0.01; if (d < mn) d = mn;
+        const hy = Math.hypot(dx, dy) || 0.001, ux = dx / hy, uy = dy / hy;
         const a = (L1 * L1 - L2 * L2 + d * d) / (2 * d), h = Math.sqrt(Math.max(0, L1 * L1 - a * a));
         const Px = A.x + a * ux, Py = A.y + a * uy, nx = -uy, ny = ux;
         const c1 = { x: Px + h * nx, y: Py + h * ny }, c2 = { x: Px - h * nx, y: Py - h * ny };
-        if (prefer === 'forward') return c1.x >= c2.x ? c1 : c2;
-        if (prefer === 'back') return c1.x <= c2.x ? c1 : c2;
-        if (prefer === 'up') return c1.y <= c2.y ? c1 : c2;
+        if (pf === 'forward') return c1.x >= c2.x ? c1 : c2;
+        if (pf === 'back') return c1.x <= c2.x ? c1 : c2;
+        if (pf === 'up') return c1.y <= c2.y ? c1 : c2;
         return c1.y >= c2.y ? c1 : c2;
       }
-      function bodyPoints(hip, torsoAng, armAng, foreAng) {
-        const shoulder = { x: hip.x + TL * Math.sin(torsoAng * D2R), y: hip.y - TL * Math.cos(torsoAng * D2R) };
-        const head = { x: shoulder.x + (HR + 3) * Math.sin(torsoAng * D2R), y: shoulder.y - (HR + 3) * Math.cos(torsoAng * D2R) };
-        const elbow = fk(shoulder, UA, armAng), hand = fk(elbow, FA, foreAng);
-        return { shoulder, head, elbow, hand };
+      function ht(hip, t) { const shoulder = { x: hip.x + TL * Math.sin(t * D2R), y: hip.y - TL * Math.cos(t * D2R) }; const head = { x: shoulder.x + (HR + 3) * Math.sin(t * D2R), y: shoulder.y - (HR + 3) * Math.cos(t * D2R) }; return { shoulder, head }; }
+      function leg(hip, footX, pf, gy) { gy = gy || GY; const ankle = { x: footX, y: gy }, toe = { x: footX + 12, y: gy }; return { knee: ik(hip, ankle, TH, SH, pf || 'forward'), ankle, toe }; }
+      const ease = (a, v0, v1) => `<animate attributeName="${a}" values="${v0};${v1};${v0}" dur="${DUR}s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1"/>`;
+      const bA = (A, B, k1, k2, w, c) => `<line x1="${A[k1].x}" y1="${A[k1].y}" x2="${A[k2].x}" y2="${A[k2].y}" stroke="${c}" stroke-width="${w}" stroke-linecap="round">${ease('x1', A[k1].x, B[k1].x)}${ease('y1', A[k1].y, B[k1].y)}${ease('x2', A[k2].x, B[k2].x)}${ease('y2', A[k2].y, B[k2].y)}</line>`;
+      const hA = (A, B, k, r, c) => `<circle cx="${A[k].x}" cy="${A[k].y}" r="${r}" fill="${c}">${ease('cx', A[k].x, B[k].x)}${ease('cy', A[k].y, B[k].y)}</circle>`;
+      const floor = () => `<line x1="6" y1="106" x2="114" y2="106" stroke="${C.floor}" stroke-width="3" stroke-linecap="round"/>`;
+      function draw(spec) { const p = [floor(), ...(spec.extras || [])]; for (const b of spec.bones) p.push(b.t === 'bone' ? bA(spec.A, spec.B, b.k1, b.k2, b.w, b.c) : hA(spec.A, spec.B, b.k, b.r, b.c)); return `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">${p.join('')}</svg>`; }
+
+      const B_head = [{ t:'bone', k1:'hip', k2:'shoulder', w:7, c:C.torso }, { t:'head', k:'head', r:HR, c:C.head }];
+      const B_legF = [{ t:'bone', k1:'hip', k2:'knee', w:7, c:C.limb }, { t:'bone', k1:'knee', k2:'ankle', w:7, c:C.limb }, { t:'bone', k1:'ankle', k2:'toe', w:5, c:C.limb }];
+      const B_armStraight = [{ t:'bone', k1:'shoulder', k2:'hand', w:5, c:C.limb }];
+      const B_armBent = [{ t:'bone', k1:'shoulder', k2:'elbow', w:5, c:C.limb }, { t:'bone', k1:'elbow', k2:'hand', w:5, c:C.limb }];
+      const bar = (k, r) => ({ t:'head', k:k || 'hand', r:r || 6, c:C.gear });
+
+      function stand(Ap, Bp, { barR = 6, extras = [] } = {}) {
+        const pt = p => { const { shoulder, head } = ht(p.hip, p.t); return { hip:p.hip, shoulder, head, hand:p.hand, ...leg(p.hip, p.foot, 'forward') }; };
+        const bones = [...B_head, ...B_armStraight, ...B_legF];
+        if (barR > 0) bones.push(bar('hand', barR));
+        return { A:pt(Ap), B:pt(Bp), extras, bones };
       }
-      const ease = (attr, v0, v1) => `<animate attributeName="${attr}" values="${v0};${v1};${v0}" dur="${DUR}s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1"/>`;
-      const boneA = (A, B, k1, k2, w, c) => `<line x1="${A[k1].x}" y1="${A[k1].y}" x2="${A[k2].x}" y2="${A[k2].y}" stroke="${c}" stroke-width="${w}" stroke-linecap="round">${ease('x1', A[k1].x, B[k1].x)}${ease('y1', A[k1].y, B[k1].y)}${ease('x2', A[k2].x, B[k2].x)}${ease('y2', A[k2].y, B[k2].y)}</line>`;
-      const headA = (A, B, k, r, c) => `<circle cx="${A[k].x}" cy="${A[k].y}" r="${r}" fill="${c}">${ease('cx', A[k].x, B[k].x)}${ease('cy', A[k].y, B[k].y)}</circle>`;
-      const floor = () => `<line x1="6" y1="106" x2="114" y2="106" stroke="${COL.floor}" stroke-width="3" stroke-linecap="round"/>`;
-      function animated(spec) {
-        const parts = [floor(), ...spec.extras];
-        for (const b of spec.bones) parts.push(b.t === 'bone' ? boneA(spec.A, spec.B, b.k1, b.k2, b.w, b.c) : headA(spec.A, spec.B, b.k, b.r, b.c));
-        return `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">${parts.join('')}</svg>`;
+      function standBent(Ap, Bp, { barR = 6, extras = [], withBar = true } = {}) {
+        const pt = p => { const { shoulder, head } = ht(p.hip, p.t); const elbow = fk(shoulder, UA, p.up); const hand = fk(elbow, FA, p.fore); return { hip:p.hip, shoulder, head, elbow, hand, ...leg(p.hip, p.foot, 'forward') }; };
+        return { A:pt(Ap), B:pt(Bp), extras, bones:[...B_head, ...B_armBent, ...B_legF, ...(withBar ? [bar('hand', barR)] : [])] };
       }
-      function squatSpec() {
-        const ankle = { x:58, y:104 }, toe = { x:70, y:104 };
-        const Ah = { x:58, y:54 }, Bh = { x:54, y:80 };
-        const A = { ...bodyPoints(Ah,5,83,83), hip:Ah, ankle, toe, knee:ik(Ah,ankle,TH,SH,'forward') };
-        const B = { ...bodyPoints(Bh,30,86,86), hip:Bh, ankle, toe, knee:ik(Bh,ankle,TH,SH,'forward') };
-        return { A, B, extras:[], bones:[
-          {t:'bone',k1:'hip',k2:'shoulder',w:7,c:COL.torso},{t:'head',k:'head',r:HR,c:COL.head},
-          {t:'bone',k1:'shoulder',k2:'elbow',w:5,c:COL.limb},{t:'bone',k1:'elbow',k2:'hand',w:5,c:COL.limb},
-          {t:'bone',k1:'hip',k2:'knee',w:7,c:COL.limb},{t:'bone',k1:'knee',k2:'ankle',w:7,c:COL.limb},
-          {t:'bone',k1:'ankle',k2:'toe',w:5,c:COL.limb},
-        ]};
-      }
-      function hipthrustSpec() {
-        const shoulder = { x:38, y:70 }, head = { x:28, y:67 }, ankle = { x:84, y:104 }, toe = { x:96, y:104 };
-        const Ah = { x:58, y:96 }, Bh = { x:60, y:73 };
-        const A = { shoulder, head, hip:Ah, ankle, toe, knee:ik(Ah,ankle,TH,SH,'up') };
-        const B = { shoulder, head, hip:Bh, ankle, toe, knee:ik(Bh,ankle,TH,SH,'up') };
-        return { A, B, extras:[`<rect x="16" y="70" width="26" height="36" rx="3" fill="${COL.bench}" opacity="0.9"/>`], bones:[
-          {t:'bone',k1:'shoulder',k2:'hip',w:7,c:COL.torso},{t:'head',k:'head',r:HR,c:COL.head},
-          {t:'bone',k1:'hip',k2:'knee',w:7,c:COL.limb},{t:'bone',k1:'knee',k2:'ankle',w:7,c:COL.limb},
-          {t:'bone',k1:'ankle',k2:'toe',w:5,c:COL.limb},{t:'head',k:'hip',r:8,c:COL.gear},
-        ]};
-      }
-      function bulgarianSpec() {
-        const ankleF = { x:78, y:104 }, toeF = { x:90, y:104 }, ankleR = { x:30, y:82 }, toeR = { x:20, y:82 };
-        const Ah = { x:54, y:54 }, Bh = { x:58, y:80 };
-        const A = { ...bodyPoints(Ah,6,7,4), hip:Ah, ankleF, toeF, ankleR, toeR, kneeF:ik(Ah,ankleF,TH,SH,'forward'), kneeR:ik(Ah,ankleR,TH,SH,'down') };
-        const B = { ...bodyPoints(Bh,10,7,4), hip:Bh, ankleF, toeF, ankleR, toeR, kneeF:ik(Bh,ankleF,TH,SH,'forward'), kneeR:ik(Bh,ankleR,TH,SH,'down') };
-        return { A, B, extras:[`<rect x="14" y="82" width="24" height="24" rx="3" fill="${COL.bench}" opacity="0.9"/>`], bones:[
-          {t:'bone',k1:'hip',k2:'kneeR',w:6,c:COL.rear},{t:'bone',k1:'kneeR',k2:'ankleR',w:6,c:COL.rear},{t:'bone',k1:'ankleR',k2:'toeR',w:5,c:COL.rear},
-          {t:'bone',k1:'hip',k2:'shoulder',w:7,c:COL.torso},{t:'head',k:'head',r:HR,c:COL.head},
-          {t:'bone',k1:'shoulder',k2:'elbow',w:5,c:COL.limb},{t:'bone',k1:'elbow',k2:'hand',w:5,c:COL.limb},{t:'head',k:'hand',r:4,c:COL.gear},
-          {t:'bone',k1:'hip',k2:'kneeF',w:7,c:COL.limb},{t:'bone',k1:'kneeF',k2:'ankleF',w:7,c:COL.limb},{t:'bone',k1:'ankleF',k2:'toeF',w:5,c:COL.limb},
-        ]};
-      }
+
+      const S = {};
+      // ---- onderlichaam / billen ----
+      S.squat = (() => { const ankle={x:58,y:104},toe={x:70,y:104}; const Ah={x:58,y:54},Bh={x:54,y:80}; const A={...ht(Ah,5),hip:Ah,ankle,toe,knee:ik(Ah,ankle,TH,SH,'forward'),hand:fk(ht(Ah,5).shoulder,26,83)}; const B={...ht(Bh,30),hip:Bh,ankle,toe,knee:ik(Bh,ankle,TH,SH,'forward'),hand:fk(ht(Bh,30).shoulder,26,86)}; return {A,B,extras:[],bones:[...B_head,...B_armStraight,...B_legF]}; })();
+      S.hipthrust = (() => { const shoulder={x:38,y:70},head={x:28,y:67},ankle={x:84,y:104},toe={x:96,y:104}; const Ah={x:58,y:96},Bh={x:60,y:73}; const A={shoulder,head,hip:Ah,ankle,toe,knee:ik(Ah,ankle,TH,SH,'up')}; const B={shoulder,head,hip:Bh,ankle,toe,knee:ik(Bh,ankle,TH,SH,'up')}; return {A,B,extras:[`<rect x="16" y="70" width="26" height="36" rx="3" fill="${C.bench}" opacity=".9"/>`],bones:[{t:'bone',k1:'shoulder',k2:'hip',w:7,c:C.torso},{t:'head',k:'head',r:HR,c:C.head},...B_legF,bar('hip',8)]}; })();
+      S.bulgarian = (() => { const aF={x:78,y:104},tF={x:90,y:104},aR={x:30,y:82},tR={x:20,y:82}; const Ah={x:54,y:54},Bh={x:58,y:80}; const mk=(h,t)=>{const{shoulder,head}=ht(h,t);const elbow=fk(shoulder,UA,7),hand=fk(elbow,FA,4);return{hip:h,shoulder,head,elbow,hand,aF,tF,aR,tR,kF:ik(h,aF,TH,SH,'forward'),kR:ik(h,aR,TH,SH,'down')};}; const A=mk(Ah,6),B=mk(Bh,10); return {A,B,extras:[`<rect x="14" y="82" width="24" height="24" rx="3" fill="${C.bench}" opacity=".9"/>`],bones:[{t:'bone',k1:'hip',k2:'kR',w:6,c:C.rear},{t:'bone',k1:'kR',k2:'aR',w:6,c:C.rear},{t:'bone',k1:'aR',k2:'tR',w:5,c:C.rear},...B_head,...B_armBent,bar('hand',4),{t:'bone',k1:'hip',k2:'kF',w:7,c:C.limb},{t:'bone',k1:'kF',k2:'aF',w:7,c:C.limb},{t:'bone',k1:'aF',k2:'tF',w:5,c:C.limb}]}; })();
+      S.deadlift = stand({hip:{x:50,y:72},t:52,hand:{x:60,y:97},foot:62},{hip:{x:56,y:58},t:6,hand:{x:60,y:86},foot:60},{barR:7});
+      S.rdl = stand({hip:{x:52,y:64},t:60,hand:{x:62,y:88},foot:60},{hip:{x:56,y:58},t:6,hand:{x:60,y:85},foot:60},{barR:7});
+      S.lunge = (() => { const aF={x:76,y:104},tF={x:88,y:104},aR={x:36,y:104},tR={x:26,y:104}; const Ah={x:56,y:56},Bh={x:58,y:80}; const mk=(h,t)=>{const{shoulder,head}=ht(h,t);const hand=fk(shoulder,26,4);return{hip:h,shoulder,head,hand,aF,tF,aR,tR,kF:ik(h,aF,TH,SH,'forward'),kR:ik(h,aR,TH,SH,'down')};}; const A=mk(Ah,6),B=mk(Bh,8); return {A,B,extras:[],bones:[{t:'bone',k1:'hip',k2:'kR',w:6,c:C.rear},{t:'bone',k1:'kR',k2:'aR',w:6,c:C.rear},{t:'bone',k1:'aR',k2:'tR',w:5,c:C.rear},...B_head,...B_armStraight,{t:'bone',k1:'hip',k2:'kF',w:7,c:C.limb},{t:'bone',k1:'kF',k2:'aF',w:7,c:C.limb},{t:'bone',k1:'aF',k2:'tF',w:5,c:C.limb}]}; })();
+      S.glutebridge = (() => { const shoulder={x:30,y:102},head={x:20,y:100},ankle={x:74,y:104},toe={x:86,y:104}; const Ah={x:52,y:100},Bh={x:54,y:82}; const A={shoulder,head,hip:Ah,ankle,toe,knee:ik(Ah,ankle,TH,SH,'up')}; const B={shoulder,head,hip:Bh,ankle,toe,knee:ik(Bh,ankle,TH,SH,'up')}; return {A,B,extras:[],bones:[{t:'bone',k1:'shoulder',k2:'hip',w:7,c:C.torso},{t:'head',k:'head',r:HR,c:C.head},...B_legF]}; })();
+      S.glutekickback = (() => { const supAnk={x:58,y:104},supToe={x:70,y:104}; const mk=(h,workAnk,t)=>{const{shoulder,head}=ht(h,t);const hand=fk(shoulder,24,60);return{hip:h,shoulder,head,hand,sK:ik(h,supAnk,TH,SH,'forward'),sA:supAnk,sT:supToe,wK:ik(h,workAnk,TH,SH,'back'),wA:workAnk};}; const A=mk({x:54,y:60},{x:52,y:100},28),B=mk({x:54,y:60},{x:26,y:82},30); return {A,B,extras:[],bones:[{t:'bone',k1:'hip',k2:'wK',w:6,c:C.rear},{t:'bone',k1:'wK',k2:'wA',w:6,c:C.rear},...B_head,...B_armStraight,{t:'bone',k1:'hip',k2:'sK',w:7,c:C.limb},{t:'bone',k1:'sK',k2:'sA',w:7,c:C.limb},{t:'bone',k1:'sA',k2:'sT',w:5,c:C.limb}]}; })();
+      S.calfraise = (() => { const step=`<rect x="52" y="100" width="22" height="6" rx="1" fill="${C.bench}" opacity=".9"/>`; const toe={x:60,y:100}; const Ah={x:56,y:62},Aa={x:56,y:100}; const Bh={x:56,y:54},Ba={x:56,y:92}; const mk=(hip,ank)=>{const{shoulder,head}=ht(hip,4);return{hip,shoulder,head,hand:fk(shoulder,24,6),knee:ik(hip,ank,TH,SH,'forward'),ankle:ank,toe};}; const A=mk(Ah,Aa),B=mk(Bh,Ba); return {A,B,extras:[step],bones:[...B_head,{t:'bone',k1:'hip',k2:'knee',w:7,c:C.limb},{t:'bone',k1:'knee',k2:'ankle',w:7,c:C.limb},{t:'bone',k1:'ankle',k2:'toe',w:5,c:C.limb}]}; })();
+      S.stepup = (() => { const box=`<rect x="66" y="88" width="30" height="18" rx="2" fill="${C.bench}" opacity=".9"/>`; const aF={x:76,y:88},tF={x:88,y:88}; const Ah={x:54,y:64},Bh={x:70,y:52}; const mk=(h,aR,t)=>{const{shoulder,head}=ht(h,t);const hand=fk(shoulder,24,6);return{hip:h,shoulder,head,hand,aF,tF,kF:ik(h,aF,TH,SH,'forward'),aR,tR:{x:aR.x-10,y:aR.y},kR:ik(h,aR,TH,SH,'down')};}; const A=mk(Ah,{x:44,y:104},8),B=mk(Bh,{x:70,y:78},8); return {A,B,extras:[box],bones:[{t:'bone',k1:'hip',k2:'kR',w:6,c:C.rear},{t:'bone',k1:'kR',k2:'aR',w:6,c:C.rear},...B_head,...B_armStraight,{t:'bone',k1:'hip',k2:'kF',w:7,c:C.limb},{t:'bone',k1:'kF',k2:'aF',w:7,c:C.limb}]}; })();
+      S.legpress = (() => { const pad=`<rect x="10" y="66" width="18" height="40" rx="3" fill="${C.bench}" opacity=".9"/>`; const hip={x:34,y:84},shoulder={x:22,y:64},head={x:16,y:56}; const mk=(pl)=>({hip,shoulder,head,knee:ik(hip,pl,TH,SH,'up'),foot:pl}); const A=mk({x:70,y:64}),B=mk({x:88,y:52}); return {A,B,extras:[pad],bones:[{t:'bone',k1:'hip',k2:'shoulder',w:7,c:C.torso},{t:'head',k:'head',r:HR,c:C.head},{t:'bone',k1:'hip',k2:'knee',w:7,c:C.limb},{t:'bone',k1:'knee',k2:'foot',w:7,c:C.limb},{t:'head',k:'foot',r:5,c:C.gear}]}; })();
+      S.legcurl = (() => { const bench=`<rect x="22" y="80" width="60" height="12" rx="3" fill="${C.bench}" opacity=".9"/>`; const head={x:20,y:78},shoulder={x:34,y:80},hip={x:78,y:80},knee={x:82,y:92}; const A={head,shoulder,hip,knee,ank:{x:96,y:92}},B={head,shoulder,hip,knee,ank:{x:80,y:66}}; return {A,B,extras:[bench],bones:[{t:'bone',k1:'shoulder',k2:'hip',w:7,c:C.torso},{t:'head',k:'head',r:HR,c:C.head},{t:'bone',k1:'hip',k2:'knee',w:7,c:C.limb},{t:'bone',k1:'knee',k2:'ank',w:7,c:C.limb},{t:'head',k:'ank',r:5,c:C.gear}]}; })();
+      S.legextension = (() => { const seat=`<rect x="26" y="82" width="26" height="22" rx="3" fill="${C.bench}" opacity=".9"/>`; const hip={x:40,y:82},knee={x:64,y:82}; const{shoulder,head}=ht(hip,4); const A={hip,shoulder,head,knee,ank:{x:60,y:104}},B={hip,shoulder,head,knee,ank:{x:88,y:80}}; return {A,B,extras:[seat],bones:[{t:'bone',k1:'hip',k2:'shoulder',w:7,c:C.torso},{t:'head',k:'head',r:HR,c:C.head},{t:'bone',k1:'hip',k2:'knee',w:7,c:C.limb},{t:'bone',k1:'knee',k2:'ank',w:7,c:C.limb},{t:'head',k:'ank',r:5,c:C.gear}]}; })();
+      // ---- bovenlichaam ----
+      S.benchpress = (() => { const bench=`<rect x="20" y="78" width="60" height="10" rx="2" fill="${C.bench}" opacity=".9"/>`; const head={x:22,y:72},shoulder={x:34,y:76},hip={x:66,y:76},knee={x:80,y:88},ankle={x:84,y:104}; const mk=(barP)=>{const elbow=ik(shoulder,barP,UA,FA,'down');return{head,shoulder,hip,knee,ankle,elbow,bar:barP};}; const A=mk({x:40,y:66}),B=mk({x:40,y:44}); return {A,B,extras:[bench],bones:[{t:'bone',k1:'shoulder',k2:'hip',w:7,c:C.torso},{t:'head',k:'head',r:HR,c:C.head},{t:'bone',k1:'hip',k2:'knee',w:7,c:C.limb},{t:'bone',k1:'knee',k2:'ankle',w:7,c:C.limb},{t:'bone',k1:'shoulder',k2:'elbow',w:5,c:C.limb},{t:'bone',k1:'elbow',k2:'bar',w:5,c:C.limb},{t:'head',k:'bar',r:7,c:C.gear}]}; })();
+      S.shoulderpress = standBent({hip:{x:56,y:58},t:4,foot:56,up:20,fore:8},{hip:{x:56,y:58},t:4,foot:56,up:2,fore:-2},{barR:6});
+      S.latpulldown = (() => { const seat=`<rect x="40" y="88" width="26" height="18" rx="3" fill="${C.bench}" opacity=".9"/>`; const hip={x:52,y:88},knee={x:70,y:96},ankle={x:74,y:104}; const{shoulder,head}=ht(hip,6); const mk=(barP)=>{const elbow=ik(shoulder,barP,UA,FA,'forward');return{hip,shoulder,head,knee,ankle,elbow,bar:barP};}; const A=mk({x:58,y:26}),B=mk({x:58,y:52}); return {A,B,extras:[seat],bones:[{t:'bone',k1:'hip',k2:'shoulder',w:7,c:C.torso},{t:'head',k:'head',r:HR,c:C.head},{t:'bone',k1:'hip',k2:'knee',w:7,c:C.limb},{t:'bone',k1:'knee',k2:'ankle',w:7,c:C.limb},{t:'bone',k1:'shoulder',k2:'elbow',w:5,c:C.limb},{t:'bone',k1:'elbow',k2:'bar',w:5,c:C.limb},{t:'head',k:'bar',r:6,c:C.gear}]}; })();
+      S.seatedrow = (() => { const knee={x:70,y:92},ankle={x:90,y:104}; const mk=(t,hand)=>{const h={x:44,y:88};const{shoulder,head}=ht(h,t);const elbow=ik(shoulder,hand,UA,FA,'up');return{hip:h,shoulder,head,knee,ankle,elbow,hand};}; const A=mk(18,{x:86,y:74}),B=mk(4,{x:56,y:78}); return {A,B,extras:[],bones:[{t:'bone',k1:'hip',k2:'shoulder',w:7,c:C.torso},{t:'head',k:'head',r:HR,c:C.head},{t:'bone',k1:'hip',k2:'knee',w:7,c:C.limb},{t:'bone',k1:'knee',k2:'ankle',w:7,c:C.limb},{t:'bone',k1:'shoulder',k2:'elbow',w:5,c:C.limb},{t:'bone',k1:'elbow',k2:'hand',w:5,c:C.limb},{t:'head',k:'hand',r:5,c:C.gear}]}; })();
+      S.bentrow = (() => { const hip={x:52,y:64},foot=58; const{shoulder,head}=ht(hip,62); const mk=(hand)=>{const elbow=ik(shoulder,hand,UA,FA,'back');return{hip,shoulder,head,hand,elbow,...leg(hip,foot,'forward')};}; const A=mk({x:shoulder.x+2,y:96}),B=mk({x:shoulder.x+2,y:74}); return {A,B,extras:[],bones:[...B_head,{t:'bone',k1:'shoulder',k2:'elbow',w:5,c:C.limb},{t:'bone',k1:'elbow',k2:'hand',w:5,c:C.limb},...B_legF,{t:'head',k:'hand',r:6,c:C.gear}]}; })();
+      S.bicepcurl = standBent({hip:{x:56,y:58},t:4,foot:56,up:6,fore:8},{hip:{x:56,y:58},t:4,foot:56,up:10,fore:130},{barR:6});
+      S.triceppushdown = standBent({hip:{x:56,y:58},t:6,foot:56,up:16,fore:150},{hip:{x:56,y:58},t:6,foot:56,up:16,fore:6},{barR:5});
+      S.pushup = (() => { const hand={x:40,y:104}; const A={shoulder:{x:44,y:76},hip:{x:66,y:80},hand,ankle:{x:92,y:88},head:{x:34,y:74}},B={shoulder:{x:44,y:66},hip:{x:66,y:72},hand,ankle:{x:92,y:82},head:{x:34,y:64}}; return {A,B,extras:[],bones:[{t:'bone',k1:'shoulder',k2:'hip',w:7,c:C.torso},{t:'bone',k1:'hip',k2:'ankle',w:7,c:C.limb},{t:'head',k:'head',r:HR,c:C.head},{t:'bone',k1:'shoulder',k2:'hand',w:5,c:C.limb}]}; })();
+      S.plank = (() => { const shoulder={x:46,y:80},ankle={x:96,y:88},head={x:36,y:78},elbow={x:44,y:104}; const A={shoulder,hip:{x:70,y:80},ankle,head,elbow},B={shoulder,hip:{x:70,y:76},ankle,head,elbow}; return {A,B,extras:[],bones:[{t:'bone',k1:'shoulder',k2:'hip',w:7,c:C.torso},{t:'bone',k1:'hip',k2:'ankle',w:7,c:C.limb},{t:'head',k:'head',r:HR,c:C.head},{t:'bone',k1:'shoulder',k2:'elbow',w:5,c:C.limb}]}; })();
+
       const REG = {
-        squat: { label:'Squat', build:squatSpec, cue:'Voeten op schouderbreedte. Zak alsof je op een stoel gaat zitten, knieën naar buiten en rug recht. Duw jezelf omhoog via je hielen.' },
-        hipthrust: { label:'Hip Thrust', build:hipthrustSpec, cue:'Bovenrug tegen de bank, voeten plat op de grond. Duw je heupen omhoog tot je lichaam een rechte lijn is en knijp je billen aan. Rustig zakken.' },
-        bulgarian: { label:'Bulgarian Split Squat', build:bulgarianSpec, cue:'Achterste voet op de bank, voorste voet een flinke stap naar voren. Zak recht naar beneden tot je voorste bovenbeen bijna horizontaal is. Duw omhoog via je voorste hiel.' },
+        squat: { label:'Squat', spec:S.squat, cue:'Voeten op schouderbreedte. Zak alsof je op een stoel gaat zitten, knieën naar buiten en rug recht. Duw jezelf omhoog via je hielen.' },
+        hipthrust: { label:'Hip Thrust', spec:S.hipthrust, cue:'Bovenrug tegen de bank, voeten plat op de grond. Duw je heupen omhoog tot je lichaam een rechte lijn is en knijp je billen aan. Rustig zakken.' },
+        bulgarian: { label:'Bulgarian Split Squat', spec:S.bulgarian, cue:'Achterste voet op de bank, voorste voet een flinke stap naar voren. Zak recht naar beneden tot je voorste bovenbeen bijna horizontaal is. Duw omhoog via je voorste hiel.' },
+        deadlift: { label:'Deadlift', spec:S.deadlift, cue:'Stang over het midden van je voeten, rug recht. Zak met je heupen naar achteren, pak de stang en kom omhoog door je heupen naar voren te duwen. Til met je benen, niet met je rug.' },
+        rdl: { label:'Romanian Deadlift', spec:S.rdl, cue:'Lichte kniebuiging, rug recht. Schuif je heupen naar achteren en laat de stang langs je benen zakken tot je rek in je hamstrings voelt. Kom omhoog via je heupen.' },
+        lunge: { label:'Lunge', spec:S.lunge, cue:'Stap naar voren en zak recht naar beneden tot beide knieën ongeveer 90 graden zijn. Duw jezelf terug omhoog via je voorste hiel.' },
+        glutebridge: { label:'Glute Bridge', spec:S.glutebridge, cue:'Op je rug, voeten plat op de grond. Duw je heupen omhoog tot een rechte lijn en knijp je billen aan. Rustig terug.' },
+        glutekickback: { label:'Glute Kickback', spec:S.glutekickback, cue:'Steun met je handen, rug recht. Trap één been gestrekt naar achteren en omhoog en knijp je bil aan bovenin. Rustig terug.' },
+        calfraise: { label:'Calf Raise', spec:S.calfraise, cue:'Kom zo hoog mogelijk omhoog op je tenen en knijp je kuiten aan. Rustig zakken tot je een rek voelt.' },
+        stepup: { label:'Step-up', spec:S.stepup, cue:'Plaats één voet volledig op de bank of box. Duw jezelf omhoog via die voet tot je staat. Rustig terugstappen.' },
+        legpress: { label:'Leg Press', spec:S.legpress, cue:'Voeten op het plateau, duw het weg tot je benen bijna gestrekt zijn (knieën niet op slot). Laat rustig terugkomen.' },
+        legcurl: { label:'Leg Curl', spec:S.legcurl, cue:'Buig je onderbenen op tegen de rol richting je billen en knijp je hamstrings aan. Rustig laten zakken.' },
+        legextension: { label:'Leg Extension', spec:S.legextension, cue:'Strek je onderbenen naar voren tot ze recht zijn en knijp je quads aan. Rustig laten zakken.' },
+        benchpress: { label:'Bench Press', spec:S.benchpress, cue:'Lig plat, voeten op de grond en schouderbladen ingetrokken. Laat de stang rustig naar je borst zakken en duw hem recht omhoog.' },
+        shoulderpress: { label:'Shoulder Press', spec:S.shoulderpress, cue:'Duw het gewicht recht boven je hoofd tot je armen gestrekt zijn. Rustig terug tot schouderhoogte.' },
+        latpulldown: { label:'Lat Pulldown', spec:S.latpulldown, cue:'Trek de stang naar je bovenborst, ellebogen naar beneden en achteren. Knijp je rug aan. Rustig terug omhoog.' },
+        seatedrow: { label:'Seated Row', spec:S.seatedrow, cue:'Trek de handgreep naar je buik, ellebogen langs je lichaam en rug rechtop. Knijp je schouderbladen samen. Rustig terug.' },
+        bentrow: { label:'Bent-over Row', spec:S.bentrow, cue:'Buig voorover met een rechte rug. Trek de stang naar je onderste ribben, ellebogen naar achteren. Rustig laten zakken.' },
+        bicepcurl: { label:'Bicep Curl', spec:S.bicepcurl, cue:'Bovenarmen stil langs je lichaam. Krul het gewicht omhoog naar je schouders en rustig terug. Geen slinger met je rug.' },
+        triceppushdown: { label:'Tricep Pushdown', spec:S.triceppushdown, cue:'Bovenarmen stil langs je lichaam. Duw het gewicht naar beneden tot je armen gestrekt zijn en laat rustig terugkomen.' },
+        pushup: { label:'Push-up', spec:S.pushup, cue:'Handen iets breder dan je schouders, lichaam in een rechte lijn. Zak tot je borst bijna de grond raakt en duw jezelf omhoog.' },
+        plank: { label:'Plank', spec:S.plank, cue:'Steun op je onderarmen en tenen, lichaam kaarsrecht. Span je buik en billen aan en houd vast. Zak niet door in je onderrug.' },
       };
+
       function keyFor(naam) {
-        const s = (naam || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+        const s = (naam || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[-_]/g, ' ');
         if (/bulgaar|bulgarian|split ?squat/.test(s)) return 'bulgarian';
-        if (/hip ?thrust|heup ?thrust|heupstoot|glute ?bridge|billenbrug|bruggetje/.test(s)) return 'hipthrust';
+        if (/romanian|\brdl\b|stiff ?leg|stijve|straight ?leg ?deadlift/.test(s)) return 'rdl';
+        if (/deadlift|dead ?lift/.test(s)) return 'deadlift';
+        if (/hip ?thrust|heup ?thrust|heupstoot/.test(s)) return 'hipthrust';
+        if (/glute ?bridge|bruggetje|billenbrug|\bbridge\b/.test(s)) return 'glutebridge';
+        if (/kickback|kick ?back|glute ?kick|billen ?trap/.test(s)) return 'glutekickback';
+        if (/(leg|been|hamstring|ham) ?curl|beencurl/.test(s)) return 'legcurl';
+        if (/(leg|been|quad) ?extension|beenstrek/.test(s)) return 'legextension';
+        if (/leg ?press|been ?pers|beenpers/.test(s)) return 'legpress';
+        if (/lat ?pulldown|pull ?down|lat ?pull/.test(s)) return 'latpulldown';
+        if (/bent ?over ?row|bent-over|voorover|barbell ?row/.test(s)) return 'bentrow';
+        if (/seated ?row|cable ?row|kabel ?roei|roei|\brow\b/.test(s)) return 'seatedrow';
+        if (/bench|bankdruk|borstdruk/.test(s)) return 'benchpress';
+        if (/shoulder ?press|overhead ?press|schouderdruk|militar/.test(s)) return 'shoulderpress';
+        if (/tricep|pushdown|pressdown|push ?down/.test(s)) return 'triceppushdown';
+        if (/bicep|\bcurl\b/.test(s)) return 'bicepcurl';
+        if (/lunge|uitval|longe/.test(s)) return 'lunge';
+        if (/step ?up|opstap/.test(s)) return 'stepup';
+        if (/calf|kuit|tenenstand|heel ?raise/.test(s)) return 'calfraise';
+        if (/push ?up|opdruk/.test(s)) return 'pushup';
+        if (/plank/.test(s)) return 'plank';
         if (/squat|kniebuig|hurk/.test(s)) return 'squat';
         return null;
       }
       return {
         keyFor,
-        svgFor: (key) => { const r = REG[key]; return r ? animated(r.build()) : ''; },
+        svgFor: (key) => { const r = REG[key]; return r ? draw(r.spec) : ''; },
         info: (key) => { const r = REG[key]; return r ? { label:r.label, cue:r.cue } : null; },
       };
     })();
 
-    // Modal met de grote demo + korte uitleg
-    window.openDemo = (key) => {
+    // Modal met de grote demo + het doel van Julia (sets/reps/kg) + korte uitleg
+    window.openDemo = (key, idx) => {
       const info = ExAnim.info(key); if (!info) return;
+      const o = (typeof idx === 'number') ? currentWorkout.oefeningen[idx] : null;
+      const d = (o && o.doel) || {};
+      const delen = [];
+      if (d.sets) delen.push(d.sets + ' sets');
+      if (d.reps) delen.push(d.reps + ' reps');
+      if (d.kg != null) delen.push(d.kg + ' kg');
+      const doelHtml = delen.length ? `<div class="demo-doel">🎯 Doel van Julia: ${delen.join(' × ')}</div>` : '';
       let ov = document.getElementById('demoOverlay');
       if (!ov) {
         ov = document.createElement('div'); ov.id = 'demoOverlay'; ov.className = 'demo-overlay';
@@ -311,6 +358,7 @@
         <button class="demo-close" onclick="closeDemo()" aria-label="Sluiten">&times;</button>
         <div class="demo-anim">${ExAnim.svgFor(key)}</div>
         <div class="demo-title">${escapeHtml(info.label)}</div>
+        ${doelHtml}
         <div class="demo-cue">${escapeHtml(info.cue)}</div>
       </div>`;
       ov.style.display = 'flex';
@@ -635,7 +683,7 @@
         : '';
       const demoKey = ExAnim.keyFor(o.naam);
       const demoBtn = demoKey
-        ? `<button class="oef-demo" onclick="openDemo('${demoKey}')" title="Bekijk hoe je dit doet">${ExAnim.svgFor(demoKey)}</button>`
+        ? `<button class="oef-demo" onclick="openDemo('${demoKey}', ${idx})" title="Bekijk hoe je dit doet">${ExAnim.svgFor(demoKey)}</button>`
         : '';
       return `
         <div class="oef" data-idx="${idx}">
