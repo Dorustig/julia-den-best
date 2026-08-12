@@ -1102,7 +1102,8 @@
                         const maxKgLog = Math.max(...(o.sets || []).filter(s => s && !s.skipped && s.gewicht != null).map(s => s.gewicht), -Infinity);
                         const isPr = progressie[key] && maxKgLog !== -Infinity && maxKgLog >= progressie[key].max && w.datum === progressie[key].maxDatum && progressie[key].sessies >= 2;
                         const sets = (o.sets || []).map(s => `${s.reps ?? '–'}×${s.gewicht ?? '–'}kg`).join(', ');
-                        return `<div style="padding:4px 0;"><strong>${escapeHtml(o.naam)}</strong>${isPr ? ' <span title="Persoonlijk record">🥇</span>' : ''} <span style="color:#6B7280;font-size:12px">· ${sets}</span></div>`;
+                        const noteHtml = o.note ? `<div style="color:#9c5f56;font-size:11.5px;font-style:italic;padding-left:12px;">📝 ${escapeHtml(o.note)}</div>` : '';
+                        return `<div style="padding:4px 0;"><strong>${escapeHtml(o.naam)}</strong>${isPr ? ' <span title="Persoonlijk record">🥇</span>' : ''} <span style="color:#6B7280;font-size:12px">· ${sets}</span></div>${noteHtml}`;
                     }).join('');
                     return `
                         <div style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:14px;margin-bottom:10px;">
@@ -1598,11 +1599,12 @@
                     </div>`;
             }
             return `
-                <div class="oef-edit-row" data-type="kracht" style="display:grid;grid-template-columns:28px 1fr 64px 84px 32px;gap:6px;margin-bottom:6px;align-items:center;">
+                <div class="oef-edit-row" data-type="kracht" style="display:grid;grid-template-columns:28px 1fr 54px 66px 62px 32px;gap:5px;margin-bottom:6px;align-items:center;">
                     <button type="button" class="btn-small oef-type-toggle" title="Wissel naar cardio (km + min)" onclick="toggleOefType(this)" style="padding:6px 4px;">&#127947;</button>
                     <input class="filter-input oef-naam" placeholder="Oefening (bv. Hip thrust)" value="${escapeHtml(o.naam || '')}" style="width:100%;padding:7px 10px;font-size:13px;">
-                    <input class="filter-input oef-sets" type="number" min="1" max="20" placeholder="sets" value="${o.sets ?? ''}" style="width:100%;padding:7px 6px;font-size:13px;text-align:center;">
-                    <input class="filter-input oef-reps" placeholder="reps" value="${escapeHtml(o.reps || '')}" style="width:100%;padding:7px 8px;font-size:13px;text-align:center;">
+                    <input class="filter-input oef-sets" type="number" min="1" max="20" placeholder="sets" value="${o.sets ?? ''}" style="width:100%;padding:7px 4px;font-size:13px;text-align:center;">
+                    <input class="filter-input oef-reps" placeholder="reps" value="${escapeHtml(o.reps || '')}" style="width:100%;padding:7px 6px;font-size:13px;text-align:center;">
+                    <input class="filter-input oef-kg" type="number" min="0" step="0.5" placeholder="kg" value="${o.kg ?? ''}" style="width:100%;padding:7px 4px;font-size:13px;text-align:center;">
                     <button type="button" class="btn-small danger" onclick="this.closest('.oef-edit-row').remove()" title="Verwijder oefening">&#10005;</button>
                     <input class="filter-input oef-video" placeholder="Video URL (optioneel, komt later)" value="${escapeHtml(o.video_url || '')}" style="grid-column:1 / -1;width:100%;padding:5px 10px;font-size:11px;color:#6B7280;${o.video_url ? '' : 'display:none;'}">
                 </div>`;
@@ -1782,6 +1784,7 @@
                         naam,
                         sets: row.querySelector('.oef-sets').value || null,
                         reps: row.querySelector('.oef-reps').value.trim() || null,
+                        kg: row.querySelector('.oef-kg')?.value || null,
                         video_url: row.querySelector('.oef-video').value.trim() || null,
                     });
                 });

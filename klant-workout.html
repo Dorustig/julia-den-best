@@ -60,6 +60,9 @@
     }
     .oef-del:hover { background: #fff; color: #991B1B; }
     .oef-prev { font-size: 11px; color: #6f543c; margin: -4px 0 8px; font-style: italic; }
+    .oef-doel { font-size: 12px; color: #9c5f56; font-weight: 600; margin: -2px 0 8px; }
+    .oef-note { width: 100%; margin-top: 8px; padding: 8px 10px; border: 1.5px solid #eed7d4; border-radius: 10px; font-family: inherit; font-size: 13px; background: #fff; color: #1F2937; }
+    .oef-note:focus { outline: none; border-color: #a17a5e; }
 
     /* Set row: twee regels: invoer + actie-knoppen */
     .set-row { display: grid; grid-template-rows: auto auto; gap: 6px; padding: 8px 4px; border-bottom: 1px solid #f6e6e4; }
@@ -269,7 +272,11 @@
             return { type: 'cardio', naam: o.naam || 'Hardlopen', km: null, minuten: null, doel_km: o.doel_km ?? null, doel_min: o.doel_min ?? null };
           }
           const nSets = Math.max(1, Math.min(20, parseInt(o.sets, 10) || 3));
-          return { naam: o.naam || '', sets: Array.from({ length: nSets }, emptySet), note: '' };
+          // Julia's doel-kg vast voorladen in elke set, zodat de klant het ziet
+          // en alleen hoeft te bevestigen/aanpassen.
+          const doelKg = (o.kg != null && o.kg !== '') ? parseFloat(o.kg) : null;
+          const mkSet = () => ({ reps: null, gewicht: doelKg, done: false, skipped: false, rating: null });
+          return { naam: o.naam || '', sets: Array.from({ length: nSets }, mkSet), note: '', doel: { sets: o.sets ?? null, reps: o.reps ?? null, kg: doelKg } };
         });
       }
 
@@ -433,7 +440,11 @@
                 : [o.doel_km ? o.doel_km + ' km' : null, o.doel_min ? o.doel_min + ' min' : null].filter(Boolean).join(' · ');
               return `🏃 ${o.naam}${doel ? ' — ' + doel : ''}`;
             }
-            const doel = o.sets ? o.sets + '×' + (o.reps || '?') : (o.reps || '');
+            const delen = [];
+            if (o.sets) delen.push(o.sets + ' sets');
+            if (o.reps) delen.push(o.reps + ' reps');
+            if (o.kg != null && o.kg !== '') delen.push(o.kg + ' kg');
+            const doel = delen.join(' × ');
             return `• ${o.naam}${doel ? ' — ' + doel : ''}`;
           }).join('\n');
           return `
@@ -467,6 +478,15 @@
       const prevLine = last
         ? `<div class="oef-prev">Vorige keer (${formatKort(last.datum)}): ${last.sets.map(s => `${s.reps ?? '?'}&times;${s.gewicht != null ? s.gewicht + 'kg' : '—'}`).join(' &middot; ')}</div>`
         : '';
+      // Julia's doel voor deze oefening (sets × reps × kg), indien ingesteld.
+      const d = o.doel || {};
+      const doelDelen = [];
+      if (d.sets) doelDelen.push(d.sets + ' sets');
+      if (d.reps) doelDelen.push(d.reps + ' reps');
+      if (d.kg != null) doelDelen.push(d.kg + ' kg');
+      const doelLine = doelDelen.length
+        ? `<div class="oef-doel">🎯 Doel van Julia: ${doelDelen.join(' × ')}</div>`
+        : '';
       return `
         <div class="oef" data-idx="${idx}">
           <div class="oef-head">
@@ -474,7 +494,7 @@
             <datalist id="oef-suggesties-${idx}">${oefeningSuggesties().map(n => `<option value="${escapeHtml(n)}">`).join('')}</datalist>
             <button class="oef-del" onclick="delOefening(${idx})" title="Verwijder">&times;</button>
           </div>
-          ${prevLine}
+          ${doelLine}${prevLine}
           <div class="sets-header">
             <div class="label">#</div>
             <div class="label">Reps</div>
@@ -483,6 +503,7 @@
           </div>
           ${o.sets.map((s, si) => renderSet(s, idx, si)).join('')}
           <button class="add-set-btn" onclick="addSet(${idx})">&#10133; Set toevoegen</button>
+          <input class="oef-note" data-f="note" placeholder="📝 Notitie bij deze oefening (bijv. voelde zwaar)" value="${escapeHtml(o.note || '')}">
         </div>`;
     }
 
@@ -694,7 +715,8 @@
         }, null);
         const setsCount = (o.sets || []).length;
         const bestTxt = bestSet ? ` · top: ${bestSet.reps}× ${bestSet.gewicht || 0}kg` : '';
-        return `<div class="oef-line">&#8226; <strong>${escapeHtml(o.naam)}</strong> <span class="muted">${setsCount} sets${bestTxt}</span></div>`;
+        const noteTxt = o.note ? `<div class="muted" style="font-style:italic;padding-left:14px;">📝 ${escapeHtml(o.note)}</div>` : '';
+        return `<div class="oef-line">&#8226; <strong>${escapeHtml(o.naam)}</strong> <span class="muted">${setsCount} sets${bestTxt}</span></div>${noteTxt}`;
       }).join('');
       return `
         <div class="history-item">
@@ -733,6 +755,13 @@
             o.sets = last.sets.map(s => ({ reps: s.reps ?? null, gewicht: s.gewicht ?? null, done: false, skipped: false, rating: null }));
             if (!o.sets.length) o.sets = [emptySet()];
             renderPage();
+          });
+        }
+        // Notitie per oefening
+        const noteInp = ofEl.querySelector('[data-f="note"]');
+        if (noteInp) {
+          noteInp.addEventListener('input', e => {
+            currentWorkout.oefeningen[idx].note = e.target.value;
           });
         }
         // Direct typen in sets
