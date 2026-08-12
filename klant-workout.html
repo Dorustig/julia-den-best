@@ -100,6 +100,18 @@
     }
     .add-oef-btn:hover { background: #f6e6e4; }
 
+    /* Oefening-demo: klein bewegend beeldje naast de naam + groot in een modal */
+    .oef-demo { flex: 0 0 42px; width: 42px; height: 42px; padding: 3px; border: none; border-radius: 10px; background: #f6e6e4; cursor: pointer; -webkit-tap-highlight-color: transparent; position: relative; }
+    .oef-demo svg { display: block; width: 100%; height: 100%; }
+    .oef-demo::after { content: '👁'; position: absolute; right: -4px; bottom: -4px; font-size: 11px; background: #fff; border-radius: 50%; width: 16px; height: 16px; line-height: 16px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.15); }
+    .demo-overlay { position: fixed; inset: 0; background: rgba(60,40,30,0.45); display: none; align-items: center; justify-content: center; z-index: 200; padding: 24px; }
+    .demo-box { background: #fff; border-radius: 20px; padding: 18px; max-width: 340px; width: 100%; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.25); position: relative; }
+    .demo-anim { width: 220px; height: 220px; margin: 0 auto; background: #faf5ec; border-radius: 16px; }
+    .demo-anim svg { display: block; width: 100%; height: 100%; }
+    .demo-title { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: #a17a5e; margin-top: 12px; }
+    .demo-cue { font-size: 14px; color: #6f543c; line-height: 1.5; margin-top: 8px; }
+    .demo-close { position: absolute; top: 8px; right: 12px; background: none; border: none; font-size: 26px; color: #9CA3AF; cursor: pointer; line-height: 1; padding: 4px; }
+
     @media (max-width: 480px) {
       body { padding: 14px 10px 120px; }
       .oef { padding: 14px 12px; }
@@ -195,6 +207,115 @@
       return String(s == null ? '' : s).replace(/[&<>"']/g, c =>
         ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
     }
+
+    // ===== Oefening-demo animaties: eigen geanimeerde SVG-figuurtjes in merk-kleuren =====
+    // Geen externe/GIF-bronnen (geen rechtenrisico), laden direct mee. Zij-aanzicht,
+    // beweegt tussen start- en eindstand (SMIL, werkt op iOS Safari).
+    const ExAnim = (() => {
+      const D2R = Math.PI / 180;
+      const COL = { limb:'#a17a5e', torso:'#7d5a41', head:'#a17a5e', gear:'#c17d75', bench:'#d3a39d', rear:'#c9a99a', floor:'#e3cfc8' };
+      const DUR = 2.6, TH = 24, SH = 24, TL = 30, UA = 14, FA = 13, HR = 7;
+      const fk = (p, len, a) => ({ x: p.x + len * Math.sin(a * D2R), y: p.y + len * Math.cos(a * D2R) });
+      function ik(A, C, L1, L2, prefer) {
+        let dx = C.x - A.x, dy = C.y - A.y, d = Math.hypot(dx, dy) || 0.001;
+        const dmax = L1 + L2 - 0.01; if (d > dmax) d = dmax;
+        const dmin = Math.abs(L1 - L2) + 0.01; if (d < dmin) d = dmin;
+        const hyp = Math.hypot(dx, dy) || 0.001, ux = dx / hyp, uy = dy / hyp;
+        const a = (L1 * L1 - L2 * L2 + d * d) / (2 * d), h = Math.sqrt(Math.max(0, L1 * L1 - a * a));
+        const Px = A.x + a * ux, Py = A.y + a * uy, nx = -uy, ny = ux;
+        const c1 = { x: Px + h * nx, y: Py + h * ny }, c2 = { x: Px - h * nx, y: Py - h * ny };
+        if (prefer === 'forward') return c1.x >= c2.x ? c1 : c2;
+        if (prefer === 'back') return c1.x <= c2.x ? c1 : c2;
+        if (prefer === 'up') return c1.y <= c2.y ? c1 : c2;
+        return c1.y >= c2.y ? c1 : c2;
+      }
+      function bodyPoints(hip, torsoAng, armAng, foreAng) {
+        const shoulder = { x: hip.x + TL * Math.sin(torsoAng * D2R), y: hip.y - TL * Math.cos(torsoAng * D2R) };
+        const head = { x: shoulder.x + (HR + 3) * Math.sin(torsoAng * D2R), y: shoulder.y - (HR + 3) * Math.cos(torsoAng * D2R) };
+        const elbow = fk(shoulder, UA, armAng), hand = fk(elbow, FA, foreAng);
+        return { shoulder, head, elbow, hand };
+      }
+      const ease = (attr, v0, v1) => `<animate attributeName="${attr}" values="${v0};${v1};${v0}" dur="${DUR}s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1"/>`;
+      const boneA = (A, B, k1, k2, w, c) => `<line x1="${A[k1].x}" y1="${A[k1].y}" x2="${A[k2].x}" y2="${A[k2].y}" stroke="${c}" stroke-width="${w}" stroke-linecap="round">${ease('x1', A[k1].x, B[k1].x)}${ease('y1', A[k1].y, B[k1].y)}${ease('x2', A[k2].x, B[k2].x)}${ease('y2', A[k2].y, B[k2].y)}</line>`;
+      const headA = (A, B, k, r, c) => `<circle cx="${A[k].x}" cy="${A[k].y}" r="${r}" fill="${c}">${ease('cx', A[k].x, B[k].x)}${ease('cy', A[k].y, B[k].y)}</circle>`;
+      const floor = () => `<line x1="6" y1="106" x2="114" y2="106" stroke="${COL.floor}" stroke-width="3" stroke-linecap="round"/>`;
+      function animated(spec) {
+        const parts = [floor(), ...spec.extras];
+        for (const b of spec.bones) parts.push(b.t === 'bone' ? boneA(spec.A, spec.B, b.k1, b.k2, b.w, b.c) : headA(spec.A, spec.B, b.k, b.r, b.c));
+        return `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">${parts.join('')}</svg>`;
+      }
+      function squatSpec() {
+        const ankle = { x:58, y:104 }, toe = { x:70, y:104 };
+        const Ah = { x:58, y:54 }, Bh = { x:54, y:80 };
+        const A = { ...bodyPoints(Ah,5,83,83), hip:Ah, ankle, toe, knee:ik(Ah,ankle,TH,SH,'forward') };
+        const B = { ...bodyPoints(Bh,30,86,86), hip:Bh, ankle, toe, knee:ik(Bh,ankle,TH,SH,'forward') };
+        return { A, B, extras:[], bones:[
+          {t:'bone',k1:'hip',k2:'shoulder',w:7,c:COL.torso},{t:'head',k:'head',r:HR,c:COL.head},
+          {t:'bone',k1:'shoulder',k2:'elbow',w:5,c:COL.limb},{t:'bone',k1:'elbow',k2:'hand',w:5,c:COL.limb},
+          {t:'bone',k1:'hip',k2:'knee',w:7,c:COL.limb},{t:'bone',k1:'knee',k2:'ankle',w:7,c:COL.limb},
+          {t:'bone',k1:'ankle',k2:'toe',w:5,c:COL.limb},
+        ]};
+      }
+      function hipthrustSpec() {
+        const shoulder = { x:38, y:70 }, head = { x:28, y:67 }, ankle = { x:84, y:104 }, toe = { x:96, y:104 };
+        const Ah = { x:58, y:96 }, Bh = { x:60, y:73 };
+        const A = { shoulder, head, hip:Ah, ankle, toe, knee:ik(Ah,ankle,TH,SH,'up') };
+        const B = { shoulder, head, hip:Bh, ankle, toe, knee:ik(Bh,ankle,TH,SH,'up') };
+        return { A, B, extras:[`<rect x="16" y="70" width="26" height="36" rx="3" fill="${COL.bench}" opacity="0.9"/>`], bones:[
+          {t:'bone',k1:'shoulder',k2:'hip',w:7,c:COL.torso},{t:'head',k:'head',r:HR,c:COL.head},
+          {t:'bone',k1:'hip',k2:'knee',w:7,c:COL.limb},{t:'bone',k1:'knee',k2:'ankle',w:7,c:COL.limb},
+          {t:'bone',k1:'ankle',k2:'toe',w:5,c:COL.limb},{t:'head',k:'hip',r:8,c:COL.gear},
+        ]};
+      }
+      function bulgarianSpec() {
+        const ankleF = { x:78, y:104 }, toeF = { x:90, y:104 }, ankleR = { x:30, y:82 }, toeR = { x:20, y:82 };
+        const Ah = { x:54, y:54 }, Bh = { x:58, y:80 };
+        const A = { ...bodyPoints(Ah,6,7,4), hip:Ah, ankleF, toeF, ankleR, toeR, kneeF:ik(Ah,ankleF,TH,SH,'forward'), kneeR:ik(Ah,ankleR,TH,SH,'down') };
+        const B = { ...bodyPoints(Bh,10,7,4), hip:Bh, ankleF, toeF, ankleR, toeR, kneeF:ik(Bh,ankleF,TH,SH,'forward'), kneeR:ik(Bh,ankleR,TH,SH,'down') };
+        return { A, B, extras:[`<rect x="14" y="82" width="24" height="24" rx="3" fill="${COL.bench}" opacity="0.9"/>`], bones:[
+          {t:'bone',k1:'hip',k2:'kneeR',w:6,c:COL.rear},{t:'bone',k1:'kneeR',k2:'ankleR',w:6,c:COL.rear},{t:'bone',k1:'ankleR',k2:'toeR',w:5,c:COL.rear},
+          {t:'bone',k1:'hip',k2:'shoulder',w:7,c:COL.torso},{t:'head',k:'head',r:HR,c:COL.head},
+          {t:'bone',k1:'shoulder',k2:'elbow',w:5,c:COL.limb},{t:'bone',k1:'elbow',k2:'hand',w:5,c:COL.limb},{t:'head',k:'hand',r:4,c:COL.gear},
+          {t:'bone',k1:'hip',k2:'kneeF',w:7,c:COL.limb},{t:'bone',k1:'kneeF',k2:'ankleF',w:7,c:COL.limb},{t:'bone',k1:'ankleF',k2:'toeF',w:5,c:COL.limb},
+        ]};
+      }
+      const REG = {
+        squat: { label:'Squat', build:squatSpec, cue:'Voeten op schouderbreedte. Zak alsof je op een stoel gaat zitten, knieën naar buiten en rug recht. Duw jezelf omhoog via je hielen.' },
+        hipthrust: { label:'Hip Thrust', build:hipthrustSpec, cue:'Bovenrug tegen de bank, voeten plat op de grond. Duw je heupen omhoog tot je lichaam een rechte lijn is en knijp je billen aan. Rustig zakken.' },
+        bulgarian: { label:'Bulgarian Split Squat', build:bulgarianSpec, cue:'Achterste voet op de bank, voorste voet een flinke stap naar voren. Zak recht naar beneden tot je voorste bovenbeen bijna horizontaal is. Duw omhoog via je voorste hiel.' },
+      };
+      function keyFor(naam) {
+        const s = (naam || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+        if (/bulgaar|bulgarian|split ?squat/.test(s)) return 'bulgarian';
+        if (/hip ?thrust|heup ?thrust|heupstoot|glute ?bridge|billenbrug|bruggetje/.test(s)) return 'hipthrust';
+        if (/squat|kniebuig|hurk/.test(s)) return 'squat';
+        return null;
+      }
+      return {
+        keyFor,
+        svgFor: (key) => { const r = REG[key]; return r ? animated(r.build()) : ''; },
+        info: (key) => { const r = REG[key]; return r ? { label:r.label, cue:r.cue } : null; },
+      };
+    })();
+
+    // Modal met de grote demo + korte uitleg
+    window.openDemo = (key) => {
+      const info = ExAnim.info(key); if (!info) return;
+      let ov = document.getElementById('demoOverlay');
+      if (!ov) {
+        ov = document.createElement('div'); ov.id = 'demoOverlay'; ov.className = 'demo-overlay';
+        ov.addEventListener('click', e => { if (e.target === ov) window.closeDemo(); });
+        document.body.appendChild(ov);
+      }
+      ov.innerHTML = `<div class="demo-box">
+        <button class="demo-close" onclick="closeDemo()" aria-label="Sluiten">&times;</button>
+        <div class="demo-anim">${ExAnim.svgFor(key)}</div>
+        <div class="demo-title">${escapeHtml(info.label)}</div>
+        <div class="demo-cue">${escapeHtml(info.cue)}</div>
+      </div>`;
+      ov.style.display = 'flex';
+    };
+    window.closeDemo = () => { const ov = document.getElementById('demoOverlay'); if (ov) ov.style.display = 'none'; };
 
     let supabase, session, authHdr, klantInfo = null;
     const emptySet = () => ({ reps: null, gewicht: null, done: false, skipped: false, rating: null });
@@ -512,9 +633,14 @@
       const doelLine = doelDelen.length
         ? `<div class="oef-doel">🎯 Doel van Julia: ${doelDelen.join(' × ')}</div>`
         : '';
+      const demoKey = ExAnim.keyFor(o.naam);
+      const demoBtn = demoKey
+        ? `<button class="oef-demo" onclick="openDemo('${demoKey}')" title="Bekijk hoe je dit doet">${ExAnim.svgFor(demoKey)}</button>`
+        : '';
       return `
         <div class="oef" data-idx="${idx}">
           <div class="oef-head">
+            ${demoBtn}
             <input class="naam" placeholder="Oefening (bv. Squats)" value="${escapeHtml(o.naam || '')}" data-f="naam" list="oef-suggesties-${idx}">
             <datalist id="oef-suggesties-${idx}">${oefeningSuggesties().map(n => `<option value="${escapeHtml(n)}">`).join('')}</datalist>
             <button class="oef-del" onclick="delOefening(${idx})" title="Verwijder">&times;</button>
