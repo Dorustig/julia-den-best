@@ -64,65 +64,46 @@
     .oef-note { width: 100%; margin-top: 8px; padding: 8px 10px; border: 1.5px solid #eed7d4; border-radius: 10px; font-family: inherit; font-size: 13px; background: #fff; color: #1F2937; }
     .oef-note:focus { outline: none; border-color: #a17a5e; }
 
-    /* Set row: twee regels: invoer + actie-knoppen */
-    .set-row { display: grid; grid-template-rows: auto auto; gap: 6px; padding: 8px 4px; border-bottom: 1px solid #f6e6e4; }
-    .set-row:last-of-type { border-bottom: none; }
-    .set-row.done { background: #ECFDF5; border-radius: 10px; }
-    .set-row.skipped { opacity: 0.45; }
-    .set-row.skipped .stepper input { text-decoration: line-through; }
+    /* Totaal-balk bovenaan (duur / volume / sets) */
+    .stat-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; background: #fff; border: 1px solid #eed7d4; border-radius: 14px; padding: 12px 10px; margin-bottom: 14px; box-shadow: 0 6px 18px rgba(161,122,94,0.06); }
+    .stat-bar .stat { text-align: center; }
+    .stat-bar .stat-l { font-size: 11px; color: #9CA3AF; font-weight: 600; margin-bottom: 3px; }
+    .stat-bar .stat-v { font-size: 17px; font-weight: 700; color: #a17a5e; font-family: 'Playfair Display', serif; }
 
-    .set-main { display: grid; grid-template-columns: 22px 1fr 1fr 40px; gap: 6px; align-items: center; }
-    .set-main .num-idx { font-size: 13px; color: #6f543c; font-weight: 700; text-align: center; }
-
-    /* Stepper */
-    .stepper { display: flex; align-items: center; gap: 0; background: #fff; border: 1.5px solid #eed7d4; border-radius: 10px; overflow: hidden; height: 42px; }
-    .stepper:focus-within { border-color: #a17a5e; }
-    .stepper button { flex: 0 0 34px; height: 100%; background: transparent; border: none; color: #a17a5e; font-size: 18px; font-weight: 700; cursor: pointer; padding: 0; font-family: inherit; user-select: none; -webkit-tap-highlight-color: transparent; }
-    .stepper button:active { background: #f6e6e4; }
-    .stepper input { flex: 1; min-width: 0; padding: 8px 4px; border: none; background: transparent; font-size: 15px; font-family: inherit; font-weight: 600; text-align: center; color: #1F2937; -moz-appearance: textfield; }
-    .stepper input::-webkit-outer-spin-button, .stepper input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-    .stepper .unit { font-size: 10px; color: #9CA3AF; font-weight: 600; text-transform: uppercase; padding-right: 6px; letter-spacing: 0.5px; }
-
-    /* Done + skip + rating */
-    .set-check { width: 40px; height: 42px; border-radius: 10px; background: #fff; border: 1.5px solid #eed7d4; color: #dcb9b4; font-size: 20px; cursor: pointer; font-family: inherit; padding: 0; }
-    .set-check:active { transform: scale(0.95); }
-    .set-row.done .set-check { background: #10B981; border-color: #10B981; color: #fff; }
-
-    .set-actions { display: flex; gap: 4px; justify-content: space-between; align-items: center; padding-left: 28px; }
-    .rating-group { display: flex; gap: 4px; }
-    .rating-btn { background: #fff; border: 1.5px solid #eed7d4; border-radius: 8px; padding: 4px 8px; font-size: 15px; cursor: pointer; font-family: inherit; min-width: 36px; }
-    .rating-btn:active { transform: scale(0.95); }
-    .rating-btn.selected { background: #f6e6e4; border-color: #a17a5e; }
-    .set-skip, .set-delete { background: transparent; border: none; color: #9CA3AF; font-size: 12px; cursor: pointer; padding: 4px 8px; border-radius: 6px; font-family: inherit; }
-    .set-skip:hover, .set-delete:hover { background: #fff; color: #374151; }
-    .set-skip.active { color: #9CA3AF; font-style: italic; }
-
-    .sets-header { display: grid; grid-template-columns: 22px 1fr 1fr 40px; gap: 6px; padding: 0 4px 4px; }
+    /* Sets-tabel (Hevy-stijl): SET · VORIGE · KG · REPS · ✓ */
+    .sets-header { display: grid; grid-template-columns: 34px 1fr 60px 56px 46px; gap: 6px; padding: 8px 2px 6px; align-items: center; }
     .sets-header .label { font-size: 10px; color: #9CA3AF; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; text-align: center; }
+    .sets-header .label.prev { text-align: left; }
 
-    /* Gym-mode op kleine schermen: dikke knoppen, kg als placeholder, geen tekstlabel inline */
-    @media (max-width: 480px) {
-      body { padding: 14px 10px 120px; }
-      .oef { padding: 12px 10px; }
-      .set-main { grid-template-columns: 20px 1fr 1fr 44px; gap: 5px; }
-      .stepper { height: 46px; }
-      .stepper button { flex: 0 0 38px; font-size: 22px; }
-      .stepper .unit { display: none; }
-      .stepper input { font-size: 16px; padding: 6px 2px; }
-      .set-check { width: 44px; height: 46px; font-size: 22px; }
-      .set-actions { padding-left: 24px; gap: 4px; }
-      .rating-btn { min-width: 40px; padding: 6px 4px; font-size: 16px; }
-      .set-skip, .set-delete { font-size: 11px; }
-      .sets-header { grid-template-columns: 20px 1fr 1fr 44px; gap: 5px; }
-    }
+    .set-row { display: grid; grid-template-columns: 34px 1fr 60px 56px 46px; gap: 6px; align-items: center; padding: 6px 2px; border-radius: 10px; margin-bottom: 3px; }
+    .set-row.done { background: #f6e6e4; }
+    .set-num { font-size: 15px; font-weight: 700; color: #6f543c; text-align: center; }
+    .set-prev { font-size: 12px; color: #C4B3A6; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .set-inp { width: 100%; height: 42px; border: 1.5px solid #eed7d4; border-radius: 10px; background: #fff; text-align: center; font-family: inherit; font-size: 16px; font-weight: 600; color: #1F2937; -moz-appearance: textfield; padding: 0 2px; }
+    .set-inp::-webkit-outer-spin-button, .set-inp::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .set-inp:focus { outline: none; border-color: #a17a5e; }
+    .set-row.done .set-inp { background: #fff; border-color: #dcb9b4; }
+    .set-check { width: 42px; height: 42px; border-radius: 10px; background: #fff; border: 1.5px solid #eed7d4; color: #dcb9b4; font-size: 20px; cursor: pointer; font-family: inherit; padding: 0; -webkit-tap-highlight-color: transparent; }
+    .set-check:active { transform: scale(0.94); }
+    .set-row.done .set-check { background: #a17a5e; border-color: #a17a5e; color: #fff; }
 
-    .add-set-btn, .add-oef-btn {
-      background: none; border: 1.5px dashed #dcb9b4; color: #a17a5e;
-      padding: 10px 16px; border-radius: 10px; font-family: inherit; font-size: 13px;
+    .add-set-btn {
+      background: #faf4ea; border: none; color: #a17a5e;
+      padding: 12px 16px; border-radius: 10px; font-family: inherit; font-size: 14px;
       font-weight: 600; cursor: pointer; width: 100%; margin-top: 8px;
     }
-    .add-set-btn:hover, .add-oef-btn:hover { background: #f6e6e4; }
-    .add-oef-btn { margin-top: 4px; margin-bottom: 14px; }
+    .add-set-btn:hover { background: #f6e6e4; }
+    .add-oef-btn {
+      background: none; border: 1.5px dashed #dcb9b4; color: #a17a5e;
+      padding: 12px 16px; border-radius: 10px; font-family: inherit; font-size: 14px;
+      font-weight: 600; cursor: pointer; width: 100%; margin-top: 4px; margin-bottom: 14px;
+    }
+    .add-oef-btn:hover { background: #f6e6e4; }
+
+    @media (max-width: 480px) {
+      body { padding: 14px 10px 120px; }
+      .oef { padding: 14px 12px; }
+    }
 
     .submit {
       width: 100%; padding: 16px; background: #a17a5e; color: #fff;
@@ -354,6 +335,52 @@
       return t;
     }
 
+    // --- Live totaalbalk (duur / volume / sets) in Hevy-stijl ---
+    let workoutStart = null;   // ms sinds eerste afgevinkte set
+    let durTimer = null;
+    function nowMs() { return new Date().getTime(); }
+    function fmtDuur(ms) {
+      const t = Math.max(0, Math.floor(ms / 1000));
+      const m = Math.floor(t / 60), s = t % 60;
+      return m + 'm ' + String(s).padStart(2, '0') + 's';
+    }
+    function computeStats() {
+      let vol = 0, sets = 0;
+      for (const o of (currentWorkout.oefeningen || [])) {
+        if (isCardio(o)) continue;
+        for (const s of (o.sets || [])) {
+          if (s && s.done) { sets++; vol += (Number(s.gewicht) || 0) * (Number(s.reps) || 0); }
+        }
+      }
+      return { vol: Math.round(vol), sets };
+    }
+    function updateStats() {
+      const { vol, sets } = computeStats();
+      const v = document.getElementById('statVolume');
+      const n = document.getElementById('statSets');
+      if (v) v.textContent = vol + ' kg';
+      if (n) n.textContent = sets;
+    }
+    function startDuurTimer() {
+      if (!workoutStart) workoutStart = nowMs();
+      if (durTimer) return;
+      durTimer = setInterval(() => {
+        const el = document.getElementById('statDuur');
+        if (el) el.textContent = fmtDuur(nowMs() - workoutStart);
+      }, 1000);
+    }
+    function renderStatBar() {
+      if (!(currentWorkout.oefeningen || []).some(o => !isCardio(o))) return '';
+      const { vol, sets } = computeStats();
+      const duur = fmtDuur(workoutStart ? nowMs() - workoutStart : 0);
+      return `
+        <div class="stat-bar">
+          <div class="stat"><div class="stat-l">Duur</div><div class="stat-v" id="statDuur">${duur}</div></div>
+          <div class="stat"><div class="stat-l">Volume</div><div class="stat-v" id="statVolume">${vol} kg</div></div>
+          <div class="stat"><div class="stat-l">Sets</div><div class="stat-v" id="statSets">${sets}</div></div>
+        </div>`;
+    }
+
     function renderPage() {
       render(`
         <div class="topbar">
@@ -361,11 +388,12 @@
           <div class="brand">Julia Besten</div>
         </div>
         <h1>&#127947; Workout loggen</h1>
-        <p class="intro">Log per set wat je hebt gedaan. Tik het vinkje om een set als klaar te markeren. Vorige keer zie je in grijs.</p>
+        <p class="intro">Vul per set je kg en reps in en tik het vinkje als de set klaar is. Onder "Vorige" zie je wat je de vorige keer deed. Houd een setnummer ingedrukt om die set te verwijderen.</p>
 
         <div id="msg" class="msg"></div>
 
         ${renderSchemaCard()}
+        ${renderStatBar()}
 
         <div class="card">
           <div class="meta-row">
@@ -475,9 +503,6 @@
     function renderOefening(o, idx) {
       if (isCardio(o)) return renderCardio(o, idx);
       const last = findLastLog(o.naam);
-      const prevLine = last
-        ? `<div class="oef-prev">Vorige keer (${formatKort(last.datum)}): ${last.sets.map(s => `${s.reps ?? '?'}&times;${s.gewicht != null ? s.gewicht + 'kg' : '—'}`).join(' &middot; ')}</div>`
-        : '';
       // Julia's doel voor deze oefening (sets × reps × kg), indien ingesteld.
       const d = o.doel || {};
       const doelDelen = [];
@@ -494,16 +519,17 @@
             <datalist id="oef-suggesties-${idx}">${oefeningSuggesties().map(n => `<option value="${escapeHtml(n)}">`).join('')}</datalist>
             <button class="oef-del" onclick="delOefening(${idx})" title="Verwijder">&times;</button>
           </div>
-          ${doelLine}${prevLine}
+          <input class="oef-note" data-f="note" placeholder="Voeg hier een notitie toe..." value="${escapeHtml(o.note || '')}">
+          ${doelLine}
           <div class="sets-header">
-            <div class="label">#</div>
+            <div class="label">Set</div>
+            <div class="label prev">Vorige</div>
+            <div class="label">Kg</div>
             <div class="label">Reps</div>
-            <div class="label">Gewicht</div>
             <div class="label">&#10003;</div>
           </div>
-          ${o.sets.map((s, si) => renderSet(s, idx, si)).join('')}
+          ${o.sets.map((s, si) => renderSet(s, idx, si, last)).join('')}
           <button class="add-set-btn" onclick="addSet(${idx})">&#10133; Set toevoegen</button>
-          <input class="oef-note" data-f="note" placeholder="📝 Notitie bij deze oefening (bijv. voelde zwaar)" value="${escapeHtml(o.note || '')}">
         </div>`;
     }
 
@@ -550,37 +576,20 @@
         </div>`;
     }
 
-    function renderSet(s, idx, si) {
+    function renderSet(s, idx, si, last) {
       const cls = ['set-row'];
       if (s.done) cls.push('done');
-      if (s.skipped) cls.push('skipped');
-      const ratings = ['👍','🟰','🔻'];
+      const prev = last && last.sets && last.sets[si];
+      const prevTxt = prev
+        ? `${prev.gewicht != null ? prev.gewicht + 'kg' : '—'} &times; ${prev.reps ?? '?'}`
+        : '—';
       return `
-        <div class="${cls.join(' ')}" data-idx="${idx}" data-si="${si}">
-          <div class="set-main">
-            <div class="num-idx">${si + 1}</div>
-            <div class="stepper">
-              <button type="button" data-step="reps" data-delta="-1" data-idx="${idx}" data-si="${si}">&minus;</button>
-              <input type="number" inputmode="numeric" min="0" step="1" placeholder="0" value="${s.reps ?? ''}" data-sf="reps" data-si="${si}">
-              <button type="button" data-step="reps" data-delta="1" data-idx="${idx}" data-si="${si}">+</button>
-            </div>
-            <div class="stepper">
-              <button type="button" data-step="gewicht" data-delta="-2.5" data-idx="${idx}" data-si="${si}">&minus;</button>
-              <input type="number" inputmode="decimal" min="0" step="0.5" placeholder="0" value="${s.gewicht ?? ''}" data-sf="gewicht" data-si="${si}">
-              <span class="unit">kg</span>
-              <button type="button" data-step="gewicht" data-delta="2.5" data-idx="${idx}" data-si="${si}">+</button>
-            </div>
-            <button class="set-check" data-check="${idx}-${si}" title="${s.done ? 'Zet uit klaar' : 'Zet als klaar'}">${s.done ? '&#10003;' : '&#9675;'}</button>
-          </div>
-          <div class="set-actions">
-            <div class="rating-group">
-              ${ratings.map(r => `<button class="rating-btn ${s.rating === r ? 'selected' : ''}" data-rating="${idx}-${si}" data-value="${r}">${r}</button>`).join('')}
-            </div>
-            <div>
-              <button class="set-skip ${s.skipped ? 'active' : ''}" data-skip="${idx}-${si}">${s.skipped ? 'overgeslagen' : 'overslaan'}</button>
-              <button class="set-delete" data-del="${idx}-${si}" title="Verwijder set">&times;</button>
-            </div>
-          </div>
+        <div class="${cls.join(' ')}" data-idx="${idx}" data-si="${si}" data-del="${idx}-${si}">
+          <div class="set-num">${si + 1}</div>
+          <div class="set-prev">${prevTxt}</div>
+          <input class="set-inp" type="number" inputmode="decimal" min="0" step="0.5" placeholder="0" value="${s.gewicht ?? ''}" data-sf="gewicht" data-si="${si}">
+          <input class="set-inp" type="number" inputmode="numeric" min="0" step="1" placeholder="0" value="${s.reps ?? ''}" data-sf="reps" data-si="${si}">
+          <button class="set-check" data-check="${idx}-${si}" title="${s.done ? 'Zet uit klaar' : 'Zet als klaar'}">${s.done ? '&#10003;' : '&#9675;'}</button>
         </div>`;
     }
 
@@ -775,72 +784,41 @@
         });
       });
 
-      // Steppers (+/-)
-      document.querySelectorAll('[data-step]').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const idx = parseInt(btn.dataset.idx, 10);
-          const si = parseInt(btn.dataset.si, 10);
-          const f = btn.dataset.step;
-          const delta = parseFloat(btn.dataset.delta);
-          const o = currentWorkout.oefeningen[idx];
-          if (!o?.sets?.[si]) return;
-          const current = o.sets[si][f];
-          // Als leeg, pak vorige set in dezelfde oefening, anders autofill uit laatste log, anders 0
-          let base = current;
-          if (base == null) {
-            const prev = o.sets[si - 1]?.[f];
-            if (prev != null) base = prev;
-            else {
-              const last = findLastLog(o.naam);
-              base = last?.sets?.[si]?.[f] ?? last?.sets?.[last.sets.length - 1]?.[f] ?? 0;
-            }
-          }
-          let next = (base || 0) + delta;
-          if (next < 0) next = 0;
-          o.sets[si][f] = f === 'reps' ? Math.round(next) : Math.round(next * 10) / 10;
-          renderPage();
-        });
-      });
-
-      // ✓ per set
+      // ✓ per set — markeer klaar; werk daarna de totaalbalk bij zonder de invoer te herbouwen
       document.querySelectorAll('[data-check]').forEach(btn => {
         btn.addEventListener('click', () => {
           const [idx, si] = btn.dataset.check.split('-').map(n => parseInt(n, 10));
           const s = currentWorkout.oefeningen[idx].sets[si];
           s.done = !s.done;
-          if (s.done) s.skipped = false;
-          renderPage();
+          if (s.done) { s.skipped = false; startDuurTimer(); }
+          const row = btn.closest('.set-row');
+          if (row) row.classList.toggle('done', s.done);
+          btn.innerHTML = s.done ? '&#10003;' : '&#9675;';
+          updateStats();
         });
       });
 
-      // Rating
-      document.querySelectorAll('[data-rating]').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const [idx, si] = btn.dataset.rating.split('-').map(n => parseInt(n, 10));
-          const s = currentWorkout.oefeningen[idx].sets[si];
-          const v = btn.dataset.value;
-          s.rating = s.rating === v ? null : v;
-          renderPage();
-        });
-      });
-
-      // Skip
-      document.querySelectorAll('[data-skip]').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const [idx, si] = btn.dataset.skip.split('-').map(n => parseInt(n, 10));
-          const s = currentWorkout.oefeningen[idx].sets[si];
-          s.skipped = !s.skipped;
-          if (s.skipped) s.done = false;
-          renderPage();
-        });
-      });
-
-      // Set verwijderen
-      document.querySelectorAll('[data-del]').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const [idx, si] = btn.dataset.del.split('-').map(n => parseInt(n, 10));
-          delSet(idx, si);
-        });
+      // Set verwijderen: houd het setnummer ingedrukt (long-press)
+      document.querySelectorAll('.set-num').forEach(numEl => {
+        const row = numEl.closest('.set-row');
+        if (!row) return;
+        const [idx, si] = (row.dataset.del || '').split('-').map(n => parseInt(n, 10));
+        let timer = null;
+        const start = () => {
+          timer = setTimeout(() => {
+            timer = null;
+            const o = currentWorkout.oefeningen[idx];
+            if ((o?.sets?.length || 0) <= 1) return; // laatste set laten staan
+            if (confirm('Deze set verwijderen?')) delSet(idx, si);
+          }, 550);
+        };
+        const cancel = () => { if (timer) { clearTimeout(timer); timer = null; } };
+        numEl.addEventListener('touchstart', start, { passive: true });
+        numEl.addEventListener('touchend', cancel);
+        numEl.addEventListener('touchmove', cancel);
+        numEl.addEventListener('mousedown', start);
+        numEl.addEventListener('mouseup', cancel);
+        numEl.addEventListener('mouseleave', cancel);
       });
 
       // Cardio: km/min typen
@@ -932,6 +910,10 @@
         msg.className = 'msg error';
         msg.textContent = 'Voeg minstens één oefening met sets toe (of cardio met km of minuten).';
         return;
+      }
+      // Duur automatisch invullen uit de live-timer als het handmatige veld leeg is.
+      if (!currentWorkout.duur_min && workoutStart) {
+        currentWorkout.duur_min = Math.max(1, Math.round((nowMs() - workoutStart) / 60000));
       }
       setBtnState(true, 'Opslaan...');
       try {
