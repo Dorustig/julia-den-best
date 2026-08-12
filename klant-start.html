@@ -210,6 +210,22 @@
     .cta-btn.secondary { background: #fff; color: #a17a5e; box-shadow: 0 4px 14px rgba(161, 122, 94, 0.1); }
     .cta-btn.secondary:hover { background: #faf5ec; }
 
+    /* Snelacties bovenaan — workout + eten loggen (meest gebruikt, mobiel-first) */
+    .quick-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0 0 20px; }
+    .qa-btn {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 8px; text-align: center; text-decoration: none;
+      padding: 22px 12px; border-radius: 18px; color: #fff;
+      background: linear-gradient(135deg, #a17a5e, #d3a39d);
+      box-shadow: 0 8px 22px rgba(161, 122, 94, 0.28);
+      transition: transform 0.12s ease, box-shadow 0.12s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .qa-btn:active { transform: scale(0.97); box-shadow: 0 4px 14px rgba(161, 122, 94, 0.25); }
+    .qa-btn .qa-emoji { font-size: 34px; line-height: 1; }
+    .qa-btn .qa-label { font-size: 16px; font-weight: 700; line-height: 1.2; }
+    @media (min-width: 480px) { .qa-btn { flex-direction: row; padding: 20px; } .qa-btn .qa-label { text-align: left; } .qa-btn .qa-label br { display: none; } }
+
     .accordion summary { cursor: pointer; font-weight: 600; color: #1F2937; padding: 16px 20px; background: #fff; border-radius: 14px; list-style: none; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 16px rgba(161, 122, 94, 0.06); }
     .accordion summary::-webkit-details-marker { display: none; }
     .accordion summary::after { content: '▾'; color: #9CA3AF; transition: transform 0.2s; }
@@ -1478,6 +1494,18 @@
           <div class="end-date">Einddatum: ${fmtDate(klant.eind_datum)} · nog ${daysLeft} dagen</div>
         </div>
 
+        <!-- Snelacties bovenaan: workout + eten loggen (meest gebruikt) -->
+        <div class="quick-actions">
+          <a href="/klant/workout" class="qa-btn">
+            <span class="qa-emoji">🏋️</span>
+            <span class="qa-label">Workout<br>loggen</span>
+          </a>
+          <a href="/klant/voeding" class="qa-btn">
+            <span class="qa-emoji">🍽️</span>
+            <span class="qa-label">Eten<br>loggen</span>
+          </a>
+        </div>
+
         <div class="section-title">Jouw voortgang</div>
         <div class="stats-grid" style="margin-bottom:${goalBarHtml ? '0' : '20px'};">
           <div class="stat">
@@ -1508,9 +1536,7 @@
           ` : `<div id="chart"></div>`}
         </div>
 
-        <a href="/klant/checkin" class="cta-btn" style="margin-bottom:10px;">${thisWeekCheckIn ? '✨ Check-in updaten' : '📸 Doe je wekelijkse check-in'}</a>
-
-        <a href="/klant/workout" class="cta-btn secondary" style="margin-bottom:12px;">🏋 Workout loggen (oefeningen, sets, reps)</a>
+        <a href="/klant/checkin" class="cta-btn" style="margin-bottom:12px;">${thisWeekCheckIn ? '✨ Check-in updaten' : '📸 Doe je wekelijkse check-in'}</a>
 
         ${checkins.length > 0 ? `
           <button type="button" class="cta-btn secondary" style="margin-bottom:20px;" onclick="downloadPdf()">📄 Download voortgangsrapport</button>
