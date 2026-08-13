@@ -365,7 +365,7 @@
     };
     window.closeDemo = () => { const ov = document.getElementById('demoOverlay'); if (ov) ov.style.display = 'none'; };
 
-    let supabase, session, authHdr, klantInfo = null;
+    let supabase, session, klantInfo = null;
     const emptySet = () => ({ reps: null, gewicht: null, done: false, skipped: false, rating: null });
     let currentWorkout = {
       id: null,
@@ -383,19 +383,40 @@
     // JS getDay(): 0=zo..6=za → onze notatie 1=ma..7=zo
     function vandaagDagNr() { return ((new Date().getDay() + 6) % 7) + 1; }
 
+    // Bouw ALTIJD een verse auth-header. Belangrijk bij lange sessies: de Supabase
+    // access-token verloopt na ~60 min, dus een header die één keer bij het laden is
+    // vastgelegd is halverwege een workout dood → server geeft dan 401 "Not logged in".
+    // getSession() geeft de (auto-ververste) token; met force forceren we een refresh.
+    async function authHeader(force) {
+      try {
+        if (force) await supabase.auth.refreshSession();
+        const { data } = await supabase.auth.getSession();
+        const t = data?.session?.access_token;
+        if (t) return 'Bearer ' + t;
+      } catch {}
+      return null;
+    }
+    // Fetch met verse token; bij 401 forceren te verversen en één keer opnieuw proberen.
+    async function apiFetch(url, opts = {}) {
+      const build = (auth) => { const h = { ...(opts.headers || {}) }; if (auth) h.Authorization = auth; return { ...opts, headers: h }; };
+      let auth = await authHeader(false);
+      let r = await fetch(url, build(auth));
+      if (r.status === 401) { auth = await authHeader(true); if (auth) r = await fetch(url, build(auth)); }
+      return r;
+    }
+
     async function main() {
       const cfg = await (await fetch('/api/config')).json();
       supabase = createClient(cfg.supabase_url, cfg.supabase_anon_key);
       const s = await supabase.auth.getSession();
       session = s.data?.session;
       if (!session) { window.location.href = '/klant/login'; return; }
-      authHdr = { Authorization: 'Bearer ' + session.access_token };
 
       const [meRes, wRes, schemaRes, dagenRes] = await Promise.all([
-        fetch('/api/klant/me', { headers: authHdr }),
-        fetch('/api/klant/workouts', { headers: authHdr }),
-        fetch('/api/klant/training-schemas', { headers: authHdr }),
-        fetch('/api/klant/training-dagen', { headers: authHdr }),
+        apiFetch('/api/klant/me'),
+        apiFetch('/api/klant/workouts'),
+        apiFetch('/api/klant/training-schemas'),
+        apiFetch('/api/klant/training-dagen'),
       ]);
       klantInfo = meRes.ok ? (await meRes.json()).klant : null;
       history = wRes.ok ? ((await wRes.json()).workouts || []) : [];
@@ -1091,9 +1112,9 @@
       }
       setBtnState(true, 'Opslaan...');
       try {
-        const r = await fetch('/api/klant/workouts', {
+        const r = await apiFetch('/api/klant/workouts', {
           method: 'POST',
-          headers: { ...authHdr, 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             id: currentWorkout.id,
             datum: currentWorkout.datum,
@@ -1103,6 +1124,7 @@
             notities: currentWorkout.notities,
           }),
         });
+        if (r.status === 401) throw new Error('__sessie__');
         const data = await r.json();
         if (!r.ok || data.error) throw new Error(data.error || 'Opslaan mislukt');
 
@@ -1144,7 +1166,7 @@
         if (mijlpaal) prs.push({ mijlpaal, totaal: totaalNa });
 
         // Refresh history + reset form
-        const wRes = await fetch('/api/klant/workouts', { headers: authHdr });
+        const wRes = await apiFetch('/api/klant/workouts');
         history = wRes.ok ? ((await wRes.json()).workouts || []) : [];
         currentWorkout = {
           id: null,
@@ -1158,7 +1180,9 @@
         celebratePRs(prs);
       } catch (e) {
         msg.className = 'msg error';
-        msg.textContent = e.message;
+        msg.textContent = e.message === '__sessie__'
+          ? 'Opslaan lukte niet: je sessie is verlopen. Log opnieuw in en probeer nogmaals — je sets blijven zichtbaar op dit scherm.'
+          : e.message;
       } finally {
         setBtnState(false, 'Workout opslaan');
       }
@@ -1223,8 +1247,8 @@
     window.deleteWorkout = async (id) => {
       if (!confirm('Deze workout permanent verwijderen?')) return;
       try {
-        const r = await fetch('/api/klant/workouts/' + id, {
-          method: 'DELETE', headers: authHdr,
+        const r = await apiFetch('/api/klant/workouts/' + id, {
+          method: 'DELETE',
         });
         if (!r.ok) { const j = await r.json().catch(()=>({})); throw new Error(j.error || 'HTTP '+r.status); }
         history = history.filter(w => w.id !== id);

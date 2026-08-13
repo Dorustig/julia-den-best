@@ -1329,6 +1329,14 @@
       }
 
       const authHdr = { Authorization: 'Bearer ' + session.access_token };
+      // Houd de token vers bij lange sessies: de Supabase access-token verloopt na ~60 min.
+      // We werken authHdr IN-PLACE bij (zelfde object dat overal wordt gebruikt) zodra de
+      // token ververst of de app weer op de voorgrond komt → geen valse "Not logged in".
+      supabase.auth.onAuthStateChange((_e, sess) => { if (sess?.access_token) authHdr.Authorization = 'Bearer ' + sess.access_token; });
+      document.addEventListener('visibilitychange', async () => {
+        if (document.visibilityState !== 'visible') return;
+        try { const { data } = await supabase.auth.getSession(); if (data?.session?.access_token) authHdr.Authorization = 'Bearer ' + data.session.access_token; } catch {}
+      });
       const [r, cr, tr, vr, chr, vidR, tdR] = await Promise.all([
         fetch('/api/klant/me', { headers: authHdr }),
         fetch('/api/klant/checkins', { headers: authHdr }),

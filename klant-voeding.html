@@ -225,6 +225,14 @@
       const s = await supabase.auth.getSession();
       if (!s.data?.session) { window.location.href = '/klant/login'; return; }
       authHdr = { Authorization: 'Bearer ' + s.data.session.access_token };
+      // Houd de token vers bij lange sessies: de Supabase access-token verloopt na ~60 min.
+      // authHdr wordt IN-PLACE bijgewerkt zodra de token ververst of de app weer op de
+      // voorgrond komt → geen valse "Not logged in" bij opslaan.
+      supabase.auth.onAuthStateChange((_e, sess) => { if (sess?.access_token) authHdr.Authorization = 'Bearer ' + sess.access_token; });
+      document.addEventListener('visibilitychange', async () => {
+        if (document.visibilityState !== 'visible') return;
+        try { const { data } = await supabase.auth.getSession(); if (data?.session?.access_token) authHdr.Authorization = 'Bearer ' + data.session.access_token; } catch {}
+      });
 
       const [planRes, histRes] = await Promise.all([
         fetch('/api/klant/voeding-plan', { headers: authHdr }),
