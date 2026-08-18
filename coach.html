@@ -2488,7 +2488,7 @@
                 const r = await fetch('/api/admin/stats/vandaag', { credentials: 'include' });
                 if (!r.ok) { body.textContent = 'Vandaag-data laden mislukt.'; return; }
                 const v = await r.json();
-                if (!v || (v.totaal === 0 && !(v.workoutsVandaag || []).length)) {
+                if (!v || (v.totaal === 0 && !(v.workoutsVandaag || []).length && !(v.voedingVandaag || []).length)) {
                     body.innerHTML = `
                         <div style="text-align:center;padding:18px 0;color:#065F46;">
                             <div style="font-size:32px;margin-bottom:6px;">&#127881;</div>
@@ -2517,6 +2517,8 @@
                         <span style="font-size:12px;color:${kleur || '#9CA3AF'};">${rechts}</span>
                     </div>`;
 
+                // Maaltijd-labels voor het "Vandaag gegeten"-blok
+                const MAAL = { ontbijt: '🍳 Ontbijt', lunch: '🥪 Lunch', diner: '🍽️ Diner', snack: '🍿 Snack' };
                 body.innerHTML = `
                     ${block(
                         '&#127947; Vandaag getraind',
@@ -2528,6 +2530,17 @@
                             '#065F46'
                         ),
                         '#0F766E'
+                    )}
+                    ${block(
+                        '&#127869;&#65039; Vandaag gegeten',
+                        v.voedingVandaag || [],
+                        '',
+                        f => row(f.naam || f.email,
+                            `${(f.maaltijden || []).map(m => MAAL[m] || m).join(' · ') || f.aantal + ' items'}${f.kcal ? ' · ' + f.kcal + ' kcal' : ''}`,
+                            `klantVoeding('${f.klant_id}', '${escapeHtml((f.naam||f.email||'').replace(/'/g, "\\'"))}')`,
+                            '#a17a5e'
+                        ),
+                        '#a17a5e'
                     )}
                     ${block(
                         '&#128221; Nieuwe check-ins om te reviewen',
@@ -2617,14 +2630,6 @@
                         `).join('')}
                     </div>` : '';
                 wrap.innerHTML = `
-                    <div class="stats-grid">
-                        ${stat('Actief', sc.actief || 0, 'green')}
-                        ${stat('Onboarding', sc.onboarding || 0, 'amber')}
-                        ${stat('Afgerond', sc.afgerond || 0, 'indigo')}
-                        ${stat('Gepauzeerd/gestopt', (sc.gepauzeerd||0) + (sc.gestopt||0), 'gray')}
-                        ${stat('Nieuw (30d)', s.nieuw30d || 0, 'pink')}
-                        ${stat('Gem. &Delta; kg', (s.gemiddeldDelta != null ? (s.gemiddeldDelta > 0 ? '+' : '') + s.gemiddeldDelta.toFixed(1) : '—'), s.gemiddeldDelta < 0 ? 'green' : '')}
-                    </div>
                     ${achterHtml}
                     ${topHtml}
                 `;
