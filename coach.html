@@ -204,6 +204,25 @@
             min-width: 16px; text-align: center;
         }
 
+        /* Actie-knoppen per klantrij: kern zichtbaar, beheer-acties onder een ⋯-menu */
+        .row-actions { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+        details.row-more { display: inline-block; position: relative; }
+        details.row-more > summary { list-style: none; cursor: pointer; }
+        details.row-more > summary::-webkit-details-marker { display: none; }
+        .row-more-btn { padding: 4px 11px; font-size: 13px; line-height: 1; background: #F3F4F6; color: #374151; }
+        .row-more-menu {
+            position: absolute; right: 0; top: calc(100% + 4px); background: #fff;
+            border: 1px solid #E5E7EB; border-radius: 10px; box-shadow: 0 10px 28px rgba(0,0,0,0.14);
+            padding: 6px; min-width: 180px; z-index: 60; display: flex; flex-direction: column; gap: 2px;
+        }
+        .row-more-menu button {
+            display: block; width: 100%; text-align: left; padding: 9px 10px; font-size: 12.5px;
+            border: none; background: none; border-radius: 8px; cursor: pointer; color: #374151; font-family: inherit;
+        }
+        .row-more-menu button:hover { background: #F9FAFB; }
+        .row-more-menu button.danger { color: #991B1B; }
+        .row-more-menu button.danger:hover { background: #FEF2F2; }
+
         /* Training week grid */
         .week-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
         .week-cell {
@@ -849,19 +868,26 @@
                             <td>${week}/16</td>
                             <td style="font-size:12px">${escapeHtml(doel)}</td>
                             <td style="font-size:12px;color:#6B7280">${start}</td>
-                            <td style="white-space:nowrap">
-                                <select onchange="klantStatusWijzig('${k.id}', this.value, this)" title="Status aanpassen" style="padding:4px 8px;font-size:11px;font-weight:600;border-radius:8px;border:1px solid ${kleur}66;background:${kleur}18;color:${kleur};margin-right:6px;cursor:pointer;font-family:inherit;">
+                            <td>
+                              <div class="row-actions">
+                                <select onchange="klantStatusWijzig('${k.id}', this.value, this)" title="Status aanpassen" style="padding:4px 8px;font-size:11px;font-weight:600;border-radius:8px;border:1px solid ${kleur}66;background:${kleur}18;color:${kleur};cursor:pointer;font-family:inherit;">
                                     ${KLANT_STATUS.map(s => `<option value="${s.value}" ${s.value===k.status?'selected':''}>${s.label}</option>`).join('')}
                                 </select>
-                                <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#f6e6e4;color:#a17a5e;margin-right:3px;" onclick="klantChat('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#128172;${unread > 0 ? '<span class="unread-badge">' + unread + '</span>' : ''}</button>
-                                <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#f6e6e4;color:#a17a5e;margin-right:3px;" onclick="klantBekijkCheckIns('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#128197;</button>
-                                <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#f6e6e4;color:#a17a5e;margin-right:3px;" onclick="klantTraining('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#127947;</button>
-                                <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#f6e6e4;color:#a17a5e;margin-right:3px;" onclick="klantVoeding('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#129382;</button>
-                                <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#FEF3C7;color:#92400E;margin-right:3px;" onclick="klantNotities('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#128221;</button>
-                                <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#EDE9FE;color:#5B21B6;margin-right:3px;" title="Workouts bekijken" onclick="klantWorkouts('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#128170;</button>
-                                <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#E0E7FF;color:#3730A3;margin-right:3px;" title="Bewerk klant" onclick="klantBewerken('${k.id}')">&#9998;</button>
-                                <button class="btn-admin btn-export" style="padding:4px 10px;font-size:11px;margin-right:6px;" title="Nieuw wachtwoord" onclick="klantResetWachtwoord('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#128273;</button>
-                                <button class="btn-admin" style="padding:4px 12px;font-size:11px;font-weight:600;background:#FEE2E2;color:#991B1B;border:1px solid #FCA5A5;" title="Klant permanent verwijderen" onclick="klantVerwijderen('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#128465; Verwijder</button>
+                                <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#f6e6e4;color:#a17a5e;" title="Chat" onclick="klantChat('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#128172;${unread > 0 ? '<span class="unread-badge">' + unread + '</span>' : ''}</button>
+                                <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#f6e6e4;color:#a17a5e;" title="Check-ins" onclick="klantBekijkCheckIns('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#128197;</button>
+                                <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#f6e6e4;color:#a17a5e;" title="Training" onclick="klantTraining('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#127947;</button>
+                                <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#f6e6e4;color:#a17a5e;" title="Voeding" onclick="klantVoeding('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#129382;</button>
+                                <button class="btn-admin" style="padding:4px 10px;font-size:11px;background:#EDE9FE;color:#5B21B6;" title="Workouts" onclick="klantWorkouts('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#128170;</button>
+                                <details class="row-more">
+                                    <summary class="btn-admin row-more-btn" title="Meer">&#8943;</summary>
+                                    <div class="row-more-menu">
+                                        <button onclick="this.closest('details').removeAttribute('open');klantNotities('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#128221; Notities</button>
+                                        <button onclick="this.closest('details').removeAttribute('open');klantBewerken('${k.id}')">&#9998; Bewerk klant</button>
+                                        <button onclick="this.closest('details').removeAttribute('open');klantResetWachtwoord('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#128273; Nieuw wachtwoord</button>
+                                        <button class="danger" onclick="this.closest('details').removeAttribute('open');klantVerwijderen('${k.id}', '${escapeHtml(k.naam || k.email)}')">&#128465; Verwijder klant</button>
+                                    </div>
+                                </details>
+                              </div>
                             </td>
                         </tr>
                     `;
@@ -2674,6 +2700,13 @@
                 });
             }
         }, 30000);
+
+        // Sluit een open ⋯-menu zodra je ergens anders klikt
+        document.addEventListener('click', (e) => {
+            document.querySelectorAll('details.row-more[open]').forEach(d => {
+                if (!d.contains(e.target)) d.removeAttribute('open');
+            });
+        });
 
         // Hash-change: navigeren als user via hash wisselt
         window.addEventListener('hashchange', () => {
