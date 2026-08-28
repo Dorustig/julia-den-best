@@ -332,6 +332,44 @@
             .macro-grid { grid-template-columns: repeat(2, 1fr); }
             .table-wrapper td { font-size: 13px; padding: 10px; }
         }
+
+        /* ===== CRM-sectie ===== */
+        .crm-period { display: inline-flex; background: #F3F4F6; border-radius: 10px; padding: 3px; gap: 2px; }
+        .crm-period button { padding: 7px 13px; border: none; background: none; font-family: inherit; font-size: 13px; font-weight: 600; color: #6B7280; border-radius: 8px; cursor: pointer; }
+        .crm-period button.active { background: #fff; color: #a17a5e; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+        .crm-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(155px, 1fr)); gap: 12px; margin-bottom: 18px; }
+        .crm-kpi { background: #fff; border: 1px solid #E5E7EB; border-radius: 14px; padding: 15px 16px; }
+        .crm-kpi .label { font-size: 10.5px; font-weight: 600; color: #6B7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 7px; }
+        .crm-kpi .value { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; line-height: 1; color: #1F2937; }
+        .crm-kpi .sub { font-size: 11.5px; color: #9CA3AF; margin-top: 5px; }
+        .crm-kpi.hero { background: linear-gradient(135deg, #faf4ea, #f6e6e4); border-color: #dcb9b4; }
+        .crm-kpi.hero .value { color: #8a6a4f; }
+        .crm-kpi.cash { background: linear-gradient(135deg, #ECFDF5, #D1FAE5); border-color: #A7F3D0; }
+        .crm-kpi.cash .value { color: #047857; }
+        .crm-panel { background: #fff; border: 1px solid #E5E7EB; border-radius: 14px; padding: 16px 18px; margin-bottom: 18px; }
+        .crm-panel h2 { font-size: 14px; font-weight: 700; margin-bottom: 12px; color: #1F2937; }
+        .crm-progress { height: 12px; background: #F3F4F6; border-radius: 8px; overflow: hidden; margin: 8px 0; }
+        .crm-progress > span { display: block; height: 100%; background: linear-gradient(90deg, #d3a39d, #a17a5e); border-radius: 8px; }
+        .crm-rev { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; }
+        .crm-rev .r-lbl { font-size: 11px; color: #6B7280; font-weight: 600; }
+        .crm-rev .r-val { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: #047857; }
+        .crm-table { width: 100%; border-collapse: collapse; }
+        .crm-table th { text-align: right; padding: 9px 10px; font-size: 10.5px; font-weight: 600; color: #6B7280; text-transform: uppercase; letter-spacing: 0.4px; border-bottom: 1px solid #E5E7EB; white-space: nowrap; }
+        .crm-table th:first-child, .crm-table td:first-child { text-align: left; }
+        .crm-table td { padding: 9px 10px; font-size: 13px; border-bottom: 1px solid #F3F4F6; text-align: right; white-space: nowrap; }
+        .crm-table tbody tr:last-child td { border-bottom: none; }
+        .crm-table .src { font-weight: 600; color: #1F2937; }
+        .crm-scroll { overflow-x: auto; }
+        select.crm-outcome { padding: 5px 7px; border-radius: 8px; border: 1px solid #E5E7EB; font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer; background: #fff; }
+        .crm-cash-input { width: 84px; padding: 5px 7px; border: 1px solid #E5E7EB; border-radius: 8px; font-family: inherit; font-size: 12.5px; text-align: right; }
+        .crm-cash-input:focus, select.crm-outcome:focus { outline: none; border-color: #a17a5e; }
+        .oc-open { color: #6B7280; } .oc-showed { color: #1E40AF; } .oc-won { color: #047857; }
+        .oc-lost { color: #B91C1C; } .oc-no_show { color: #B45309; } .oc-canceled { color: #9CA3AF; } .oc-pivot { color: #7C3AED; }
+        .crm-config { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+        .crm-config label { font-size: 12.5px; color: #374151; font-weight: 500; }
+        .crm-config input { padding: 7px 10px; border: 1px solid #E5E7EB; border-radius: 8px; font-size: 13px; font-family: inherit; width: 110px; }
+        .crm-flash { font-size: 11px; color: #10B981; margin-left: 4px; opacity: 0; transition: opacity 0.2s; }
+        .crm-flash.show { opacity: 1; }
     </style>
 </head>
 <body>
@@ -350,6 +388,7 @@
                 <li><a data-section="training" onclick="navigate('training')"><span class="nav-label">&#127947; Training</span></a></li>
                 <li><a data-section="voeding" onclick="navigate('voeding')"><span class="nav-label">&#129382; Voeding</span></a></li>
                 <li><a data-section="videos" onclick="navigate('videos')"><span class="nav-label">&#127916; Video's</span></a></li>
+                <li><a data-section="crm" onclick="navigate('crm')"><span class="nav-label">&#128200; CRM</span></a></li>
             </ul>
             <div class="sidebar-foot">
                 <a href="/klant/login" target="_blank" style="color:#d3a39d">&#128100; Klant Portaal &#8599;</a>
@@ -547,6 +586,24 @@
                     <div id="videoLibList" style="font-size:13px;color:#9CA3AF">Laden...</div>
                 </div>
             </section>
+
+            <!-- ========== SECTIE: CRM ========== -->
+            <section id="sect-crm" class="section">
+                <div class="topbar">
+                    <h1>&#128200; CRM &middot; Sales &amp; Calls</h1>
+                    <div class="topbar-actions">
+                        <div class="crm-period" id="crmPeriod">
+                            <button data-period="30d">30 dagen</button>
+                            <button data-period="90d" class="active">90 dagen</button>
+                            <button data-period="ytd">Dit jaar</button>
+                            <button data-period="all">Alles</button>
+                        </div>
+                        <button class="btn-admin btn-refresh" onclick="loadCRM()">&#8635; Ververs</button>
+                    </div>
+                </div>
+                <p class="hint" style="margin:-6px 0 16px;">Geboekte calls uit Calendly met closing rate, no-show, pivots en cash per call. Zet per call de uitkomst en de cash — dan kloppen alle cijfers en de bron-uitsplitsing.</p>
+                <div id="crmBody"><div style="padding:40px;text-align:center;color:#9CA3AF;">Laden…</div></div>
+            </section>
         </main>
     </div>
 
@@ -594,6 +651,8 @@
             if (sect) sect.classList.add('active');
             const nav = document.querySelector(`.sidebar-nav a[data-section="${section}"]`);
             if (nav) nav.classList.add('active');
+            // CRM lazy laden (Calendly-data is zwaar; niet bij elke page-load ophalen)
+            if (section === 'crm' && !window.__crmLoaded) { window.__crmLoaded = true; loadCRM(); }
             window.location.hash = section;
             // Mobile: sluit sidebar
             document.querySelector('.sidebar').classList.remove('open');
@@ -2499,6 +2558,190 @@
             } catch (e) { alert('Verwijderen mislukt: ' + e.message); }
         }
 
+        // ========================================================
+        // CRM — Sales & Calls analytics (per bron, Mollie-omzet, maanddoel)
+        // ========================================================
+        const crmState = { period: '90d', data: null };
+        const CRM_OUTCOMES = [
+            { v: 'open', l: 'Nog te doen' },
+            { v: 'showed', l: 'Gehouden' },
+            { v: 'won', l: 'Klant! (won)' },
+            { v: 'pivot', l: 'Pivot (verzet)' },
+            { v: 'lost', l: 'Niet gesloten' },
+            { v: 'no_show', l: 'No-show' },
+            { v: 'canceled', l: 'Geannuleerd' },
+        ];
+        const crmEuro = (n) => '€' + Math.round(n || 0).toLocaleString('nl-NL');
+        const crmPct = (v) => v == null ? '—' : Math.round(v * 100) + '%';
+        const crmDate = (iso) => {
+            if (!iso) return '—';
+            const d = new Date(iso);
+            return d.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' }) + ' ' + d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
+        };
+
+        async function loadCRM() {
+            const body = document.getElementById('crmBody');
+            body.innerHTML = '<div style="padding:40px;text-align:center;color:#9CA3AF;">Calendly-data laden…</div>';
+            try {
+                const r = await fetch('/api/admin/crm?period=' + crmState.period, { credentials: 'include' });
+                if (r.status === 401) { window.location.href = '/'; return; }
+                const data = await r.json();
+                if (!r.ok) throw new Error(data.error || ('HTTP ' + r.status));
+                crmState.data = data;
+                renderCRM();
+            } catch (e) {
+                body.innerHTML = '<div class="card-block" style="color:#B91C1C;">Kon CRM-data niet laden: ' + escapeHtml(e.message) + '</div>';
+            }
+        }
+
+        function renderCRM() {
+            const { kpi, bySource, calls, revenue, target, default_deal_value } = crmState.data;
+
+            const kpis = `
+                <div class="crm-kpis">
+                    <div class="crm-kpi hero"><div class="label">📅 Geboekte calls</div><div class="value">${kpi.booked}</div><div class="sub">${kpi.held} gehouden · ${kpi.canceled} geannuleerd · ${kpi.no_show} no-show</div></div>
+                    <div class="crm-kpi"><div class="label">🏆 Closing rate</div><div class="value">${crmPct(kpi.closing_rate)}</div><div class="sub">${kpi.won} klanten / ${kpi.held} gehouden</div></div>
+                    <div class="crm-kpi"><div class="label">👻 No-show rate</div><div class="value">${crmPct(kpi.no_show_rate)}</div><div class="sub">${kpi.no_show} no-shows</div></div>
+                    <div class="crm-kpi"><div class="label">❌ Cancel rate</div><div class="value">${crmPct(kpi.cancel_rate)}</div><div class="sub">${kpi.canceled} geannuleerd</div></div>
+                    <div class="crm-kpi"><div class="label">🔄 Pivot rate</div><div class="value">${crmPct(kpi.pivot_rate)}</div><div class="sub">${kpi.pivot} verzet naar vervolg</div></div>
+                    <div class="crm-kpi cash"><div class="label">💰 Cash per geboekte call</div><div class="value">${crmEuro(kpi.cash_per_booked)}</div><div class="sub">${crmEuro(kpi.cash_per_held)} per gehouden call</div></div>
+                    <div class="crm-kpi cash"><div class="label">💸 Totale cash</div><div class="value">${crmEuro(kpi.cash_total)}</div><div class="sub">uit ${kpi.won} gesloten deals</div></div>
+                </div>`;
+
+            const pmDone = target.per_month > 0 ? Math.min(100, (target.booked_this_month / target.per_month) * 100) : 0;
+            const targetPanel = `
+                <div class="crm-panel">
+                    <h2>🎯 Maanddoel calls</h2>
+                    <div style="display:flex;justify-content:space-between;align-items:baseline;font-size:13px;color:#374151;">
+                        <span><strong>${target.booked_this_month}</strong>${target.per_month > 0 ? ' / ' + target.per_month : ''} geboekt deze maand</span>
+                        <span style="color:#9CA3AF;">${target.remaining != null ? 'nog ' + target.remaining + ' te gaan' : 'geen doel ingesteld'}</span>
+                    </div>
+                    ${target.per_month > 0 ? `<div class="crm-progress"><span style="width:${pmDone}%"></span></div>` : ''}
+                    <div style="font-size:12.5px;color:#6B7280;margin-top:6px;">⏳ ${target.open_calls} openstaande call${target.open_calls === 1 ? '' : 's'} (geboekt, nog te houden)</div>
+                    <div class="crm-config" style="margin-top:12px;">
+                        <label>Maanddoel</label>
+                        <input type="number" id="crmTarget" min="0" value="${target.per_month || ''}" placeholder="bv. 40">
+                        <label>Standaard dealwaarde</label>
+                        <input type="number" id="crmDealVal" min="0" value="${default_deal_value || ''}" placeholder="bv. 1997">
+                        <button class="btn-admin btn-export" onclick="saveCrmConfig()">Opslaan</button>
+                        <span class="crm-flash" id="crmCfgFlash">✓ opgeslagen</span>
+                    </div>
+                </div>`;
+
+            const revPanel = revenue ? `
+                <div class="crm-panel">
+                    <h2>💶 Omzet (Mollie)</h2>
+                    <div class="crm-rev">
+                        <div><div class="r-lbl">Totale omzet</div><div class="r-val">${crmEuro(revenue.totaal)}</div></div>
+                        <div><div class="r-lbl">Omzet nieuwe deals</div><div class="r-val">${crmEuro(revenue.nieuwe_deals)}</div></div>
+                        <div><div class="r-lbl">Omzet termijnen</div><div class="r-val">${crmEuro(revenue.termijnen)}</div></div>
+                        <div><div class="r-lbl">Deze maand</div><div class="r-val">${crmEuro(revenue.deze_maand)}</div></div>
+                    </div>
+                    <div style="font-size:11.5px;color:#9CA3AF;margin-top:10px;">Uit ${revenue.aantal_betaald} betaalde Mollie-transacties. Nieuwe deals = eerste/eenmalige betaling, termijnen = doorlopende incasso. (Mollie is niet aan een bron gekoppeld — omzet per bron staat in de tabel hieronder als cash per call.)</div>
+                </div>` : `
+                <div class="crm-panel"><h2>💶 Omzet</h2><div style="font-size:12.5px;color:#9CA3AF;">Mollie is niet gekoppeld — omzet per bron zie je in de tabel als cash per call.</div></div>`;
+
+            const srcRows = (bySource || []).map(s => `
+                <tr>
+                    <td class="src">${escapeHtml(s.source)}</td>
+                    <td>${s.booked}</td>
+                    <td>${s.held}</td>
+                    <td>${s.open}</td>
+                    <td>${crmPct(s.closing_rate)}</td>
+                    <td>${crmPct(s.no_show_rate)}</td>
+                    <td>${crmPct(s.cancel_rate)}</td>
+                    <td>${crmPct(s.pivot_rate)}</td>
+                    <td>${crmEuro(s.cash_total)}</td>
+                    <td>${crmEuro(s.cash_per_booked)}</td>
+                    <td>${crmEuro(s.cash_per_held)}</td>
+                </tr>`).join('');
+            const srcPanel = `
+                <div class="crm-panel">
+                    <h2>📊 Per bron</h2>
+                    ${(bySource && bySource.length) ? `<div class="crm-scroll"><table class="crm-table">
+                        <thead><tr><th>Bron</th><th>Geboekt</th><th>Gehouden</th><th>Open</th><th>Closing</th><th>No-show</th><th>Cancel</th><th>Pivot</th><th>Cash</th><th>/boeking</th><th>/gehouden</th></tr></thead>
+                        <tbody>${srcRows}</tbody></table></div>` : '<div style="font-size:13px;color:#9CA3AF;">Nog geen calls in deze periode.</div>'}
+                </div>`;
+
+            const callRows = (calls || []).map(c => {
+                const opts = CRM_OUTCOMES.map(o => `<option value="${o.v}" ${o.v === c.outcome ? 'selected' : ''}>${o.l}</option>`).join('');
+                return `
+                    <tr>
+                        <td style="text-align:left;">
+                            <div style="font-weight:600;color:#1F2937;">${escapeHtml(c.naam || '—')}${c.klant_match ? ' <span style="background:#D1FAE5;color:#065F46;padding:1px 6px;border-radius:9px;font-size:10px;font-weight:700;">klant</span>' : ''}</div>
+                            <div style="font-size:11.5px;color:#9CA3AF;">${escapeHtml(c.email || '')}</div>
+                        </td>
+                        <td style="text-align:left;color:#6B7280;font-size:12.5px;">${crmDate(c.start_time)}</td>
+                        <td style="text-align:left;color:#9CA3AF;font-size:12px;">${escapeHtml(c.utm_source || '—')}</td>
+                        <td style="text-align:left;">
+                            <select class="crm-outcome oc-${c.outcome}" onchange="setCrmOutcome('${c.event_id}', this.value, this)">${opts}</select>
+                            <span class="crm-flash" id="crmfo-${c.event_id}">✓</span>
+                        </td>
+                        <td>
+                            <input class="crm-cash-input" type="number" min="0" placeholder="${c.outcome === 'won' ? (default_deal_value || 0) : 0}" value="${c.cash_override ? c.cash : ''}" onchange="setCrmCash('${c.event_id}', this.value, this)">
+                            <span class="crm-flash" id="crmfc-${c.event_id}">✓</span>
+                        </td>
+                    </tr>`;
+            }).join('');
+            const callsPanel = `
+                <div class="crm-panel">
+                    <h2>📞 Alle calls</h2>
+                    ${(calls && calls.length) ? `<div class="crm-scroll"><table class="crm-table">
+                        <thead><tr><th style="text-align:left;">Wie</th><th style="text-align:left;">Wanneer</th><th style="text-align:left;">Bron</th><th style="text-align:left;">Uitkomst</th><th style="text-align:right;">Cash (€)</th></tr></thead>
+                        <tbody>${callRows}</tbody></table></div>` : '<div style="font-size:13px;color:#9CA3AF;">Nog geen calls in deze periode.</div>'}
+                </div>`;
+
+            document.getElementById('crmBody').innerHTML = kpis + targetPanel + revPanel + srcPanel + callsPanel;
+        }
+
+        function crmFlash(id) { const el = document.getElementById(id); if (!el) return; el.classList.add('show'); setTimeout(() => el.classList.remove('show'), 1200); }
+
+        async function setCrmOutcome(eventId, outcome, sel) {
+            sel.className = 'crm-outcome oc-' + outcome;
+            try {
+                const r = await fetch('/api/calls/' + encodeURIComponent(eventId) + '/meta', {
+                    method: 'PUT', credentials: 'include', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ outcome }),
+                });
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                crmFlash('crmfo-' + eventId);
+                loadCRM();
+            } catch (e) { alert('Opslaan mislukt: ' + e.message); }
+        }
+        async function setCrmCash(eventId, value, inp) {
+            try {
+                const r = await fetch('/api/calls/' + encodeURIComponent(eventId) + '/meta', {
+                    method: 'PUT', credentials: 'include', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ cash_value: value === '' ? null : value }),
+                });
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                crmFlash('crmfc-' + eventId);
+                loadCRM();
+            } catch (e) { alert('Opslaan mislukt: ' + e.message); }
+        }
+        async function saveCrmConfig() {
+            const target = document.getElementById('crmTarget').value;
+            const deal = document.getElementById('crmDealVal').value;
+            try {
+                const r = await fetch('/api/calls/config', {
+                    method: 'PUT', credentials: 'include', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ target_calls_per_month: target === '' ? 0 : target, default_deal_value: deal === '' ? 0 : deal }),
+                });
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                crmFlash('crmCfgFlash');
+                loadCRM();
+            } catch (e) { alert('Opslaan mislukt: ' + e.message); }
+        }
+
+        // Periode-tabs (bestaan statisch in de sectie)
+        document.getElementById('crmPeriod')?.addEventListener('click', (e) => {
+            const btn = e.target.closest('button'); if (!btn) return;
+            document.querySelectorAll('#crmPeriod button').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            crmState.period = btn.dataset.period;
+            loadCRM();
+        });
+
         // Enter in new-todo input voegt toe
         document.addEventListener('DOMContentLoaded', () => {
             const inp = document.getElementById('todoNewTitle');
@@ -2667,7 +2910,7 @@
         // ========================================================
         function initialSection() {
             const h = (window.location.hash || '').slice(1);
-            const valid = ['overzicht','todos','klanten','berichten','training','voeding','videos'];
+            const valid = ['overzicht','todos','klanten','berichten','training','voeding','videos','crm'];
             return valid.includes(h) ? h : 'overzicht';
         }
 
@@ -2711,7 +2954,7 @@
         // Hash-change: navigeren als user via hash wisselt
         window.addEventListener('hashchange', () => {
             const h = (window.location.hash || '').slice(1);
-            const valid = ['overzicht','klanten','berichten','training','voeding','videos'];
+            const valid = ['overzicht','todos','klanten','berichten','training','voeding','videos','crm'];
             if (valid.includes(h)) navigate(h);
         });
     </script>

@@ -366,6 +366,105 @@ function writeCallsMeta(meta) {
   fs.writeFileSync(tmp, JSON.stringify(meta, null, 2));
   fs.renameSync(tmp, CALLS_META_FILE);
 }
+
+// Geldige call-uitkomsten. 'pivot' = gesprek gehouden maar verzet naar een
+// vervolggesprek (telt als gehouden call, nog geen beslissing).
+const CALL_OUTCOMES = ['open', 'showed', 'no_show', 'canceled', 'won', 'lost', 'pivot'];
+
+// Bereken de funnel-KPI's over een lijst verrijkte calls. Gedeeld door /api/calls
+// en /api/admin/crm zodat de cijfers overal identiek zijn.
+function computeCallKpi(list) {
+  const booked = list.length;
+  const canceled = list.filter(c => c.outcome === 'canceled').length;
+  const noShow = list.filter(c => c.outcome === 'no_show').length;
+  const open = list.filter(c => c.outcome === 'open').length;
+  const won = list.filter(c => c.outcome === 'won').length;
+  const lost = list.filter(c => c.outcome === 'lost').length;
+  const pivot = list.filter(c => c.outcome === 'pivot').length;
+  // Gehouden = calls die daadwerkelijk plaatsvonden (showed, won of pivot).
+  const held = list.filter(c => c.outcome === 'showed' || c.outcome === 'won' || c.outcome === 'pivot').length;
+  const cashTotal = list.reduce((s, c) => s + (c.cash || 0), 0);
+  return {
+    booked, held, no_show: noShow, canceled, open, won, lost, pivot,
+    closing_rate: held > 0 ? won / held : null,
+    cancel_rate: booked > 0 ? canceled / booked : null,
+    no_show_rate: (held + noShow) > 0 ? noShow / (held + noShow) : null,
+    pivot_rate: held > 0 ? pivot / held : null,
+    show_rate: (held + noShow) > 0 ? held / (held + noShow) : null,
+    cash_total: cashTotal,
+    cash_per_booked: booked > 0 ? cashTotal / booked : 0,
+    cash_per_held: held > 0 ? cashTotal / held : 0,
+  };
+}
+
+// Haal Calendly-calls op voor een periode, verrijk met lead/klant-match + meta
+// (outcome/cash/bron), en bereken de KPI's. Retourneert null als Calendly uit staat.
+async function buildCallsData(period) {
+  if (!calendlyHelper.isEnabled()) return null;
+  let minStart = null;
+  const now = new Date();
+  if (/^\d+d$/.test(period)) minStart = new Date(now.getTime() - parseInt(period, 10) * 86400000).toISOString();
+  else if (period === 'ytd') minStart = new Date(now.getFullYear(), 0, 1).toISOString();
+  // 'all' → geen ondergrens
+
+  const [calls, klanten, meta] = await Promise.all([
+    calendlyHelper.listCalls({ minStart }),
+    supabaseHelper.isEnabled() ? supabaseHelper.listKlanten() : Promise.resolve([]),
+    Promise.resolve(readCallsMeta()),
+  ]);
+
+  const leads = readLeads();
+  const leadByEmail = {};
+  for (const l of leads) { if (l.email) leadByEmail[l.email.toLowerCase()] = l; }
+  const klantByEmail = {};
+  for (const k of (klanten || [])) { if (k.email) klantByEmail[k.email.toLowerCase()] = k; }
+
+  const defaultDeal = Number(meta.config.default_deal_value) || 0;
+  const nowMs = Date.now();
+
+  const enriched = calls.map(c => {
+    const m = meta.calls[c.event_id] || {};
+    const klant = c.email ? klantByEmail[c.email] : null;
+    const lead = c.email ? leadByEmail[c.email] : null;
+    const isPast = c.end_time ? new Date(c.end_time).getTime() < nowMs : false;
+
+    // Outcome: handmatige override wint. 'pivot' wordt nooit automatisch afgeleid.
+    let outcome = m.outcome;
+    if (!outcome) {
+      if (c.canceled) outcome = 'canceled';
+      else if (c.no_show) outcome = 'no_show';
+      else if (klant) outcome = 'won';
+      else if (isPast) outcome = 'showed';
+      else outcome = 'open';
+    }
+    const cashRaw = m.cash_value;
+    const cash = (cashRaw != null && cashRaw !== '') ? Number(cashRaw)
+      : (outcome === 'won' ? defaultDeal : 0);
+
+    return {
+      event_id: c.event_id,
+      naam: c.naam,
+      email: c.email,
+      start_time: c.start_time,
+      end_time: c.end_time,
+      created_at: c.created_at,
+      utm_source: c.utm_source || (lead && lead.bron) || null,
+      is_past: isPast,
+      calendly_canceled: c.canceled,
+      calendly_no_show: c.no_show,
+      klant_match: !!klant,
+      klant_status: klant ? klant.status : null,
+      outcome,
+      outcome_override: !!m.outcome,
+      cash,
+      cash_override: (cashRaw != null && cashRaw !== ''),
+      notitie: m.notitie || '',
+    };
+  });
+
+  enriched.sort((a, b) => new Date(b.start_time || b.created_at) - new Date(a.start_time || a.created_at));
+  return { period, defaultDeal, meta, enriched, kpi: computeCallKpi(enriched) };
+}
 function readBody(req) {
   return new Promise((resolve, reject) => {
     let body = '';
@@ -419,7 +518,7 @@ const server = http.createServer(async (req, res) => {
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   // Version-stamp om te kunnen debuggen welke deploy draait.
-  res.setHeader('X-App-Version', 'coach-voeding-actierij-v30');
+  res.setHeader('X-App-Version', 'crm-tab-v31');
 
   if (req.method === 'OPTIONS') {
     res.writeHead(204);
@@ -2158,114 +2257,84 @@ const server = http.createServer(async (req, res) => {
       return jsonRes(res, 503, { error: 'Calendly niet geconfigureerd (CALENDLY_TOKEN ontbreekt).' });
     }
     try {
-      // Periode → min_start_time
       const period = parsed.query.period || '90d';
-      let minStart = null;
-      const now = new Date();
-      if (/^\d+d$/.test(period)) {
-        const days = parseInt(period, 10);
-        minStart = new Date(now.getTime() - days * 86400000).toISOString();
-      } else if (period === 'ytd') {
-        minStart = new Date(now.getFullYear(), 0, 1).toISOString();
-      } // 'all' → geen ondergrens
-
-      const [calls, klanten, meta] = await Promise.all([
-        calendlyHelper.listCalls({ minStart }),
-        supabaseHelper.isEnabled() ? supabaseHelper.listKlanten() : Promise.resolve([]),
-        Promise.resolve(readCallsMeta()),
-      ]);
-
-      const leads = readLeads();
-      const leadByEmail = {};
-      for (const l of leads) { if (l.email) leadByEmail[l.email.toLowerCase()] = l; }
-      const klantByEmail = {};
-      for (const k of (klanten || [])) { if (k.email) klantByEmail[k.email.toLowerCase()] = k; }
-
-      const defaultDeal = Number(meta.config.default_deal_value) || 0;
-      const nowMs = Date.now();
-
-      // Verrijk elke call
-      const enriched = calls.map(c => {
-        const m = meta.calls[c.event_id] || {};
-        const klant = c.email ? klantByEmail[c.email] : null;
-        const lead = c.email ? leadByEmail[c.email] : null;
-        const isPast = c.end_time ? new Date(c.end_time).getTime() < nowMs : false;
-
-        // Outcome: handmatige override wint. Anders afleiden:
-        //  canceled → canceled; no_show flag → no_show; klant geworden → won;
-        //  verleden + gehouden → showed; toekomst → open.
-        let outcome = m.outcome;
-        if (!outcome) {
-          if (c.canceled) outcome = 'canceled';
-          else if (c.no_show) outcome = 'no_show';
-          else if (klant) outcome = 'won';
-          else if (isPast) outcome = 'showed';
-          else outcome = 'open';
-        }
-        const cashRaw = m.cash_value;
-        const cash = (cashRaw != null && cashRaw !== '') ? Number(cashRaw)
-          : (outcome === 'won' ? defaultDeal : 0);
-
-        return {
-          event_id: c.event_id,
-          naam: c.naam,
-          email: c.email,
-          start_time: c.start_time,
-          end_time: c.end_time,
-          created_at: c.created_at,
-          utm_source: c.utm_source || (lead && lead.bron) || null,
-          is_past: isPast,
-          calendly_canceled: c.canceled,
-          calendly_no_show: c.no_show,
-          klant_match: !!klant,
-          klant_status: klant ? klant.status : null,
-          outcome,
-          outcome_override: !!m.outcome,
-          cash,
-          cash_override: (cashRaw != null && cashRaw !== ''),
-          notitie: m.notitie || '',
-        };
-      });
-
-      // KPI's
-      const booked = enriched.length;
-      const canceled = enriched.filter(c => c.outcome === 'canceled').length;
-      const noShow = enriched.filter(c => c.outcome === 'no_show').length;
-      const open = enriched.filter(c => c.outcome === 'open').length;
-      const won = enriched.filter(c => c.outcome === 'won').length;
-      // Gehouden = calls die daadwerkelijk plaatsvonden (showed of won).
-      const held = enriched.filter(c => c.outcome === 'showed' || c.outcome === 'won').length;
-      const afgerond = held; // calls met bekende uitkomst waarop een closing rate slaat
-      const cashTotal = enriched.reduce((s, c) => s + (c.cash || 0), 0);
-
-      const kpi = {
-        booked,
-        held,
-        no_show: noShow,
-        canceled,
-        open,
-        won,
-        // Closing rate = gewonnen / gehouden calls (calls die plaatsvonden).
-        closing_rate: afgerond > 0 ? won / afgerond : null,
-        // Show rate = gehouden / (booked - open - canceled) : van de verstreken, niet-gecancelde
-        show_rate: (held + noShow) > 0 ? held / (held + noShow) : null,
-        cash_total: cashTotal,
-        // Cash per booked call en per gehouden call
-        cash_per_booked: booked > 0 ? cashTotal / booked : 0,
-        cash_per_held: held > 0 ? cashTotal / held : 0,
-      };
-
-      // Sorteer nieuwste eerst
-      enriched.sort((a, b) => new Date(b.start_time || b.created_at) - new Date(a.start_time || a.created_at));
-
+      const data = await buildCallsData(period);
+      if (!data) return jsonRes(res, 503, { error: 'Calendly niet geconfigureerd (CALENDLY_TOKEN ontbreekt).' });
       return jsonRes(res, 200, {
         period,
-        default_deal_value: defaultDeal,
-        kpi,
-        calls: enriched,
+        default_deal_value: data.defaultDeal,
+        kpi: data.kpi,
+        calls: data.enriched,
       });
     } catch (e) {
       console.warn('[/api/calls] error:', e.message);
+      return jsonRes(res, 500, { error: e.message });
+    }
+  }
+
+  // GET /api/admin/crm — volledige CRM-analytics voor het coach-dashboard:
+  // funnel-KPI's, per-bron uitsplitsing, Mollie-omzet en maanddoel.
+  if (pathname === '/api/admin/crm' && req.method === 'GET') {
+    if (!requireAuth(req, res)) return;
+    try {
+      const period = parsed.query.period || '90d';
+      const data = await buildCallsData(period);
+      if (!data) return jsonRes(res, 503, { error: 'Calendly niet geconfigureerd (CALENDLY_TOKEN ontbreekt).' });
+
+      // Per bron groeperen en dezelfde KPI-formules per groep draaien.
+      const bySourceMap = {};
+      for (const c of data.enriched) {
+        const src = (c.utm_source || 'direct').toString().toLowerCase().trim() || 'direct';
+        (bySourceMap[src] = bySourceMap[src] || []).push(c);
+      }
+      const bySource = Object.keys(bySourceMap).map(src => ({
+        source: src,
+        ...computeCallKpi(bySourceMap[src]),
+      })).sort((a, b) => b.booked - a.booked || b.cash_total - a.cash_total);
+
+      // Maanddoel: geboekte calls deze kalendermaand (op start_time) vs. doel.
+      const now = new Date();
+      const maandStartMs = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+      const targetPerMonth = Number(data.meta.config.target_calls_per_month) || 0;
+      const bookedThisMonth = data.enriched.filter(c => {
+        const t = new Date(c.start_time || c.created_at).getTime();
+        return t >= maandStartMs;
+      }).length;
+      const target = {
+        per_month: targetPerMonth,
+        booked_this_month: bookedThisMonth,
+        remaining: targetPerMonth > 0 ? Math.max(0, targetPerMonth - bookedThisMonth) : null,
+        open_calls: data.kpi.open,
+      };
+
+      // Mollie-omzet (globaal, niet per bron te koppelen): totaal, nieuwe deals vs termijnen.
+      let revenue = null;
+      if (mollieHelper.isEnabled()) {
+        try {
+          const payments = await mollieHelper.listPayments({ max: 250 });
+          const paid = payments.filter(p => p.status === 'paid');
+          const maandStartISO = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+          revenue = {
+            totaal: paid.reduce((s, p) => s + p.amount, 0),
+            nieuwe_deals: paid.filter(p => ['oneoff', 'first'].includes(p.sequence_type)).reduce((s, p) => s + p.amount, 0),
+            termijnen: paid.filter(p => p.sequence_type === 'recurring').reduce((s, p) => s + p.amount, 0),
+            deze_maand: paid.filter(p => (p.paid_at || '') >= maandStartISO).reduce((s, p) => s + p.amount, 0),
+            aantal_betaald: paid.length,
+          };
+        } catch (e) { console.warn('[/api/admin/crm] mollie:', e.message); }
+      }
+
+      return jsonRes(res, 200, {
+        period,
+        default_deal_value: data.defaultDeal,
+        kpi: data.kpi,
+        bySource,
+        calls: data.enriched,
+        target,
+        revenue,
+      });
+    } catch (e) {
+      console.warn('[/api/admin/crm] error:', e.message);
       return jsonRes(res, 500, { error: e.message });
     }
   }
@@ -2341,8 +2410,14 @@ const server = http.createServer(async (req, res) => {
     try { body = JSON.parse(await readBody(req)); }
     catch { return jsonRes(res, 400, { error: 'Invalid JSON' }); }
     const meta = readCallsMeta();
-    const v = Number(body.default_deal_value);
-    meta.config.default_deal_value = (!isNaN(v) && v >= 0) ? v : 0;
+    if (body.default_deal_value !== undefined) {
+      const v = Number(body.default_deal_value);
+      meta.config.default_deal_value = (!isNaN(v) && v >= 0) ? v : 0;
+    }
+    if (body.target_calls_per_month !== undefined) {
+      const t = Number(body.target_calls_per_month);
+      meta.config.target_calls_per_month = (!isNaN(t) && t >= 0) ? Math.round(t) : 0;
+    }
     writeCallsMeta(meta);
     return jsonRes(res, 200, { ok: true, config: meta.config });
   }
@@ -2358,10 +2433,9 @@ const server = http.createServer(async (req, res) => {
       const eventId = decodeURIComponent(m[1]);
       const meta = readCallsMeta();
       const cur = meta.calls[eventId] || {};
-      const VALID = ['open', 'showed', 'no_show', 'canceled', 'won', 'lost'];
       if (body.outcome !== undefined) {
         if (body.outcome === null || body.outcome === '') delete cur.outcome; // terug naar auto
-        else if (VALID.includes(body.outcome)) cur.outcome = body.outcome;
+        else if (CALL_OUTCOMES.includes(body.outcome)) cur.outcome = body.outcome;
         else return jsonRes(res, 400, { error: 'Ongeldige outcome' });
       }
       if (body.cash_value !== undefined) {
