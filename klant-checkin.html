@@ -265,20 +265,20 @@
                 <label class="foto-slot" data-pos="front">
                   <div class="emoji">📷</div>
                   <div class="label">Voorkant</div>
-                  <div class="sublabel">tik om een foto te maken</div>
-                  <input type="file" accept="image/*" capture="user" data-pos="front">
+                  <div class="sublabel">maken of uit galerij kiezen</div>
+                  <input type="file" accept="image/*" data-pos="front">
                 </label>
                 <label class="foto-slot" data-pos="side">
                   <div class="emoji">📷</div>
                   <div class="label">Zijkant</div>
-                  <div class="sublabel">tik om een foto te maken</div>
-                  <input type="file" accept="image/*" capture="user" data-pos="side">
+                  <div class="sublabel">maken of uit galerij kiezen</div>
+                  <input type="file" accept="image/*" data-pos="side">
                 </label>
                 <label class="foto-slot" data-pos="back">
                   <div class="emoji">📷</div>
                   <div class="label">Achterkant</div>
-                  <div class="sublabel">tik om een foto te maken</div>
-                  <input type="file" accept="image/*" capture="user" data-pos="back">
+                  <div class="sublabel">maken of uit galerij kiezen</div>
+                  <input type="file" accept="image/*" data-pos="back">
                 </label>
               </div>
             </div>
@@ -338,8 +338,8 @@
         slot.innerHTML = `
           <div class="emoji">📷</div>
           <div class="label">${labels[pos]}</div>
-          <div class="sublabel">tik om een foto te maken</div>
-          <input type="file" accept="image/*" capture="user" data-pos="${pos}">
+          <div class="sublabel">maken of uit galerij kiezen</div>
+          <input type="file" accept="image/*" data-pos="${pos}">
         `;
         slot.querySelector('input').addEventListener('change', (e) => handleFotoChoose(e.target));
       }
