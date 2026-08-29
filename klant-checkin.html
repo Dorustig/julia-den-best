@@ -265,19 +265,19 @@
                 <label class="foto-slot" data-pos="front">
                   <div class="emoji">📷</div>
                   <div class="label">Voorkant</div>
-                  <div class="sublabel">tik om te kiezen</div>
+                  <div class="sublabel">tik om een foto te maken</div>
                   <input type="file" accept="image/*" capture="user" data-pos="front">
                 </label>
                 <label class="foto-slot" data-pos="side">
                   <div class="emoji">📷</div>
                   <div class="label">Zijkant</div>
-                  <div class="sublabel">tik om te kiezen</div>
+                  <div class="sublabel">tik om een foto te maken</div>
                   <input type="file" accept="image/*" capture="user" data-pos="side">
                 </label>
                 <label class="foto-slot" data-pos="back">
                   <div class="emoji">📷</div>
                   <div class="label">Achterkant</div>
-                  <div class="sublabel">tik om te kiezen</div>
+                  <div class="sublabel">tik om een foto te maken</div>
                   <input type="file" accept="image/*" capture="user" data-pos="back">
                 </label>
               </div>
@@ -338,7 +338,7 @@
         slot.innerHTML = `
           <div class="emoji">📷</div>
           <div class="label">${labels[pos]}</div>
-          <div class="sublabel">tik om te kiezen</div>
+          <div class="sublabel">tik om een foto te maken</div>
           <input type="file" accept="image/*" capture="user" data-pos="${pos}">
         `;
         slot.querySelector('input').addEventListener('change', (e) => handleFotoChoose(e.target));
@@ -415,35 +415,48 @@
 
           // Upload foto's als die gekozen zijn — als base64 JSON voor eenvoud
           const fotoPositions = Object.keys(selectedFotos);
+          const fotoFouten = [];
           if (fotoPositions.length > 0) {
             btn.textContent = 'Foto\'s uploaden...';
             for (const pos of fotoPositions) {
               const blob = selectedFotos[pos];
-              const dataB64 = await new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = () => resolve(reader.result.split(',')[1]); // strip data:image/jpeg;base64,
-                reader.onerror = reject;
-                reader.readAsDataURL(blob);
-              });
-              const fotoRes = await fetch('/api/klant/checkin-foto', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  Authorization: 'Bearer ' + session.access_token,
-                },
-                body: JSON.stringify({
-                  check_in_id: check_in.id,
-                  positie: pos,
-                  data_base64: dataB64,
-                  mime: blob.type || 'image/jpeg',
-                }),
-              });
-              if (!fotoRes.ok) {
-                const fj = await fotoRes.json().catch(() => ({}));
-                console.warn('Foto upload failed voor ' + pos + ':', fj.error || fotoRes.status);
+              try {
+                const dataB64 = await new Promise((resolve, reject) => {
+                  const reader = new FileReader();
+                  reader.onload = () => resolve(reader.result.split(',')[1]); // strip data:image/jpeg;base64,
+                  reader.onerror = reject;
+                  reader.readAsDataURL(blob);
+                });
+                const fotoRes = await fetch('/api/klant/checkin-foto', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: 'Bearer ' + session.access_token,
+                  },
+                  body: JSON.stringify({
+                    check_in_id: check_in.id,
+                    positie: pos,
+                    data_base64: dataB64,
+                    mime: blob.type || 'image/jpeg',
+                  }),
+                });
+                if (!fotoRes.ok) {
+                  const fj = await fotoRes.json().catch(() => ({}));
+                  console.warn('Foto upload failed voor ' + pos + ':', fj.error || fotoRes.status);
+                  fotoFouten.push(pos);
+                }
+              } catch (upErr) {
+                console.warn('Foto upload error voor ' + pos + ':', upErr);
+                fotoFouten.push(pos);
               }
             }
           }
+
+          // Waarschuw als foto's zijn gekozen maar niet opgeslagen konden worden —
+          // niet stil "Gelukt!" tonen terwijl de foto's niet binnen zijn.
+          const fotoWaarschuwing = fotoFouten.length > 0
+            ? `<div class="msg error" style="margin-top:14px;">Let op: je gewicht en cijfers zijn opgeslagen, maar ${fotoFouten.length} foto('s) konden niet worden geüpload. Probeer ze straks opnieuw toe te voegen.</div>`
+            : '';
 
           render(`
             <div class="topbar">
@@ -454,6 +467,7 @@
               <div class="emoji">✨</div>
               <h1>Gelukt!</h1>
               <p>Je week ${weekNr} check-in is opgeslagen.<br>Julia krijgt een seintje.</p>
+              ${fotoWaarschuwing}
               <a href="/klant/start" class="btn-primary">Terug naar dashboard</a>
             </div>
           `);
