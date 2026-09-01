@@ -921,7 +921,7 @@
                     <td>${esc(l.leeftijd || '-')}</td>
                     <td>${esc(l.budget ? '€' + l.budget : '-')}</td>
                     <td><div class="urgentie-bar">${urgDots}</div></td>
-                    <td><span class="badge badge-${l.status || 'nieuw'}">${l.status || 'nieuw'}</span></td>
+                    <td><span class="badge badge-${l.status || 'nieuw'}">${l.status || 'nieuw'}</span>${l.geappt_at ? ' <span title="Ge-appt" style="display:inline-block;background:#D1FAE5;color:#065F46;padding:1px 7px;border-radius:9px;font-size:10px;font-weight:700;">📱</span>' : ''}</td>
                     <td style="font-size:13px;color:#6B7280">${date}</td>
                     <td style="white-space:nowrap"><button class="btn-admin btn-status" onclick="event.stopPropagation(); openLead('${l.id}')">Bekijk</button> <button class="btn-admin" style="color:#991B1B;padding:6px 10px" title="Verwijder" onclick="event.stopPropagation(); deleteLead('${l.id}')">&#10005;</button></td>
                 </tr>`;
@@ -939,7 +939,7 @@
                             <div class="lead-card-name">${esc(l.naam || '-')}</div>
                             <div class="lead-card-email">${esc(l.email || '')}</div>
                         </div>
-                        <span class="badge badge-${l.status || 'nieuw'}">${l.status || 'nieuw'}</span>
+                        <span>${l.geappt_at ? '<span title="Ge-appt" style="display:inline-block;background:#D1FAE5;color:#065F46;padding:1px 7px;border-radius:9px;font-size:10px;font-weight:700;margin-right:4px;">📱</span>' : ''}<span class="badge badge-${l.status || 'nieuw'}">${l.status || 'nieuw'}</span></span>
                     </div>
                     <div class="lead-card-meta">
                         <span><strong>Doel:</strong> ${esc(l.doel_type || '-')}</span>
@@ -1003,6 +1003,11 @@
                     <button class="btn-admin btn-export" onclick="setStatus('${l.id}','klant')">Klant!</button>
                     <button class="btn-admin btn-status" style="color:#991B1B" onclick="setStatus('${l.id}','lost')">Verloren</button>
                 </div>
+                <div class="lead-field" style="margin-top:14px"><label>App-contact (WhatsApp)</label></div>
+                <div class="lead-actions" style="align-items:center">
+                    <button class="btn-admin ${l.geappt_at ? 'btn-export' : 'btn-status'}" onclick="toggleGeappt('${l.id}')">${l.geappt_at ? '✅ Ge-appt — klik om terug te zetten' : '📱 Markeer als ge-appt'}</button>
+                    ${l.geappt_at ? `<span style="font-size:12px;color:#065F46">op ${new Date(l.geappt_at).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', year: 'numeric' })}</span>` : ''}
+                </div>
                 <div style="margin-top:16px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap">
                     <button class="btn-admin" style="color:#991B1B;border-color:#FECACA;background:#FEF2F2" onclick="deleteLead('${l.id}')">&#128465; Verwijder lead</button>
                     <button class="btn-admin btn-export" id="noteSaveBtn" onclick="saveNote('${l.id}')">Notitie toevoegen</button>
@@ -1033,6 +1038,25 @@
                 alert('Status wijzigen mislukt: ' + e.message);
             }
             updateStats();
+            renderTable();
+            openLead(id);
+        }
+
+        // Los vlaggetje: markeren dat we een lead via WhatsApp/app hebben benaderd.
+        // Staat los van de funnel-status (nieuw/gebeld/afspraak/…).
+        async function toggleGeappt(id) {
+            const idx = leads.findIndex(l => l.id === id);
+            if (idx === -1) return;
+            const old = leads[idx].geappt_at || null;
+            const next = old ? null : new Date().toISOString();
+            leads[idx].geappt_at = next;
+            try {
+                const r = await fetch(`/api/leads/${id}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ geappt_at: next }) });
+                if (!r.ok) { const j = await r.json().catch(() => ({})); throw new Error(j.error || 'HTTP ' + r.status); }
+            } catch (e) {
+                leads[idx].geappt_at = old;
+                alert('Ge-appt markeren mislukt: ' + e.message);
+            }
             renderTable();
             openLead(id);
         }

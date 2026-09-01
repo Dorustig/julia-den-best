@@ -518,7 +518,7 @@ const server = http.createServer(async (req, res) => {
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   // Version-stamp om te kunnen debuggen welke deploy draait.
-  res.setHeader('X-App-Version', 'checkin-foto-galerij-v33');
+  res.setHeader('X-App-Version', 'leads-union-geappt-v34');
 
   if (req.method === 'OPTIONS') {
     res.writeHead(204);
@@ -2000,6 +2000,7 @@ const server = http.createServer(async (req, res) => {
   // falls back to the file-based store.
   if (pathname === '/api/leads' && req.method === 'GET') {
     if (!requireAuth(req, res)) return;
+    const fileLeads = readLeads();
     if (supabaseHelper.isEnabled()) {
       const sbLeads = await supabaseHelper.listLeads();
       if (sbLeads) {
@@ -2027,12 +2028,29 @@ const server = http.createServer(async (req, res) => {
           referrer: l.referrer,
           status: l.status,
           notities: l.notities_julia,
+          geappt_at: l.geappt_at || null,
           timestamp: l.created_at,
         }));
-        return jsonRes(res, 200, mapped);
+        // UNION met de file-store: een lead die de POST wél naar de file schreef maar
+        // NIET in Supabase kwam (meestal een connectie-hik) zou anders onzichtbaar zijn
+        // in de portal — precies de "lead komt niet binnen"-klacht. Toon die alsnog.
+        const seenId = new Set(mapped.map(m => String(m.id || '')).filter(Boolean));
+        const seenEmail = new Set(mapped.map(m => (m.email || '').toLowerCase()).filter(Boolean));
+        const fileOnly = fileLeads.filter(l => {
+          if (l.id && seenId.has(String(l.id))) return false;
+          const em = (l.email || '').toLowerCase();
+          if (em && seenEmail.has(em)) return false;
+          return true;
+        });
+        // Self-heal: schrijf file-only leads (nogmaals) naar Supabase zodat ze duurzaam
+        // in de canonical store landen. Fire-and-forget + idempotent (upsert op legacy_id).
+        for (const l of fileOnly) supabaseHelper.saveLead(l).catch(() => {});
+        const all = [...mapped, ...fileOnly.map(l => ({ ...l, file_only: true }))];
+        all.sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
+        return jsonRes(res, 200, all);
       }
     }
-    return jsonRes(res, 200, readLeads());
+    return jsonRes(res, 200, fileLeads);
   }
 
   // POST /api/leads — create lead
@@ -2121,15 +2139,17 @@ const server = http.createServer(async (req, res) => {
       if (updates.instagram !== undefined) sbPatch.instagram = updates.instagram;
       if (updates.status !== undefined) sbPatch.status = updates.status;
       if (updates.notities !== undefined) sbPatch.notities_julia = updates.notities;
+      if (updates.geappt_at !== undefined) sbPatch.geappt_at = updates.geappt_at;
 
       if (supabaseHelper.isEnabled() && Object.keys(sbPatch).length) {
         const r = await supabaseHelper.updateLead(leadId, sbPatch);
         if (!r.ok) {
-          // Supabase is de canonical store voor de admin-lijst. Als de update
-          // daar faalt (bv. ongeldige status), moet de UI dat weten — anders
-          // lijkt de wijziging te lukken en springt hij bij refresh terug.
           console.warn('[PUT lead] Supabase:', r.error);
-          return jsonRes(res, 400, { error: 'Opslaan mislukt: ' + r.error });
+          // Status moet betrouwbaar zijn → hard falen zodat de UI het weet en niet
+          // stilletjes terugspringt bij refresh. Andere velden (bv. geappt_at op een
+          // omgeving waar die kolom nog niet bestaat) zijn niet-kritiek: val terug op
+          // de file-write hieronder, zodat het vlaggetje toch bewaard blijft.
+          if (updates.status !== undefined) return jsonRes(res, 400, { error: 'Opslaan mislukt: ' + r.error });
         }
       }
 
