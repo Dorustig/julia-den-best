@@ -83,7 +83,7 @@ const progressText = document.getElementById('progressText');
 const T = {
     nl: {
         // Navbar
-        navCta: 'Start Nu',
+        navCta: 'Stuur een bericht via WhatsApp',
         // Hero
         heroBadge: 'Nog maar 5 plekken beschikbaar deze maand',
         heroTitle: 'Girl, jij verdient <span class="highlight">écht</span> een transformatie.',
@@ -91,7 +91,7 @@ const T = {
         usp1: '100% persoonlijke begeleiding',
         usp2: '1-op-1 persoonlijke coaching',
         usp3: 'Op maat gemaakt voor jouw lichaam',
-        heroCta: 'Ja, ik wil dit! Start mijn transformatie',
+        heroCta: 'Stuur een bericht via WhatsApp',
         heroGuarantee: 'Niet goed? Geld terug. Geen risico.',
         stat1: 'Vrouwen geholpen', stat2: 'Beoordeling',
         float1name: 'Emma', float1text: 'Net week 8 afgerond!',
@@ -176,7 +176,7 @@ const T = {
         // CTA
         ctaTitle: 'Dit is jouw moment.',
         ctaText: 'Stop met twijfelen. Stop met uitstellen. Start vandaag nog met jouw transformatie.',
-        ctaCta: 'Start nu, het is gratis',
+        ctaCta: 'Stuur een bericht via WhatsApp',
         ctaGuarantee: 'Niet goed? Geld terug. Geen risico.',
         // Testimonials
         testTitle: 'Onze klanten aan het woord',
@@ -198,14 +198,14 @@ const T = {
         avSuccessSpan: 'Ik neem snel contact op.',
     },
     en: {
-        navCta: 'Start Now',
+        navCta: 'Send a message on WhatsApp',
         heroBadge: 'Only 5 spots left this month',
         heroTitle: 'Girl, you <span class="highlight">truly</span> deserve a transformation.',
         heroSubtitle: 'I help every woman, whether you\'re just starting or already experienced. <strong>With me you get personal 1-on-1 coaching, a plan tailored to you and I\'m there for you every day.</strong> Time to finally feel at home in your body. ✨',
         usp1: '100% personal coaching',
         usp2: '1-on-1 personal coaching',
         usp3: 'Tailored to your body',
-        heroCta: 'Yes, I want this! Start my transformation',
+        heroCta: 'Send a message on WhatsApp',
         heroGuarantee: 'Not satisfied? Money back. No risk.',
         stat1: 'Women helped', stat2: 'Rating',
         float1name: 'Emma', float1text: 'Just completed week 8!',
@@ -282,7 +282,7 @@ const T = {
         featTitle: 'What you get',
         ctaTitle: 'This is your moment.',
         ctaText: 'Stop doubting. Stop postponing. Start your transformation today.',
-        ctaCta: 'Start now, it\'s free',
+        ctaCta: 'Send a message on WhatsApp',
         ctaGuarantee: 'Not satisfied? Money back. No risk.',
         testTitle: 'Our clients speak',
         modalBadge: 'Success!',
@@ -1084,10 +1084,17 @@ shakeStyle.textContent = `@keyframes shake { 0%,100%{transform:translateX(0)} 25
 document.head.appendChild(shakeStyle);
 
 // ===== SMOOTH SCROLL =====
+// ===== WhatsApp-funnel: alle "start/volgende"-CTA's openen WhatsApp =====
+// Eén bron van waarheid voor het startbericht. Wil je het bericht of nummer wijzigen,
+// pas alleen deze regel aan (de knoppen in de HTML hebben een werkende fallback-link).
+const WA_URL = 'https://wa.me/31612846270?text=' + encodeURIComponent('Hey Julia! Ik wil starten met mijn transformatie 💪');
+// Houd de expliciete WhatsApp-knoppen (.wa-link) in sync met het bericht.
+document.querySelectorAll('a.wa-link').forEach(a => { a.href = WA_URL; a.target = '_blank'; a.rel = 'noopener'; });
+// Overgebleven #vragenlijst-links (tekstlinks, footer, aanbod-CTA's) openen ook WhatsApp.
 document.querySelectorAll('a[href="#vragenlijst"]').forEach(link => {
     link.addEventListener('click', (e) => {
         e.preventDefault();
-        document.getElementById('vragenlijst').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        window.open(WA_URL, '_blank', 'noopener');
     });
 });
 
