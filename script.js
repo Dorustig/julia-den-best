@@ -1087,7 +1087,7 @@ document.head.appendChild(shakeStyle);
 // ===== WhatsApp-funnel: alle "start/volgende"-CTA's openen WhatsApp =====
 // Eén bron van waarheid voor het startbericht. Wil je het bericht of nummer wijzigen,
 // pas alleen deze regel aan (de knoppen in de HTML hebben een werkende fallback-link).
-const WA_URL = 'https://wa.me/31612846270?text=' + encodeURIComponent('Hey Julia! Ik wil starten met mijn transformatie 💪');
+const WA_URL = 'https://wa.me/31612846270?text=' + encodeURIComponent('Hé Julia, ik ben klaar voor mijn transformatie.');
 // Houd de expliciete WhatsApp-knoppen (.wa-link) in sync met het bericht.
 document.querySelectorAll('a.wa-link').forEach(a => { a.href = WA_URL; a.target = '_blank'; a.rel = 'noopener'; });
 // Overgebleven #vragenlijst-links (tekstlinks, footer, aanbod-CTA's) openen ook WhatsApp.
