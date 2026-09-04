@@ -465,6 +465,19 @@ async function buildCallsData(period) {
   enriched.sort((a, b) => new Date(b.start_time || b.created_at) - new Date(a.start_time || a.created_at));
   return { period, defaultDeal, meta, enriched, kpi: computeCallKpi(enriched) };
 }
+// Bepaal of een Open Food Facts-product een vloeistof is (→ ml) of vast (→ gram),
+// zodat de app de juiste eenheid vraagt (melk in ml, chocolade in gram).
+function offUnit(p) {
+  const LIQUID = ['beverage', 'drink', 'milk', 'juice', 'water', 'soda', 'smoothie', 'dairy-drink', 'koffie', 'thee', 'frisdrank', 'melk', 'drank', 'yoghurtdrink'];
+  const cats = (p.categories_tags || []).join(' ').toLowerCase();
+  if (LIQUID.some(w => cats.includes(w))) return 'ml';
+  const ss = (p.serving_size || '').toLowerCase();
+  const qy = (p.quantity || '').toLowerCase();
+  if (/\d\s*(ml|cl|liter|\bl\b)/.test(ss) || /\d\s*(ml|cl|liter|\bl\b)/.test(qy)) return 'ml';
+  if ((p.nutrition_data_per || '') === '100ml') return 'ml';
+  return 'g';
+}
+
 function readBody(req) {
   return new Promise((resolve, reject) => {
     let body = '';
@@ -518,7 +531,7 @@ const server = http.createServer(async (req, res) => {
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   // Version-stamp om te kunnen debuggen welke deploy draait.
-  res.setHeader('X-App-Version', 'website-julia-voorna-v37');
+  res.setHeader('X-App-Version', 'voeding-zoeken-v38');
 
   if (req.method === 'OPTIONS') {
     res.writeHead(204);
@@ -1119,7 +1132,7 @@ const server = http.createServer(async (req, res) => {
       if (!user) return jsonRes(res, 401, { error: 'Not logged in' });
       const barcode = m[1];
       try {
-        const url = `https://world.openfoodfacts.org/api/v2/product/${barcode}.json?fields=product_name,product_name_nl,brands,nutriments,quantity`;
+        const url = `https://world.openfoodfacts.org/api/v2/product/${barcode}.json?fields=product_name,product_name_nl,brands,nutriments,quantity,serving_size,categories_tags,nutrition_data_per`;
         const off = await fetch(url, { headers: { 'User-Agent': 'JuliaBesten/1.0 (coaching app)' } });
         if (!off.ok) return jsonRes(res, 200, { found: false });
         const data = await off.json();
@@ -1134,6 +1147,7 @@ const server = http.createServer(async (req, res) => {
           barcode,
           naam: naam.slice(0, 120),
           merk: (p.brands || '').split(',')[0].trim() || null,
+          unit: offUnit(p),
           per100g: {
             kcal: numOr(n['energy-kcal_100g']),
             eiwit: numOr(n.proteins_100g),
@@ -1145,6 +1159,56 @@ const server = http.createServer(async (req, res) => {
         console.warn('[product lookup]', e.message);
         return jsonRes(res, 200, { found: false, error: 'lookup mislukt' });
       }
+    }
+  }
+
+  // GET /api/klant/product-search?q=... — zoek in de Open Food Facts-database (zoals
+  // Lifesum): veel merken, per-100g/ml macro's, met eenheid (ml voor drank, g voor vast).
+  if (pathname === '/api/klant/product-search' && req.method === 'GET') {
+    const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+    const user = await supabaseHelper.verifyUserToken(token);
+    if (!user) return jsonRes(res, 401, { error: 'Not logged in' });
+    const q = (parsed.query.q || '').toString().trim();
+    if (q.length < 2) return jsonRes(res, 200, { results: [] });
+    try {
+      // Full-text zoek-API van Open Food Facts (search-a-licious). Geeft échte
+      // tekstzoek terug (de oude cgi/search.pl is zwaar gerate-limit → 503).
+      const url = 'https://search.openfoodfacts.org/search?q=' + encodeURIComponent(q)
+        + '&page_size=40&fields=product_name,product_name_nl,brands,nutriments,quantity,serving_size,categories_tags,nutrition_data_per';
+      const off = await fetch(url, { headers: { 'User-Agent': 'JuliaBesten/1.0 (coaching app)' } });
+      if (!off.ok) return jsonRes(res, 200, { results: [] });
+      const data = await off.json();
+      const numOr = (v) => (v === undefined || v === null || v === '' || isNaN(parseFloat(v))) ? null : Math.round(parseFloat(v) * 10) / 10;
+      const firstBrand = (p) => Array.isArray(p.brands) ? (p.brands[0] || null) : ((p.brands || '').split(',')[0].trim() || null);
+      const seen = new Set();
+      const results = [];
+      for (const p of (data.hits || [])) {
+        const naam = (p.product_name_nl || p.product_name || '').trim();
+        if (!naam || naam.length < 2) continue;
+        const n = p.nutriments || {};
+        const kcal = numOr(n['energy-kcal_100g']);
+        if (kcal == null) continue; // zonder kcal is een resultaat nutteloos
+        const merk = firstBrand(p);
+        const key = (naam + '|' + (merk || '')).toLowerCase();
+        if (seen.has(key)) continue;
+        seen.add(key);
+        results.push({
+          naam: naam.slice(0, 120),
+          merk,
+          unit: offUnit(p),
+          per100g: {
+            kcal,
+            eiwit: numOr(n.proteins_100g),
+            koolhydraten: numOr(n.carbohydrates_100g),
+            vet: numOr(n.fat_100g),
+          },
+        });
+        if (results.length >= 20) break;
+      }
+      return jsonRes(res, 200, { results });
+    } catch (e) {
+      console.warn('[product search]', e.message);
+      return jsonRes(res, 200, { results: [], error: 'zoeken mislukt' });
     }
   }
   {

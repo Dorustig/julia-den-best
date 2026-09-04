@@ -138,6 +138,18 @@
     .scan-btn { width: 100%; padding: 11px; background: #fff; color: #a17a5e; border: 1.5px solid #d3a39d; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; margin-bottom: 10px; }
     .scan-btn:hover { background: #f9e5e4; }
 
+    /* Productzoeker (bibliotheek, zoals Lifesum) */
+    .prod-search { position: relative; margin-bottom: 10px; }
+    .prod-search input { width: 100%; padding: 11px 12px; border: 1.5px solid #d3a39d; border-radius: 10px; font-size: 14px; font-family: inherit; background: #fff; }
+    .prod-search input:focus { outline: none; border-color: #a17a5e; }
+    .search-results { margin-top: 6px; display: none; flex-direction: column; gap: 4px; max-height: 280px; overflow-y: auto; }
+    .search-results.open { display: flex; }
+    .search-row { text-align: left; background: #faf5ec; border: 1px solid #eed7d4; border-radius: 10px; padding: 8px 10px; cursor: pointer; font-family: inherit; width: 100%; }
+    .search-row:hover { background: #f6e6e4; }
+    .search-row .sr-naam { font-size: 13px; font-weight: 600; color: #1F2937; }
+    .search-row .sr-meta { font-size: 11px; color: #9CA3AF; margin-top: 1px; }
+    .search-empty { font-size: 12px; color: #9CA3AF; padding: 6px 2px; }
+
     /* Gram-rij */
     .gram-row { margin-bottom: 8px; }
     .gram-row .nlbl { font-size: 10.5px; font-weight: 700; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 3px; }
@@ -359,6 +371,10 @@
               </div>` : ''}
             <div class="add-form ${openForm === m.key ? 'open' : ''}" id="form-${m.key}">
               ${renderFavorieten(m.key)}
+              <div class="prod-search">
+                <input type="text" id="search-${m.key}" placeholder="🔎 Zoek een product (bv. halfvolle melk)" autocomplete="off" oninput="onSearch('${m.key}', this.value)">
+                <div class="search-results" id="searchres-${m.key}"></div>
+              </div>
               <button type="button" class="scan-btn" onclick="startScan('${m.key}')">📷 Barcode scannen</button>
               <input type="text" class="oms-in" id="oms-${m.key}" placeholder="Wat at je? (bv. Griekse yoghurt met havermout)" list="recente-items"
                      onchange="autofillMacros('${m.key}')"
@@ -593,6 +609,42 @@
       if (code && code.replace(/\D/g, '').length >= 6) lookupBarcode(code.replace(/\D/g, ''));
     };
 
+    // ===== Productzoeker (Open Food Facts, zoals Lifesum) =====
+    let searchTimer = null;
+    window.__searchResults = [];
+    window.onSearch = (meal, q) => {
+      clearTimeout(searchTimer);
+      const box = document.getElementById('searchres-' + meal);
+      q = (q || '').trim();
+      if (q.length < 2) { if (box) { box.classList.remove('open'); box.innerHTML = ''; } return; }
+      searchTimer = setTimeout(() => doSearch(meal, q), 320);
+    };
+    async function doSearch(meal, q) {
+      const box = document.getElementById('searchres-' + meal);
+      if (!box) return;
+      box.classList.add('open');
+      box.innerHTML = '<div class="search-empty">Zoeken…</div>';
+      try {
+        const r = await fetch('/api/klant/product-search?q=' + encodeURIComponent(q), { headers: authHdr });
+        const d = await r.json();
+        const res = d.results || [];
+        window.__searchResults = res;
+        if (!res.length) { box.innerHTML = '<div class="search-empty">Niks gevonden. Typ anders, of vul het handmatig in 💕</div>'; return; }
+        box.innerHTML = res.map((p, i) => {
+          const meta = [p.merk, `${p.per100g.kcal} kcal / 100${p.unit}`].filter(Boolean).join(' · ');
+          return `<button type="button" class="search-row" onclick="openSearchProduct(${i}, '${meal}')"><div class="sr-naam">${escapeHtml(p.naam)}</div><div class="sr-meta">${escapeHtml(meta)}</div></button>`;
+        }).join('');
+      } catch (e) {
+        box.innerHTML = '<div class="search-empty">Zoeken mislukt. Probeer opnieuw.</div>';
+      }
+    }
+    window.openSearchProduct = (i, meal) => {
+      const p = window.__searchResults[i];
+      if (!p) return;
+      scanMeal = meal;
+      openProductModal(p);
+    };
+
     async function lookupBarcode(barcode) {
       const msg = document.getElementById('msg');
       try {
@@ -623,12 +675,15 @@
         p.koolhydraten != null ? `K ${p.koolhydraten}g` : null,
         p.vet != null ? `V ${p.vet}g` : null,
       ].filter(Boolean).join(' · ');
+      const unit = prod.unit === 'ml' ? 'ml' : 'g';
+      const unitLbl = unit === 'ml' ? 'ml' : 'gram';
+      const defAmt = unit === 'ml' ? 250 : 100;
       card.innerHTML = `
         <h3>${escapeHtml(prod.naam)}</h3>
-        <div class="merk">${prod.merk ? escapeHtml(prod.merk) + ' · ' : ''}per 100g/ml: ${per || 'geen macro-data'}</div>
+        <div class="merk">${prod.merk ? escapeHtml(prod.merk) + ' · ' : ''}per 100${unit}: ${per || 'geen macro-data'}</div>
         <div class="prod-gram-row">
-          <label>Hoeveel gram / ml?</label>
-          <input type="number" inputmode="numeric" id="prodGram" value="100" min="1" max="5000" oninput="recomputeProd()">
+          <label>Hoeveel ${unitLbl}?</label>
+          <input type="number" inputmode="numeric" id="prodGram" value="${defAmt}" min="1" max="5000" oninput="recomputeProd()">
         </div>
         <div class="prod-totaal" id="prodTotaal"></div>
         <div class="prod-actions">
@@ -663,11 +718,13 @@
     window.prodAdd = async () => {
       const prod = window.__prod, c = window.__prodCalc;
       if (!prod || !c) return;
+      // Vloeistof (ml) tonen we in de naam ("Halfvolle melk (250 ml)") i.p.v. een gram-tag.
+      const isMl = prod.unit === 'ml';
       try {
         await postLog({
           maaltijd: scanMeal || 'snack',
-          omschrijving: prod.naam,
-          gram: c.gram, calories: c.calories,
+          omschrijving: isMl ? `${prod.naam} (${c.gram} ml)` : prod.naam,
+          gram: isMl ? null : c.gram, calories: c.calories,
           eiwit_g: c.eiwit_g, koolhydraten_g: c.koolhydraten_g, vetten_g: c.vetten_g,
         });
         closeProd();
